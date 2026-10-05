@@ -1,0 +1,20 @@
+{
+  "sequence": "(brush, roller, box)/20231104_007",
+  "frame": 80,
+  "rgb_size_wh": [
+    512,
+    376
+  ],
+  "source": "RGB point selections identify the target instances; dataset poses and segmentation are not used for initialization.",
+  "source_zh": "历史 TACO 点提示运行保存的 RGB 选点，已在原始第 80 帧目视核对；不使用标注位姿投影或数据集分割。",
+  "clicks": {
+    "box": [
+      191,
+      100
+    ],
+    "roller": [
+      261,
+      247
+    ]
+  }
+}

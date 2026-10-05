@@ -1,0 +1,180 @@
+name: Release WAPR wheel
+
+# Only repository-maintainer releases can reach the CUDA runner.
+# 仅仓库维护者发布的正式 Release 可进入 CUDA runner；不监听 PR 或 main 推送。
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pypi-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  build-wheel:
+    if: >-
+      github.repository == 'WangYuLin-SEU/WAPR' &&
+      github.event_name == 'release' &&
+      !github.event.release.draft &&
+      !github.event.release.prerelease &&
+      startsWith(github.event.release.tag_name, 'v')
+    runs-on: [self-hosted, linux, x64, wapr-cuda-12-8]
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - name: Checkout release source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check controlled release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          git merge-base --is-ancestor HEAD origin/main
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Prepare packaging tools
+        run: python -m pip install 'setuptools>=77' 'wheel>=0.45' 'pybind11==2.12.0' tomli packaging twine
+
+      - name: Build the wheel
+        run: python wheel_build/build_wheel.py
+
+      - name: Check wheel metadata and checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m twine check --strict wheel_build/dist/*.whl
+          python - <<'PY'
+          import hashlib
+          import os
+          import pathlib
+          import zipfile
+          from email.parser import BytesParser
+          from packaging.utils import parse_wheel_filename
+          directory = pathlib.Path('wheel_build/dist')
+          files = list(directory.iterdir())
+          assert len(files) == 1 and files[0].suffix == '.whl', files
+          wheel = files[0]
+          name, version, _, tags = parse_wheel_filename(wheel.name)
+          assert name == 'wapr' and not version.is_prerelease and not version.is_devrelease
+          assert not version.local and str(version) == os.environ['RELEASE_TAG'][1:]
+          assert all(tag.interpreter == 'cp310' and tag.abi == 'cp310' for tag in tags)
+          with zipfile.ZipFile(wheel) as archive:
+              info = next(x for x in archive.namelist() if x.endswith('.dist-info/METADATA'))
+              metadata = BytesParser().parsebytes(archive.read(info))
+          assert metadata['Name'] == 'wapr' and metadata['Version'] == str(version)
+          assert metadata['Requires-Python'] == '==3.10.*'
+          digest = hashlib.sha256(wheel.read_bytes()).hexdigest()
+          (directory / 'SHA256SUMS').write_text(digest + '  ' + wheel.name + '\n')
+          print('VERIFIED_WHEEL', wheel.name, digest)
+          PY
+
+      - name: Install and smoke test outside the checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          smoke_dir=$(mktemp -d "$RUNNER_TEMP/wapr-smoke.XXXXXX")
+          trap 'rm -rf "$smoke_dir"' EXIT
+          wheel_files=("$GITHUB_WORKSPACE"/wheel_build/dist/*.whl)
+          python -m venv "$smoke_dir/venv"
+          unset PYTHONPATH PYTHONHOME
+          "$smoke_dir/venv/bin/python" -m pip install "${wheel_files[0]}"
+          "$smoke_dir/venv/bin/python" -m pip check
+          cd "$smoke_dir"
+          "$smoke_dir/venv/bin/python" -I - <<'PY'
+          import importlib
+          import os
+          import pathlib
+          import sys
+          import torch
+          import wapr
+          from wapr import resources
+          package_file = pathlib.Path(wapr.__file__).resolve()
+          checkout = pathlib.Path(os.environ['GITHUB_WORKSPACE']).resolve()
+          assert package_file.is_relative_to(pathlib.Path(sys.prefix).resolve())
+          assert not package_file.is_relative_to(checkout)
+          assert not pathlib.Path.cwd().is_relative_to(checkout)
+          assert not resources.source_checkout
+          assert torch.cuda.is_available()
+          assert torch.ones(3, device='cuda:0').sum().item() == 3
+          native = importlib.import_module('wapr.ogl_native._gpu_render')
+          shaders = package_file.parent / 'ogl_native' / 'shaders'
+          runtime = native.GpuRenderRuntime(0, str(shaders))
+          assert runtime.gl_version_string()
+          print('wapr.__file__', str(package_file))
+          print('NATIVE_MODULE', native.__file__)
+          print('CUDA_DEVICE', torch.cuda.get_device_name(0))
+          print('OPENGL', runtime.gl_version_string())
+          print('SMOKE_OK: no weights downloaded and no estimator constructed')
+          PY
+
+      - name: Upload verified wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wapr-wheel-${{ github.event.release.tag_name }}
+          path: |
+            wheel_build/dist/*.whl
+            wheel_build/dist/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 14
+
+  publish-pypi:
+    needs: build-wheel
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - name: Download the verified wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: wapr-wheel-${{ github.event.release.tag_name }}
+          path: verified-wheel
+
+      - name: Verify checksum and PyPI eligibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd verified-wheel
+          sha256sum --check SHA256SUMS
+          python - <<'PY'
+          import os
+          import pathlib
+          import re
+          import shutil
+          files = list(pathlib.Path('.').iterdir())
+          wheels = [p for p in files if p.suffix == '.whl']
+          assert len(wheels) == 1 and len(files) == 2
+          wheel = wheels[0]
+          name, version, interpreter, abi, platform = wheel.stem.split('-')
+          assert name == 'wapr' and interpreter == 'cp310' and abi == 'cp310'
+          assert re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version)
+          assert os.environ['RELEASE_TAG'] == 'v' + version
+          if not all(re.fullmatch(r'(?:manylinux_2_[0-9]+|manylinux1|manylinux2010|manylinux2014)_x86_64', tag) for tag in platform.split('.')):
+              raise SystemExit('PyPI needs a validated manylinux wheel; generic linux_x86_64 is not accepted. Do not rename an unaudited wheel.')
+          destination = pathlib.Path('../dist')
+          destination.mkdir()
+          shutil.copyfile(wheel, destination / wheel.name)
+          PY
+
+      - name: Publish only the verified wheel with OIDC
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/

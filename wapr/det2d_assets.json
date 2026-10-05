@@ -1,0 +1,40 @@
+{
+  "artifacts": {
+    "groundingdino_swinb_cogcoor.pth": {
+      "sha256": "46270f7a822e6906b655b729c90613e48929d0f2bb8b9b76fd10a856f3ac6ab7",
+      "bytes": 938057991
+    },
+    "sam2.1_l.pt": {
+      "sha256": "ab7e1ac9cb9f6eb3bcf197ece044f06a707ec49129361a2b47e93e1db6989efd",
+      "bytes": 449239354
+    },
+    "dinov2_vitl14_pretrain.pth": {
+      "sha256": "d5383ea8f4877b2472eb973e0fd72d557c7da5d3611bd527ceeb1d7162cbf428",
+      "bytes": 1217586395
+    },
+    "bert-base-uncased/config.json": {
+      "sha256": "7160e1553ad2ca51d8c1cb066be533db31826e12d173824c1bb0cb1a4f187d20",
+      "bytes": 570
+    },
+    "bert-base-uncased/pytorch_model.bin": {
+      "sha256": "097417381d6c7230bd9e3557456d726de6e83245ec8b24f529f60198a67b203a",
+      "bytes": 440473133
+    },
+    "bert-base-uncased/tokenizer.json": {
+      "sha256": "ce64fce797c24f68df90b40a3f74f579b336a493db14bd583fd520ea0d8c9a98",
+      "bytes": 466062
+    },
+    "bert-base-uncased/tokenizer_config.json": {
+      "sha256": "a025160ef0431f1a392f6f050c1310f4c5d9fb6f275932dbccba73c4d214bf10",
+      "bytes": 48
+    },
+    "bert-base-uncased/vocab.txt": {
+      "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3",
+      "bytes": 231508
+    },
+    "groundingdino_swinb.json": {
+      "sha256": "65c95dabc0e6b02ad0edd506d21e2fbf535e422a56a870813e9b1806f4537d71",
+      "bytes": 1197
+    }
+  }
+}

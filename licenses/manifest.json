@@ -1,0 +1,1172 @@
+{
+  "components": [
+    {
+      "id": "groundingdino",
+      "name": "GroundingDINO",
+      "aliases": [
+        "GroundingDINO",
+        "Grounding DINO"
+      ],
+      "license": "Apache-2.0",
+      "source_url": "https://github.com/IDEA-Research/GroundingDINO",
+      "scope": {
+        "en": "Detector source; original notices retained.",
+        "zh": "检测源码；保留原始声明。"
+      },
+      "files": [
+        {
+          "path": "groundingdino/LICENSE",
+          "sha256": "b403c98ec1ffaccb0124632592a3d99642cddc3031ca412b402568e6c06c202a"
+        },
+        {
+          "path": "groundingdino/NOTICE",
+          "sha256": "73121c172acfe91e6d3e517efb0b2298ac56682954fb149f7541b821230a2f4f"
+        }
+      ]
+    },
+    {
+      "id": "ultralytics",
+      "name": "Ultralytics",
+      "aliases": [
+        "Ultralytics"
+      ],
+      "license": "AGPL-3.0",
+      "source_url": "https://github.com/ultralytics/ultralytics/tree/v8.3.70",
+      "scope": {
+        "en": "Ultralytics 8.3.70 loader; review AGPL obligations or obtain an upstream commercial license. Native Meta SAM 2 has separate terms.",
+        "zh": "Ultralytics 8.3.70 加载器；须遵守 AGPL 条款或取得上游商业授权。Meta 原生 SAM 2 另有许可。"
+      },
+      "files": [
+        {
+          "path": "ultralytics/LICENSE",
+          "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0"
+        },
+        {
+          "path": "ultralytics/NOTICE",
+          "sha256": "02dfd287ced4c5fecb87a8689f9cf60f9be2e157021b807450b0883742a2ef59"
+        }
+      ]
+    },
+    {
+      "id": "dinov2",
+      "name": "DINOv2",
+      "aliases": [
+        "DINOv2"
+      ],
+      "license": "Apache-2.0",
+      "source_url": "https://github.com/facebookresearch/dinov2",
+      "scope": {
+        "en": "Code and official DINOv2 weights; retain copyright and license.",
+        "zh": "源码与官方 DINOv2 权重；保留版权和许可。"
+      },
+      "files": [
+        {
+          "path": "dinov2/LICENSE",
+          "sha256": "600cc67cc4cb2f5ea317dcfc687ad1c74dc4bec8782bbe9db0afd83513b935b7"
+        }
+      ]
+    },
+    {
+      "id": "sam2",
+      "name": "SAM 2",
+      "aliases": [
+        "SAM 2.1",
+        "SAM 2",
+        "SAM2"
+      ],
+      "license": "Apache-2.0; cctorch: BSD-3-Clause",
+      "source_url": "https://github.com/facebookresearch/sam2/tree/2b90b9f5ceec907a1c18123530e92e794ad901a4",
+      "scope": {
+        "en": "Native source and official checkpoints; cctorch carries an additional BSD notice. Ultralytics-converted files require checking their distributor terms.",
+        "zh": "原生源码与官方权重；cctorch 另附 BSD 声明。Ultralytics 转换文件还需核对分发方条款。"
+      },
+      "files": [
+        {
+          "path": "sam2/LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        },
+        {
+          "path": "sam2/LICENSE_cctorch",
+          "sha256": "687d4f65ffe399358b170e22572564a16689e496f85a79dc5385fccf6bbc9558"
+        }
+      ]
+    },
+    {
+      "id": "sam3d",
+      "name": "SAM 3D Objects",
+      "aliases": [
+        "SAM 3D Objects",
+        "SAM 3D"
+      ],
+      "license": "SAM License (custom)",
+      "source_url": "https://github.com/facebookresearch/sam-3d-objects/tree/f91db411c50efee93d8db7aeb323885650f6f722",
+      "scope": {
+        "en": "Source and model materials follow the upstream custom agreement, including redistribution, attribution and use restrictions.",
+        "zh": "源码及模型材料遵循上游自定义协议，包括再分发、署名与使用限制。"
+      },
+      "files": [
+        {
+          "path": "sam3d/LICENSE",
+          "sha256": "b3a5a0e2d973ab80e6610ccf1cffc40756050d0ace3cd4fec879b3ec290b2e9b"
+        }
+      ]
+    },
+    {
+      "id": "moge",
+      "name": "MoGe",
+      "aliases": [
+        "MoGe"
+      ],
+      "license": "MIT; bundled notices also include Apache-2.0",
+      "source_url": "https://github.com/microsoft/MoGe",
+      "scope": {
+        "en": "MoGe source and the selected moge-vitl model (model card: MIT); retain the complete combined LICENSE and dependency notices.",
+        "zh": "MoGe 源码与所选 moge-vitl 权重（模型卡：MIT）；保留完整组合 LICENSE 及依赖声明。"
+      },
+      "files": [
+        {
+          "path": "moge/LICENSE.txt",
+          "sha256": "ad7d951c80c5fc2b2bce035f2041bc0a0dbf9028c8ecc4c9a8e1fba8130b6b59"
+        }
+      ]
+    },
+    {
+      "id": "unipose9d",
+      "name": "UniPose9D",
+      "aliases": [
+        "UniPose9D"
+      ],
+      "license": "Apache-2.0",
+      "source_url": "https://github.com/qq456cvb/UniPose9D",
+      "scope": {
+        "en": "Inference repository and its release; helper models retain their own terms.",
+        "zh": "推理仓库及其发布材料；辅助模型保留各自条款。"
+      },
+      "files": [
+        {
+          "path": "unipose9d/LICENSE.txt",
+          "sha256": "f6884c89cd00187479859caef6f925dc1b690bab1eb8c996d37d9969569ca948"
+        }
+      ]
+    },
+    {
+      "id": "roma",
+      "name": "RoMa",
+      "aliases": [
+        "RoMa"
+      ],
+      "license": "MIT",
+      "source_url": "https://github.com/Parskatt/RoMa",
+      "scope": {
+        "en": "Matching source; separately obtained checkpoints and dependencies retain upstream terms.",
+        "zh": "匹配源码；另行获取的权重与依赖保留上游条款。"
+      },
+      "files": [
+        {
+          "path": "roma/LICENSE.txt",
+          "sha256": "6f02ad61c3fd4509343d619b55501354bcebfd67ad5460c853d02c7ab46ff4bd"
+        }
+      ]
+    },
+    {
+      "id": "qwen-vl-3b",
+      "name": "Qwen2.5-VL-3B-Instruct",
+      "aliases": [
+        "Qwen2.5-VL",
+        "Qwen2.5-VL-3B-Instruct",
+        "Qwen"
+      ],
+      "license": "Qwen Research License (custom)",
+      "source_url": "https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct",
+      "scope": {
+        "en": "This exact 3B model permits non-commercial research/evaluation; commercial use requires permission from Alibaba Cloud. Do not infer its terms from other Qwen sizes.",
+        "zh": "本项目选用的 3B 模型限定非商业研究/评估；商业使用须向 Alibaba Cloud 申请。不能套用其他 Qwen 规格的许可。"
+      },
+      "files": [
+        {
+          "path": "qwen-vl-3b/LICENSE.txt",
+          "sha256": "b5c0e5cf74cf51af1ecbc4af597cfcd13fd9925611838884a681070838a14a50"
+        }
+      ]
+    },
+    {
+      "id": "bop-coco",
+      "name": "BOP COCO evaluation fork",
+      "aliases": [
+        "BOP COCO"
+      ],
+      "license": "BSD-2-Clause",
+      "source_url": "https://github.com/MartinSmeyer/cocoapi/tree/v1.0",
+      "scope": {
+        "en": "The vendored BOP COCO evaluation fork; exact file provenance is in the original source.",
+        "zh": "随包 BOP COCO 评测分支；文件来源见 the original source。"
+      },
+      "files": [
+        {
+          "path": "bop-coco/LICENSE",
+          "sha256": "bd8ef15597b3b292f3bb0feed9701c1ace5bcebe07f28fb5047ec8d3d89471b1"
+        }
+      ]
+    },
+    {
+      "id": "foundationpose",
+      "name": "FoundationPose",
+      "aliases": [
+        "FoundationPose"
+      ],
+      "license": "NVIDIA custom source license",
+      "source_url": "https://github.com/NVlabs/FoundationPose",
+      "scope": {
+        "en": "Comparison method source has a custom license; do not describe it as MIT or presume weights share the same grant.",
+        "zh": "对照方法源码使用自定义许可；不能标为 MIT，也不能推定权重有相同授权。"
+      },
+      "files": [
+        {
+          "path": "foundationpose/LICENSE.txt",
+          "sha256": "0de51abc6b73e24724858239efc42cfeada5d9e7c911cf7eff077bd9a23dec62"
+        }
+      ]
+    },
+    {
+      "id": "megapose",
+      "name": "MegaPose",
+      "aliases": [
+        "MegaPose"
+      ],
+      "license": "Apache-2.0",
+      "source_url": "https://github.com/megapose6d/megapose6d",
+      "scope": {
+        "en": "Comparison source; upstream model/data materials may have separate terms.",
+        "zh": "对照源码；上游模型与数据可能有独立条款。"
+      },
+      "files": [
+        {
+          "path": "megapose/LICENSE.txt",
+          "sha256": "a1fab086f75d3b6235794737b2c9ff94d38b46c80a5b12e64b937f573f18574d"
+        }
+      ]
+    },
+    {
+      "id": "threejs",
+      "name": "Three.js",
+      "aliases": [
+        "Three.js"
+      ],
+      "license": "MIT",
+      "source_url": "https://github.com/mrdoob/three.js/tree/r160",
+      "scope": {
+        "en": "Bundled viewer reports REVISION 160; retain its embedded copyright header.",
+        "zh": "随包查看器声明 REVISION 160；保留其内嵌版权声明。"
+      },
+      "files": [
+        {
+          "path": "threejs/LICENSE.txt",
+          "sha256": "852e0e8699169bf9f6fdc6bda3e682d078dcbc738b5d33e74df594721bff271d"
+        }
+      ]
+    },
+    {
+      "id": "wqy",
+      "name": "WenQuanYi Micro Hei",
+      "aliases": [
+        "WenQuanYi",
+        "文泉驿"
+      ],
+      "license": "Apache-2.0 OR GPL-3.0-or-later with font exception",
+      "source_url": "https://wenq.org/wqy2/index.cgi?MicroHei",
+      "scope": {
+        "en": "Unmodified bundled font; complete dual-license copyright notice and Apache text are supplied.",
+        "zh": "随包原版字体；提供完整双许可版权声明及 Apache 正文。"
+      },
+      "files": [
+        {
+          "path": "wqy/wqy-microhei-copyright.txt",
+          "sha256": "aee4111b1e01dd3d36514ee7d1e5b144f45e72f4dba83045bb9ff6e47fa4e680"
+        },
+        {
+          "path": "wqy/Apache-2.0.txt",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        }
+      ]
+    },
+    {
+      "id": "nvdiffrast",
+      "name": "nvdiffrast",
+      "aliases": [
+        "nvdiffrast"
+      ],
+      "license": "NVIDIA Source Code License (custom)",
+      "source_url": "https://github.com/NVlabs/nvdiffrast",
+      "scope": {
+        "en": "Optional renderer dependency; consult the upstream source license.",
+        "zh": "可选渲染后端依赖；以其上游源码许可为准。"
+      },
+      "files": [
+        {
+          "path": "nvdiffrast/LICENSE.txt",
+          "sha256": "ce20436c2730611757d3c7ed2b4d9bef8315a8a0af0540ff8baa5dce7a94f5da"
+        }
+      ]
+    },
+    {
+      "id": "package-torch",
+      "name": "torch",
+      "aliases": [
+        "PyTorch"
+      ],
+      "license": "BSD License",
+      "source_url": "https://pytorch.org/",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-torch/LICENSE",
+          "sha256": "3994910182010c5641a62d98bf6e549a1f59dffad6325536ff1dd46b48bcbdd5"
+        },
+        {
+          "path": "package-torch/NOTICE",
+          "sha256": "c2cc7bf0caec7652c2b460a8a470bea1677f241e4ab8e431df34cf17f5a9fec0"
+        }
+      ]
+    },
+    {
+      "id": "package-torchvision",
+      "name": "torchvision",
+      "aliases": [
+        "torchvision"
+      ],
+      "license": "BSD",
+      "source_url": "https://github.com/pytorch/vision",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-torchvision/LICENSE",
+          "sha256": "6502f676851cfe25f8af75531dfb32375b7325b73c37e7b43741fa422893e71d"
+        }
+      ]
+    },
+    {
+      "id": "package-numpy",
+      "name": "numpy",
+      "aliases": [
+        "NumPy"
+      ],
+      "license": "BSD License",
+      "source_url": "https://numpy.org",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-numpy/LICENSE.txt",
+          "sha256": "1107b0c831e918d4f1dbc28a33190c77215ef278d4a4c4009572088770d4334a"
+        }
+      ]
+    },
+    {
+      "id": "package-kornia",
+      "name": "kornia",
+      "aliases": [
+        "kornia"
+      ],
+      "license": "Apache Software License",
+      "source_url": "https://www.kornia.org",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-kornia/LICENSE",
+          "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9"
+        }
+      ]
+    },
+    {
+      "id": "package-opencv-contrib-python",
+      "name": "opencv-contrib-python",
+      "aliases": [
+        "opencv-contrib-python"
+      ],
+      "license": "Apache Software License",
+      "source_url": "https://github.com/opencv/opencv-python",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-opencv-contrib-python/LICENSE-3RD-PARTY.txt",
+          "sha256": "64ab9ac3f5a46030d6d8bbe797b6ae918a8d2d0186e47ca204b73431b1eb1ccc"
+        },
+        {
+          "path": "package-opencv-contrib-python/LICENSE.txt",
+          "sha256": "09d719058e782ac7bc71ba21c944e1136cde2bb957c0e888121f0218d6b5f02c"
+        }
+      ]
+    },
+    {
+      "id": "package-trimesh",
+      "name": "trimesh",
+      "aliases": [
+        "trimesh"
+      ],
+      "license": "MIT License",
+      "source_url": "https://github.com/mikedh/trimesh",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-trimesh/LICENSE.md",
+          "sha256": "fe27b5ef8710676cc85255da28a32f394e2ef3f4ce47075a1c732a9ea1d7bd03"
+        }
+      ]
+    },
+    {
+      "id": "package-pybind11",
+      "name": "pybind11",
+      "aliases": [
+        "pybind11"
+      ],
+      "license": "BSD License",
+      "source_url": "https://github.com/pybind/pybind11",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-pybind11/LICENSE",
+          "sha256": "83965b843b98f670d3a85bd041ed4b372c8ec50d7b4a5995a83ac697ba675dcb"
+        }
+      ]
+    },
+    {
+      "id": "package-pillow",
+      "name": "pillow",
+      "aliases": [
+        "pillow"
+      ],
+      "license": "MIT-CMU",
+      "source_url": "https://github.com/python-pillow/Pillow/releases",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-pillow/LICENSE",
+          "sha256": "2c40a7d8894126ff7a993a752505b915694aafe7a620889ef368acbf54b87144"
+        }
+      ]
+    },
+    {
+      "id": "package-transformers",
+      "name": "transformers",
+      "aliases": [
+        "Transformers"
+      ],
+      "license": "Apache Software License",
+      "source_url": "https://github.com/huggingface/transformers",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-transformers/LICENSE",
+          "sha256": "77fd4710def9ec3c0f6225800e0235f15a425abd4a8b03559127fcd782612049"
+        }
+      ]
+    },
+    {
+      "id": "package-timm",
+      "name": "timm",
+      "aliases": [
+        "timm"
+      ],
+      "license": "Apache Software License",
+      "source_url": "https://github.com/huggingface/pytorch-image-models",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-timm/LICENSE",
+          "sha256": "71b111620fa32c17a80ccd6db2da759d31a591e497d8b5f382174f59d1b59d49"
+        }
+      ]
+    },
+    {
+      "id": "package-addict",
+      "name": "addict",
+      "aliases": [
+        "addict"
+      ],
+      "license": "MIT License",
+      "source_url": "https://github.com/mewwts/addict",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-addict/LICENSE",
+          "sha256": "ca488d33c512d0b226142090af90e89ae266a901a293f89fd642dfec931e22c1"
+        }
+      ]
+    },
+    {
+      "id": "package-yapf",
+      "name": "yapf",
+      "aliases": [
+        "yapf"
+      ],
+      "license": "Apache Software License",
+      "source_url": "https://github.com/google/yapf",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-yapf/LICENSE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        }
+      ]
+    },
+    {
+      "id": "package-supervision",
+      "name": "supervision",
+      "aliases": [
+        "supervision"
+      ],
+      "license": "BSD License",
+      "source_url": "https://github.com/roboflow/supervision",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-supervision/LICENSE.md",
+          "sha256": "a19ba27cd3953e444e1c8e0234d15987dd44c1f874d23ca21189d030dfef8404"
+        }
+      ]
+    },
+    {
+      "id": "package-pycocotools",
+      "name": "pycocotools",
+      "aliases": [
+        "pycocotools"
+      ],
+      "license": "BSD-2-Clause",
+      "source_url": "https://github.com/ppwwyyxx/cocoapi",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-pycocotools/LICENSE-upstream.txt",
+          "sha256": "bd8ef15597b3b292f3bb0feed9701c1ace5bcebe07f28fb5047ec8d3d89471b1"
+        }
+      ]
+    },
+    {
+      "id": "package-scipy",
+      "name": "scipy",
+      "aliases": [
+        "scipy"
+      ],
+      "license": "BSD License",
+      "source_url": "https://scipy.org/",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-scipy/LICENSE.txt",
+          "sha256": "828cb9a7369c0a9f633ce7c10023f8d822f0f76b54ce25c723361d45b088879a"
+        }
+      ]
+    },
+    {
+      "id": "package-tensorrt-cu12",
+      "name": "tensorrt-cu12",
+      "aliases": [
+        "TensorRT"
+      ],
+      "license": "Other/Proprietary License",
+      "source_url": "https://github.com/nvidia/tensorrt",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-tensorrt-cu12/LICENSE.txt",
+          "sha256": "c86915fd95bbefbdda3135aace3e6ad6b4612846dcbdbc5d2f5a38b139dd88b4"
+        }
+      ]
+    },
+    {
+      "id": "package-onnx",
+      "name": "onnx",
+      "aliases": [
+        "onnx"
+      ],
+      "license": "Apache-2.0",
+      "source_url": "https://onnx.ai/",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-onnx/LICENSE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        {
+          "path": "package-onnx/NOTICE",
+          "sha256": "4d680fb1f48f07f134c9f7a8d715303b8f5160b5757bc9eec4cac783703ea592"
+        }
+      ]
+    },
+    {
+      "id": "package-ml-dtypes",
+      "name": "ml-dtypes",
+      "aliases": [
+        "ml-dtypes"
+      ],
+      "license": "Apache-2.0",
+      "source_url": "https://github.com/jax-ml/ml_dtypes",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-ml-dtypes/LICENSE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        {
+          "path": "package-ml-dtypes/LICENSE.eigen",
+          "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04"
+        }
+      ]
+    },
+    {
+      "id": "package-matplotlib",
+      "name": "matplotlib",
+      "aliases": [
+        "matplotlib"
+      ],
+      "license": "Python Software Foundation License",
+      "source_url": "https://matplotlib.org",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-matplotlib/LICENSE",
+          "sha256": "5a1a81ea301728c8bba2933da832c0cd62229daf20893a024ab3d53244468dbc"
+        }
+      ]
+    },
+    {
+      "id": "package-pandas",
+      "name": "pandas",
+      "aliases": [
+        "pandas"
+      ],
+      "license": "BSD License",
+      "source_url": "https://pandas.pydata.org",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-pandas/LICENSE",
+          "sha256": "1dea2e80ed1cbd0233f84cee4486b29689f133babaccf4d295e51c43051f3216"
+        }
+      ]
+    },
+    {
+      "id": "package-seaborn",
+      "name": "seaborn",
+      "aliases": [
+        "seaborn"
+      ],
+      "license": "BSD License",
+      "source_url": "http://seaborn.pydata.org",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-seaborn/LICENSE.md",
+          "sha256": "357ad276e086fab501163d4e9a0ae13c2fd0647eb08d2305fbc0ca3813892601"
+        }
+      ]
+    },
+    {
+      "id": "package-psutil",
+      "name": "psutil",
+      "aliases": [
+        "psutil"
+      ],
+      "license": "BSD-3-Clause",
+      "source_url": "https://github.com/giampaolo/psutil",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-psutil/LICENSE",
+          "sha256": "b89c063b3786e28e0c0a38f1931db61fed35e69dd2a2966fbecffee0f46c8d10"
+        }
+      ]
+    },
+    {
+      "id": "package-py-cpuinfo",
+      "name": "py-cpuinfo",
+      "aliases": [
+        "py-cpuinfo"
+      ],
+      "license": "MIT License",
+      "source_url": "https://github.com/workhorsy/py-cpuinfo",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-py-cpuinfo/LICENSE",
+          "sha256": "ddbaf76396bf5c7aa45975a21eafe2e22eecb7da5aa0db7cb0e6152faafef34d"
+        }
+      ]
+    },
+    {
+      "id": "package-pyyaml",
+      "name": "PyYAML",
+      "aliases": [
+        "PyYAML"
+      ],
+      "license": "MIT License",
+      "source_url": "https://pyyaml.org/",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-pyyaml/LICENSE",
+          "sha256": "8d3928f9dc4490fd635707cb88eb26bd764102a7282954307d3e5167a577e8a4"
+        }
+      ]
+    },
+    {
+      "id": "package-requests",
+      "name": "requests",
+      "aliases": [
+        "requests"
+      ],
+      "license": "Apache Software License",
+      "source_url": "https://requests.readthedocs.io",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-requests/LICENSE",
+          "sha256": "09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b"
+        }
+      ]
+    },
+    {
+      "id": "package-tqdm",
+      "name": "tqdm",
+      "aliases": [
+        "tqdm"
+      ],
+      "license": "MIT License",
+      "source_url": "https://tqdm.github.io",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-tqdm/LICENSE-upstream.txt",
+          "sha256": "dc33252e829015e3b150086fb9b3a40f6ad6fb32c2f4610ce812fa677d35986a"
+        }
+      ]
+    },
+    {
+      "id": "package-huggingface-hub",
+      "name": "huggingface-hub",
+      "aliases": [
+        "huggingface-hub"
+      ],
+      "license": "Apache Software License",
+      "source_url": "https://github.com/huggingface/huggingface_hub",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-huggingface-hub/LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ]
+    },
+    {
+      "id": "package-tokenizers",
+      "name": "tokenizers",
+      "aliases": [
+        "tokenizers"
+      ],
+      "license": "Apache Software License",
+      "source_url": "https://github.com/huggingface/tokenizers",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-tokenizers/LICENSE-upstream.txt",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ]
+    },
+    {
+      "id": "package-safetensors",
+      "name": "safetensors",
+      "aliases": [
+        "safetensors"
+      ],
+      "license": "Apache Software License",
+      "source_url": "https://github.com/huggingface/safetensors",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-safetensors/LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ]
+    },
+    {
+      "id": "package-ultralytics-thop",
+      "name": "ultralytics-thop",
+      "aliases": [
+        "ultralytics-thop"
+      ],
+      "license": "GNU Affero General Public License v3 or later (AGPLv3+)",
+      "source_url": "https://ultralytics.com",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-ultralytics-thop/LICENSE",
+          "sha256": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef"
+        }
+      ]
+    },
+    {
+      "id": "package-mani-skill",
+      "name": "mani-skill",
+      "aliases": [
+        "ManiSkill"
+      ],
+      "license": "Apache-2.0",
+      "source_url": "https://github.com/mani-skill/ManiSkill",
+      "scope": {
+        "en": "Runtime dependency; source license verified against the preserved LICENSE, with upstream copyright and third-party notices retained. Model/data assets keep separate terms.",
+        "zh": "运行依赖；源码许可按已保留的 LICENSE 原文核实；保留上游版权及第三方声明，模型与数据资源另有条款。"
+      },
+      "files": [
+        {
+          "path": "package-mani-skill/LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        },
+        {
+          "path": "package-mani-skill/LICENSE-3RD-PARTY",
+          "sha256": "c97be8008c9a458ed50c585757811afc399dffe211e7dcb2532d12733ede5f36"
+        }
+      ]
+    },
+    {
+      "id": "package-sapien",
+      "name": "sapien",
+      "aliases": [
+        "SAPIEN"
+      ],
+      "license": "MIT License",
+      "source_url": "https://sapien.ucsd.edu",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-sapien/LICENSE",
+          "sha256": "de47810cfccb9e4926a75f2f5ab873928323e7a5c4a91d93fa276eec3a4f8908"
+        }
+      ]
+    },
+    {
+      "id": "package-mplib",
+      "name": "mplib",
+      "aliases": [
+        "MPlib"
+      ],
+      "license": "MIT License",
+      "source_url": "https://pypi.org/project/mplib/",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-mplib/LICENSE",
+          "sha256": "bea957160d369fd3add1c6bdb018776bfc20d8d7110af162216c9db1f1063333"
+        }
+      ]
+    },
+    {
+      "id": "package-pytorch3d",
+      "name": "pytorch3d",
+      "aliases": [
+        "PyTorch3D"
+      ],
+      "license": "BSD-3-Clause",
+      "source_url": "https://github.com/facebookresearch/pytorch3d",
+      "scope": {
+        "en": "Runtime dependency; source license verified against the preserved LICENSE, with upstream copyright and third-party notices retained. Model/data assets keep separate terms.",
+        "zh": "运行依赖；源码许可按已保留的 LICENSE 原文核实；保留上游版权及第三方声明，模型与数据资源另有条款。"
+      },
+      "files": [
+        {
+          "path": "package-pytorch3d/LICENSE",
+          "sha256": "6da05663049417a91409fa349bfad5778ed56c9ef68226dde28dffd541481579"
+        },
+        {
+          "path": "package-pytorch3d/LICENSE-3RD-PARTY",
+          "sha256": "900ecf898aa41fd55402544ebaf4c06e94e3c4a0ce4dbf653e19932ef8a06a3c"
+        }
+      ]
+    },
+    {
+      "id": "package-romatch",
+      "name": "romatch",
+      "aliases": [
+        "romatch"
+      ],
+      "license": "MIT",
+      "source_url": "https://pypi.org/project/romatch/",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-romatch/LICENSE-upstream.txt",
+          "sha256": "6f02ad61c3fd4509343d619b55501354bcebfd67ad5460c853d02c7ab46ff4bd"
+        }
+      ]
+    },
+    {
+      "id": "package-moge",
+      "name": "moge",
+      "aliases": [
+        "moge"
+      ],
+      "license": "MIT",
+      "source_url": "https://github.com/microsoft/MoGe",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-moge/LICENSE",
+          "sha256": "ad7d951c80c5fc2b2bce035f2041bc0a0dbf9028c8ecc4c9a8e1fba8130b6b59"
+        }
+      ]
+    },
+    {
+      "id": "package-onnxruntime-gpu",
+      "name": "onnxruntime-gpu",
+      "aliases": [
+        "ONNX Runtime"
+      ],
+      "license": "MIT",
+      "source_url": "https://onnxruntime.ai",
+      "scope": {
+        "en": "Optional inference runtime.",
+        "zh": "可选推理后端。"
+      },
+      "files": [
+        {
+          "path": "package-onnxruntime-gpu/LICENSE-upstream.txt",
+          "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c"
+        }
+      ]
+    },
+    {
+      "id": "package-xatlas",
+      "name": "xatlas",
+      "aliases": [
+        "xatlas"
+      ],
+      "license": "MIT License",
+      "source_url": "https://github.com/mworchel/xatlas-python",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-xatlas/LICENSE",
+          "sha256": "095750fc0f9031d1a517cf734690d50cfd98c08a1d09473be006b86f488a4fc8"
+        }
+      ]
+    },
+    {
+      "id": "package-scikit-image",
+      "name": "scikit-image",
+      "aliases": [
+        "scikit-image"
+      ],
+      "license": "BSD License",
+      "source_url": "https://scikit-image.org",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-scikit-image/LICENSE.txt",
+          "sha256": "611d3207504dcb4a808df209d2e7c9b4f2e89fe690f84735c0d548160966b527"
+        }
+      ]
+    },
+    {
+      "id": "package-imageio-ffmpeg",
+      "name": "imageio-ffmpeg",
+      "aliases": [
+        "imageio-ffmpeg"
+      ],
+      "license": "BSD License",
+      "source_url": "https://github.com/imageio/imageio-ffmpeg",
+      "scope": {
+        "en": "Runtime dependency; dependencies and model/data assets retain their own licenses.",
+        "zh": "运行依赖；依赖及模型/数据资源保留各自许可。"
+      },
+      "files": [
+        {
+          "path": "package-imageio-ffmpeg/LICENSE",
+          "sha256": "eca73421d0c905a92e952a553d4d58919c5a507c2c2c76e3c0cf9ba408c299e4"
+        }
+      ]
+    },
+    {
+      "id": "package-gsplat",
+      "name": "gsplat",
+      "aliases": [
+        "gsplat"
+      ],
+      "license": "Apache-2.0",
+      "source_url": "https://github.com/nerfstudio-project/gsplat",
+      "scope": {
+        "en": "Runtime dependency; source license verified against the preserved LICENSE, with upstream copyright and third-party notices retained. Model/data assets keep separate terms.",
+        "zh": "运行依赖；源码许可按已保留的 LICENSE 原文核实；保留上游版权及第三方声明，模型与数据资源另有条款。"
+      },
+      "files": [
+        {
+          "path": "package-gsplat/LICENSE",
+          "sha256": "96a4f89293c0df19880da9b0e35f67589f5885ea61b224ef16bb2bd599a8a44d"
+        }
+      ]
+    },
+    {
+      "id": "package-beautifulsoup4",
+      "name": "beautifulsoup4",
+      "aliases": [
+        "BeautifulSoup"
+      ],
+      "license": "MIT",
+      "source_url": "https://pypi.org/project/beautifulsoup4/",
+      "scope": {
+        "en": "Documentation dependency.",
+        "zh": "文档依赖。"
+      },
+      "files": [
+        {
+          "path": "package-beautifulsoup4/LICENSE-sdist.txt",
+          "sha256": "55b4d8d4b1e5bc86d10efac91b74c87bcb77526b0f5b9edaf8b9cd2adc7397b2"
+        }
+      ]
+    },
+    {
+      "id": "bert",
+      "name": "BERT base uncased",
+      "aliases": [
+        "BERT"
+      ],
+      "license": "Apache-2.0",
+      "source_url": "https://huggingface.co/google-bert/bert-base-uncased",
+      "scope": {
+        "en": "Official selected text model; preserve its model-repository terms.",
+        "zh": "所选官方文本模型；保留其模型仓库条款。"
+      },
+      "files": [
+        {
+          "path": "bert/LICENSE.txt",
+          "sha256": "43070e2d4e532684de521b885f385d0841030efa2b1a20bafb76133a5e1379c1"
+        }
+      ]
+    },
+    {
+      "id": "dejavu",
+      "name": "DejaVu fonts",
+      "aliases": [
+        "DejaVu fonts"
+      ],
+      "license": "Bitstream Vera license; DejaVu changes public domain",
+      "source_url": "https://dejavu-fonts.github.io/",
+      "scope": {
+        "en": "Unmodified regular and bold Sans fonts bundled for portable figure generation; original font terms retained.",
+        "zh": "随包分发未修改的常规和粗体 Sans 字体，用于可迁移的图示生成；保留原始字体条款。"
+      },
+      "files": [
+        {
+          "path": "dejavu/LICENSE",
+          "sha256": "d75938dec098f06f0ac3c00853065d94f020be1c3c62ef1dc2975ba15b4d9b0e"
+        }
+      ]
+    }
+  ]
+}
