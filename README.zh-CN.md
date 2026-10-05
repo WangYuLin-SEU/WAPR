@@ -211,7 +211,7 @@ WBPS 在每个实例的组内选位姿；公开分数取该完整组的 `(100 - 
 
 本地 wheel 构建步骤与发行条件见 [wheel 构建说明](wheel_build/README.md)。PyPI 包尚未发布。
 
-源码运行先按 **[安装引导](https://wangyulin-seu.github.io/WAPR/docs/install-guide.html?lang=zh)** 和 **[2D 检测与 6D 位姿环境](https://wangyulin-seu.github.io/WAPR/docs/install-core.html?lang=zh)** 准备。现有安装配置面向 Linux、Python 3.10 和 CUDA toolkit 12.8。完整源码环境与引擎准备好后，从单物体示例开始：
+源码运行先按 **[安装引导](https://wangyulin-seu.github.io/WAPR/docs/install-guide.html?lang=zh)** 和 **[2D 检测与 6D 位姿环境](https://wangyulin-seu.github.io/WAPR/docs/install-core.html?lang=zh)** 准备。参考环境为 Linux、Python 3.10 和 CUDA toolkit 12.8。GPU 包按设备环境选择；安装脚本保留现有 torch/torchvision 版本，不固定普通依赖版本，其他环境需验证。源码环境与引擎准备好后，从单物体示例开始：
 
 ```bash
 python examples/02_one_category_one_instance.py

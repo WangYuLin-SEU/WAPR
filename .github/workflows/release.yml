@@ -92,6 +92,9 @@ jobs:
           wheel_files=("$GITHUB_WORKSPACE"/wheel_build/dist/*.whl)
           python -m venv "$smoke_dir/venv"
           unset PYTHONPATH PYTHONHOME
+          # This is the release validation environment, not a user dependency pin.
+          # 这里选择发行验证环境，不将该版本写入用户依赖约束。
+          "$smoke_dir/venv/bin/python" -m pip install 'torch==2.8.0' --index-url https://download.pytorch.org/whl/cu128
           "$smoke_dir/venv/bin/python" -m pip install "${wheel_files[0]}"
           "$smoke_dir/venv/bin/python" -m pip check
           cd "$smoke_dir"

@@ -17,12 +17,13 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 
 
 # Select the installation stages here. The detector needs the compatible source
-# trees under third_party/; set this to False for pose-only examples 02 and 02.
-# 在这里选择安装阶段。2D 检测需要 third_party/ 下的兼容源码；仅运行位姿示例
-# 01、02 时可设为 False。
+# trees under third_party/; set this to False for pose-only examples.
+# 在这里选择安装阶段。2D 检测需要 third_party/ 下的兼容源码；仅运行位姿示例时
+# 可设为 False。
 prepare_2d_detector = True
 
 # Build the DINOv2 TensorRT engine during installation, before the first 2D call.
@@ -34,6 +35,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 # 这个仅供源码使用的工具位于发布根目录下两级。
 release_dir = os.path.dirname(os.path.dirname(script_dir))
 requirements_path = os.path.join(release_dir, "requirements.txt")
+detector_requirements_path = os.path.join(release_dir, "requirements-detector.txt")
 native_dir = os.path.join(release_dir, "wapr", "ogl_native")
 weights_dir = os.path.join(release_dir, "assets", "weights")
 detector_weights_dir = os.path.join(weights_dir, "det2d")
@@ -44,8 +46,10 @@ def check_host():
 
     检查渲染器所需的解释器和系统工具，并返回含 nvcc 路径的构建环境。
     """
+    if sys.version_info[:2] < (3, 10):
+        raise RuntimeError("Use Python 3.10 or newer for source setup / 源码环境使用 Python 3.10 或更新版本: " + sys.executable)
     if sys.version_info[:2] != (3, 10):
-        raise RuntimeError("WAPR requires Python 3.10 / WAPR 需要 Python 3.10: " + sys.executable)
+        print("INSTALL_NOTE", "Source build with an unverified Python version; cp310 wheels require Python 3.10 / 当前 Python 版本尚未验证；cp310 wheel 仍需要 Python 3.10", flush=True)
     if sys.platform != "linux":
         raise RuntimeError("The EGL/CUDA renderer currently requires Linux / EGL/CUDA 渲染器目前需要 Linux")
     for program in ("cmake", "c++"):
@@ -59,17 +63,14 @@ def check_host():
         candidates = (
             os.path.join(cuda_home, "bin", "nvcc") if cuda_home else "",
             "/usr/local/cuda/bin/nvcc",
-            "/usr/local/cuda-12.8/bin/nvcc",
         )
         for candidate in candidates:
             if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
                 nvcc_path = candidate
                 break
     if nvcc_path is None:
-        raise RuntimeError("Missing CUDA compiler / 缺少 CUDA 编译器 nvcc；安装 CUDA toolkit 12.8")
+        raise RuntimeError("Missing CUDA compiler / 缺少 CUDA 编译器 nvcc；安装适合当前 GPU 的 CUDA toolkit")
     nvcc_version = subprocess.check_output([nvcc_path, "--version"], text=True)
-    if "release 12.8" not in nvcc_version:
-        raise RuntimeError("CUDA toolkit 12.8 is required by this installation recipe / 本安装脚本需要 CUDA toolkit 12.8: " + nvcc_path)
     for library in ("EGL", "GL"):
         if ctypes.util.find_library(library) is None:
             raise RuntimeError("Missing system library / 缺少系统库: lib" + library)
@@ -78,7 +79,7 @@ def check_host():
     build_env = os.environ.copy()
     nvcc_bin_dir = os.path.dirname(nvcc_path)
     build_env["PATH"] = nvcc_bin_dir + os.pathsep + build_env.get("PATH", "")
-    print("INSTALL_HOST", {"python": sys.executable, "nvcc": nvcc_path, "release": release_dir}, flush=True)
+    print("INSTALL_HOST", {"python": sys.executable, "nvcc": nvcc_path, "nvcc_version": nvcc_version.strip(), "release": release_dir}, flush=True)
     return build_env
 
 
@@ -147,23 +148,55 @@ def main():
     if prepare_2d_detector:
         check_detector_sources()
 
+    # Check user-selected GPU packages before pip can resolve transitive torch dependencies.
+    # 在 pip 解析间接 torch 依赖前，先检查用户选择的 GPU 包，不自动替换 GPU 软件栈。
+    try:
+        import cv2
+        import tensorrt as trt
+        import torch
+    except ImportError as exc:
+        raise RuntimeError(
+            "Prepare CUDA-enabled PyTorch, TensorRT 10.x and one OpenCV distribution first. / "
+            "请先准备带 CUDA 的 PyTorch、TensorRT 10.x 及一种 OpenCV 发行包。"
+        ) from exc
+    if not trt.__version__.startswith("10."):
+        raise RuntimeError("This engine API uses TensorRT 10.x / 当前引擎 API 使用 TensorRT 10.x: " + trt.__version__)
+    if not torch.cuda.is_available():
+        raise RuntimeError("PyTorch cannot access a CUDA GPU / PyTorch 无法访问 CUDA GPU；检查驱动与容器 GPU 映射")
+    if prepare_2d_detector:
+        import torchvision
+        # Check the compiled operator before installing additional detector packages.
+        # 安装检测器附加依赖前，检查 torchvision 编译算子是否可用。
+        torchvision.ops.nms(torch.empty((0, 4)), torch.empty(0), 0.5)
+        if not os.path.isfile(detector_requirements_path):
+            raise FileNotFoundError(detector_requirements_path)
+
     # Use the current interpreter so venv/conda and the compiled module agree.
     # 使用当前解释器，确保虚拟环境与编译出的 Python 模块一致。
     print("INSTALL_STAGE", "Python packages / Python 依赖", flush=True)
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", requirements_path])
+    # Preserve the selected GPU versions even if a transitive dependency asks for an upgrade.
+    # 即使间接依赖要求升级，也保留用户选择的 GPU 版本；冲突时由 pip 明确报错。
+    with tempfile.TemporaryDirectory(prefix="wapr-install-") as constraints_dir:
+        constraints_path = os.path.join(constraints_dir, "gpu-constraints.txt")
+        with open(constraints_path, "w", encoding="utf-8") as stream:
+            stream.write("torch==" + torch.__version__ + "\n")
+            if prepare_2d_detector:
+                stream.write("torchvision==" + torchvision.__version__ + "\n")
+        subprocess.check_call([
+            sys.executable, "-m", "pip", "install", "-c", constraints_path, "-r", requirements_path,
+        ])
+        if prepare_2d_detector:
+            subprocess.check_call([
+                sys.executable, "-m", "pip", "install", "-c", constraints_path, "-r", detector_requirements_path,
+            ])
 
     import numpy as np
-    import tensorrt as trt
-    import torch
-
-    if not torch.cuda.is_available():
-        raise RuntimeError("PyTorch cannot access a CUDA GPU / PyTorch 无法访问 CUDA GPU；检查驱动与容器 GPU 映射")
     gpu_capability = torch.cuda.get_device_capability(0)
     if gpu_capability < (7, 5):
         raise RuntimeError("TensorRT 10 requires NVIDIA SM 7.5+ / TensorRT 10 需要 NVIDIA SM 7.5 及以上")
     print(
         "INSTALL_PACKAGES",
-        {"numpy": np.__version__, "torch": torch.__version__, "tensorrt": trt.__version__},
+        {"numpy": np.__version__, "torch": torch.__version__, "tensorrt": trt.__version__, "opencv": cv2.__version__},
         flush=True,
     )
     print(

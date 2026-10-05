@@ -211,7 +211,7 @@ This repository provides WAPR inference source and examples. Obtain model weight
 
 For local wheel builds and release requirements, see [wheel build instructions](wheel_build/README.md). The PyPI package is not published yet.
 
-For source use, follow the **[installation guide](https://wangyulin-seu.github.io/WAPR/docs/install-guide.html?lang=en)** and **[2D detection and 6D pose setup](https://wangyulin-seu.github.io/WAPR/docs/install-core.html?lang=en)**. The provided installation recipe targets Linux, Python 3.10 and CUDA toolkit 12.8. After preparing the full source environment and exporting its engines, begin with:
+For source use, follow the **[installation guide](https://wangyulin-seu.github.io/WAPR/docs/install-guide.html?lang=en)** and **[2D detection and 6D pose setup](https://wangyulin-seu.github.io/WAPR/docs/install-core.html?lang=en)**. Linux, Python 3.10 and CUDA toolkit 12.8 are the reference environment. Prepare GPU packages for your device; the installer preserves installed torch/torchvision versions and does not pin ordinary dependencies. Other environments require validation. After preparing the source environment and exporting its engines, begin with:
 
 ```bash
 python examples/02_one_category_one_instance.py

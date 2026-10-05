@@ -25,9 +25,30 @@ wheel 包含 Python 运行实现、`_gpu_render*.so`、shader、检测资源清�
 
 ## Runtime / 运行
 
-The package requires Python 3.10. CUDA/EGL/OpenGL and NVIDIA driver compatibility must be checked on the target device. Windows, other Python versions and general manylinux compatibility are not declared. Installed-package resources use the user cache; an absolute `WAPR_CACHE_DIR` can select another root. Weights and sample packs are downloaded separately, and TensorRT engines must be built for the target GPU. Installation itself does not run inference or fetch models. Follow the Docs for the complete detector setup.
+The wheel contains WAPR, not a bundled Python environment. Basic installation adds NumPy, Pillow, trimesh and Hugging Face Hub without exact version pins. Prepare CUDA-enabled PyTorch for your GPU first; prepare TensorRT 10.x when using the TensorRT backend. These GPU packages are not selected by basic installation. Pose inference also needs Kornia and one OpenCV distribution. Keep a working OpenCV installation; do not install several distributions that all provide `cv2`.
 
-包要求 Python 3.10。CUDA/EGL/OpenGL 与 NVIDIA 驱动的兼容性须在目标设备验证；不声明支持 Windows、其他 Python 版本或通用 manylinux 环境。安装版资源使用用户缓存，可用绝对路径 `WAPR_CACHE_DIR` 指定其他根目录。权重与小样另行下载，TensorRT 引擎需在目标 GPU 上构建。安装本身不运行推理或下载模型，完整检测环境按 Docs 准备。
+wheel 只交付 WAPR，不打包完整 Python 环境。基础安装补齐 NumPy、Pillow、trimesh 和 Hugging Face Hub，不固定其精确版本。请先按 GPU 环境准备带 CUDA 的 PyTorch；使用 TensorRT 后端时再准备 TensorRT 10.x。基础安装不会选择这些 GPU 包。位姿推理还需 Kornia 和一种 OpenCV 发行包；已有可用的 OpenCV 时继续使用，不要同时安装多种提供 `cv2` 的发行包。
+
+After preparing PyTorch and OpenCV, install Kornia and the local wheel:
+
+准备好 PyTorch 和 OpenCV 后，安装 Kornia 与本地 wheel：
+
+```bash
+python -m pip install kornia
+python -m pip install wheel_build/dist/wapr-0.1.0.dev0-cp310-cp310-linux_x86_64.whl
+```
+
+For a new environment, the optional `pose` extra installs torch, Kornia and `opencv-python`; select a suitable CUDA-enabled torch build first. The `trt` extra selects CUDA 12 TensorRT 10.x; the `export` extra adds ONNX for engine export. These extras are opt-in, install dependencies as separate packages, and do not include third-party detector source trees. If GPU packages are already managed externally, install the base wheel and only add the missing libraries yourself. No `--upgrade` is needed.
+
+新环境可选 `pose` 附加依赖，安装 torch、Kornia 与 `opencv-python`；应先选择适合设备的带 CUDA 的 torch。`trt` 附加依赖选择 CUDA 12 的 TensorRT 10.x；`export` 附加依赖补充导出引擎所需的 ONNX。这些附加依赖须显式选择，各自作为独立包安装，不包含第三方检测器源码。GPU 软件栈已由其他方式管理时，安装基础 wheel 并自行补齐缺失库即可，不需要使用 `--upgrade`。
+
+The current wheel has a CPython 3.10 ABI, so it requires Python 3.10. The CUDA 12.8 SDK above belongs to the controlled release build; installing a precompiled wheel does not require `nvcc` or that exact toolkit installation. Its CUDA runtime libraries, GPU driver and EGL/OpenGL must still be compatible. Source setup reports the selected compiler instead of rejecting other toolkit versions, but removing a gate does not verify a new environment. Other Python versions, Windows and general manylinux compatibility are not declared. Installed-package resources use the user cache; an absolute `WAPR_CACHE_DIR` can select another root. Weights and sample packs are downloaded separately, and TensorRT engines must be built for the target GPU and TensorRT version. Installation itself does not run inference or fetch models. Follow the Docs for the complete detector setup.
+
+当前 wheel 使用 CPython 3.10 ABI，因此需要 Python 3.10。上方 CUDA 12.8 SDK 属于受控的正式构建环境；安装预编译 wheel 不需要 `nvcc`，也不要求安装同一精确版本的 toolkit，但所需 CUDA 运行库、驱动和 EGL/OpenGL 仍须兼容。源码安装会报告所选编译器，不再拒绝其他 toolkit 版本；去掉检查不代表已验证新环境。不声明支持其他 Python 版本、Windows 或通用 manylinux 环境。安装版资源使用用户缓存，可用绝对路径 `WAPR_CACHE_DIR` 指定其他根目录。权重与小样另行下载，TensorRT 引擎需在目标 GPU 和 TensorRT 版本上构建。安装本身不运行推理或下载模型，完整检测环境按 Docs 准备。
+
+For source setup, `requirements.txt` contains pose/export/build dependencies and `requirements-detector.txt` contains additional 2D dependencies. The installer checks user-selected PyTorch, TensorRT and OpenCV first, and checks torchvision when 2D detection is enabled. It constrains pip to the installed torch/torchvision versions; a conflict fails instead of silently replacing them. Other packages have no exact pins. Source revisions and actual native ABI constraints still apply; a wider dependency declaration is not a claim that every release has been tested.
+
+源码环境中，`requirements.txt` 列出位姿、导出与编译依赖，`requirements-detector.txt` 列出额外的 2D 依赖。安装脚本先检查用户选择的 PyTorch、TensorRT 和 OpenCV；启用 2D 检测时还检查 torchvision。pip 被约束为保留已安装的 torch/torchvision 版本，冲突时会报错，而不会静默替换。普通依赖不固定精确版本；第三方源码版本和实际本地模块 ABI 约束仍须满足，放宽依赖声明不代表已测试所有发行版本。
 
 ## Release / 发行
 

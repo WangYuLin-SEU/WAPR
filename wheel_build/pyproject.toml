@@ -21,17 +21,20 @@ requires-python = "==3.10.*"
 license = "LGPL-2.1-only"
 license-files = ["LICENSE", "AUTHORS.md", "WEIGHTS_LICENSE.txt", "THIRD_PARTY_NOTICES.txt", "licenses/**/*"]
 dependencies = [
-    "numpy>=1.26.4,<2",
-    "torch==2.8.0",
-    "kornia==0.6.9",
-    "opencv-contrib-python==4.9.0.80",
-    "trimesh==4.2.2",
-    "Pillow==11.3.0",
-    "huggingface-hub==0.36.0",
-    "tensorrt-cu12==10.9.0.34",
-    "onnx==1.22.0",
-    "ml-dtypes==0.5.4",
+    "numpy",
+    "trimesh",
+    "Pillow",
+    "huggingface-hub",
 ]
+
+# Select GPU packages for the target machine before enabling inference extras.
+# 先按目标设备选择 GPU 包，再安装推理附加依赖；基础安装不选择 GPU 软件栈。
+[project.optional-dependencies]
+pose = ["torch", "kornia", "opencv-python"]
+# Current engine creation uses the TensorRT 10 API, including FP16 builder flags.
+# 当前引擎构建使用 TensorRT 10 API，包括 FP16 构建标志；不限定 10.x 的小版本。
+trt = ["tensorrt-cu12>=10,<11"]
+export = ["onnx"]
 
 [project.urls]
 Source = "https://github.com/WangYuLin-SEU/WAPR"
