@@ -13,7 +13,7 @@
 <p align="center">Yulin Wang* · Mengting Hu* · Hongli Li · Jianghao Zhou · Chen Luo<br />
 *Equal contribution. Affiliations are listed on the project page.</p>
 
-<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=en">Project page</a> · <a href="https://wangyulin-seu.github.io/WAPR/docs/?lang=en">Docs website</a> · <a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13">Paper</a> · <a href="https://wangyulin-seu.github.io/WAPR/poster/wapr-eccv2026.jpg">Poster</a></p>
+<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=en">Docs website</a> · <a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13">Paper</a> · <a href="https://wangyulin-seu.github.io/WAPR/poster/wapr-eccv2026.jpg">Poster</a></p>
 
 <p align="center"><strong>Large-angle correction · 12 initial hypotheses by default · Batched multi-object inference</strong></p>
 

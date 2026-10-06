@@ -13,7 +13,7 @@
 <p align="center">Yulin Wang* · Mengting Hu* · Hongli Li · Jianghao Zhou · Chen Luo<br />
 *共同一作。作者单位见宣传页。</p>
 
-<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=zh">宣传页</a> · <a href="https://wangyulin-seu.github.io/WAPR/docs/?lang=zh">文档网站</a> · <a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13">论文</a> · <a href="https://wangyulin-seu.github.io/WAPR/poster/wapr-eccv2026.jpg">海报</a></p>
+<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=zh">文档网站</a> · <a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13">论文</a> · <a href="https://wangyulin-seu.github.io/WAPR/poster/wapr-eccv2026.jpg">海报</a></p>
 
 <p align="center"><strong>大角度修正 · 默认 12 个初始候选 · 多物体批量推理</strong></p>
 
