@@ -1,6 +1,6 @@
 <a id="top"></a>
 
-<p align="center"><a href="README.md"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/language-en-link.svg" width="78" height="28" alt="English"/></a> &nbsp; <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/language-zh-active.svg" width="60" height="28" alt="中文"/></p>
+<p align="center"><a href="README.md"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/language-en-link.svg" width="78" height="28" alt="English"/></a> &nbsp; <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/language-zh-active.svg" width="78" height="28" alt="中文"/></p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/wapr-banner-readme.webp" alt="WAPR" width="960"/>
