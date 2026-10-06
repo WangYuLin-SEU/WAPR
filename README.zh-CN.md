@@ -8,10 +8,14 @@
 
 <h1 align="center">WAPR · 广角位姿修正</h1>
 
-<p align="center"><strong>ECCV 2026 · 面向未见物体 6D 位姿估计的基础模型</strong></p>
+<p align="center"><strong><code>ECCV 2026</code></strong></p>
 
-<p align="center">Yulin Wang* · Mengting Hu* · Hongli Li · Jianghao Zhou · Chen Luo<br />
-*共同一作。作者单位见宣传页。</p>
+<h3 align="center">面向未见物体 6D 位姿估计的基础模型</h3>
+
+<p align="center">
+  Yulin Wang<sup>*</sup> &nbsp; · &nbsp; Mengting Hu<sup>*</sup> &nbsp; · &nbsp; Hongli Li &nbsp; · &nbsp; Jianghao Zhou &nbsp; · &nbsp; Chen Luo
+</p>
+<p align="center"><sub><sup>*</sup> 共同一作。作者单位见宣传页。</sub></p>
 
 <p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=zh">文档网站</a> · <a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13">论文</a> · <a href="https://wangyulin-seu.github.io/WAPR/poster/wapr-eccv2026.jpg">海报</a></p>
 

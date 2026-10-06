@@ -8,10 +8,14 @@
 
 <h1 align="center">WAPR · Wide-Angle Pose Refinement</h1>
 
-<p align="center"><strong>ECCV 2026 · A foundation model for unseen-object 6D pose estimation</strong></p>
+<p align="center"><strong><code>ECCV 2026</code></strong></p>
 
-<p align="center">Yulin Wang* · Mengting Hu* · Hongli Li · Jianghao Zhou · Chen Luo<br />
-*Equal contribution. Affiliations are listed on the project page.</p>
+<h3 align="center">A foundation model for unseen-object 6D pose estimation</h3>
+
+<p align="center">
+  Yulin Wang<sup>*</sup> &nbsp; · &nbsp; Mengting Hu<sup>*</sup> &nbsp; · &nbsp; Hongli Li &nbsp; · &nbsp; Jianghao Zhou &nbsp; · &nbsp; Chen Luo
+</p>
+<p align="center"><sub><sup>*</sup> Equal contribution. Affiliations are listed on the project page.</sub></p>
 
 <p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=en">Docs website</a> · <a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13">Paper</a> · <a href="https://wangyulin-seu.github.io/WAPR/poster/wapr-eccv2026.jpg">Poster</a></p>
 
