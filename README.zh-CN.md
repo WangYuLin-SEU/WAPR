@@ -156,24 +156,20 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 下方展示仓库收录的奖状，点击可查看原图。BPC 的最佳单次方案／第 4 名来自 WAPR；第二名来自 FRTPose-WAPR。BOP 奖状对应搭配不同 2D 检测器的 FRTPose-WAPR 系统提交。
 
-| BPC · Best One-shot / 4th Place | BPC · Second Place |
-| :---: | :---: |
-| <a href="https://wangyulin-seu.github.io/WAPR/awards/bpc-oneshot.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/awards/bpc-oneshot.jpg" alt="BPC · Best One-shot / 4th Place" width="420"/></a> | <a href="https://wangyulin-seu.github.io/WAPR/awards/bpc-second.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/awards/bpc-second.jpg" alt="BPC · Second Place" width="420"/></a> |
-
-
-| BOP · Tracks 1–2 · Overall / Default | BOP · Track 8 |
-| :---: | :---: |
-| <a href="https://wangyulin-seu.github.io/WAPR/awards/bop-t12-overall-default.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/awards/bop-t12-overall-default.jpg" alt="BOP · Tracks 1–2 · Overall / Default" width="420"/></a> | <a href="https://wangyulin-seu.github.io/WAPR/awards/bop-t8.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/awards/bop-t8.jpg" alt="BOP · Track 8" width="420"/></a> |
-
-
-| BOP · Track 1 · Fast | BOP · Tracks 1–2 · Default |
-| :---: | :---: |
-| <a href="https://wangyulin-seu.github.io/WAPR/awards/bop-t1-fast.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/awards/bop-t1-fast.jpg" alt="BOP · Track 1 · Fast" width="420"/></a> | <a href="https://wangyulin-seu.github.io/WAPR/awards/bop-t12-default.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/awards/bop-t12-default.jpg" alt="BOP · Tracks 1–2 · Default" width="420"/></a> |
-
-
-| BOP · Track 10 · Single-view / Default | BOP · Track 10 · Fast |
-| :---: | :---: |
-| <a href="https://wangyulin-seu.github.io/WAPR/awards/bop-t10-single-default.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/awards/bop-t10-single-default.jpg" alt="BOP · Track 10 · Single-view / Default" width="420"/></a> | <a href="https://wangyulin-seu.github.io/WAPR/awards/bop-t10-fast.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/awards/bop-t10-fast.jpg" alt="BOP · Track 10 · Fast" width="420"/></a> |
+<table>
+<tr>
+<td align="center" width="25%"><a href="https://wangyulin-seu.github.io/WAPR/awards/bop-t12-overall-default.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/awards/bop-t12-overall-default.jpg" alt="BOP · Tracks 1–2 · Overall / Default" width="240"/></a><br/><sub>BOP · Tracks 1–2 · Overall / Default</sub></td>
+<td align="center" width="25%"><a href="https://wangyulin-seu.github.io/WAPR/awards/bpc-oneshot.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/awards/bpc-oneshot.jpg" alt="BPC · Best One-shot / 4th Place" width="240"/></a><br/><sub>BPC · Best One-shot / 4th Place</sub></td>
+<td align="center" width="25%"><a href="https://wangyulin-seu.github.io/WAPR/awards/bpc-second.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/awards/bpc-second.jpg" alt="BPC · Second Place" width="240"/></a><br/><sub>BPC · Second Place</sub></td>
+<td align="center" width="25%"><a href="https://wangyulin-seu.github.io/WAPR/awards/bop-t8.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/awards/bop-t8.jpg" alt="BOP · Track 8" width="240"/></a><br/><sub>BOP · Track 8</sub></td>
+</tr>
+<tr>
+<td align="center" width="25%"><a href="https://wangyulin-seu.github.io/WAPR/awards/bop-t1-fast.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/awards/bop-t1-fast.jpg" alt="BOP · Track 1 · Fast" width="240"/></a><br/><sub>BOP · Track 1 · Fast</sub></td>
+<td align="center" width="25%"><a href="https://wangyulin-seu.github.io/WAPR/awards/bop-t12-default.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/awards/bop-t12-default.jpg" alt="BOP · Tracks 1–2 · Default" width="240"/></a><br/><sub>BOP · Tracks 1–2 · Default</sub></td>
+<td align="center" width="25%"><a href="https://wangyulin-seu.github.io/WAPR/awards/bop-t10-single-default.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/awards/bop-t10-single-default.jpg" alt="BOP · Track 10 · Single-view / Default" width="240"/></a><br/><sub>BOP · Track 10 · Single-view / Default</sub></td>
+<td align="center" width="25%"><a href="https://wangyulin-seu.github.io/WAPR/awards/bop-t10-fast.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/awards/bop-t10-fast.jpg" alt="BOP · Track 10 · Fast" width="240"/></a><br/><sub>BOP · Track 10 · Fast</sub></td>
+</tr>
+</table>
 
 
 [奖项来源与系统说明](https://wangyulin-seu.github.io/WAPR/?lang=zh#awards)
