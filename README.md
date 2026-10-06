@@ -89,7 +89,7 @@ WAPR estimates and refines 6D poses of objects unseen during pose-model training
 ### 04 / TACO: roller and wooden box
 
 <p align="center">
-  <a href="https://wangyulin-seu.github.io/WAPR/pages/docs/figures/taco_pose_compare.mp4"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/taco_first_pair.png" alt="TACO: WAPR estimates beside motion-capture reference poses" width="960"/></a>
+  <a href="https://wangyulin-seu.github.io/WAPR/pages/docs/figures/taco_pose_compare.mp4"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/taco_first_pair.png" alt="TACO: WAPR estimates beside motion-capture reference poses" width="672"/></a>
 </p>
 
 <p align="center"><strong><a href="https://wangyulin-seu.github.io/WAPR/pages/docs/figures/taco_pose_compare.mp4">▶ Play the TACO video</a></strong> · <a href="https://wangyulin-seu.github.io/WAPR/pages/docs/applications-taco.html?lang=en">Data and evaluation</a></p>

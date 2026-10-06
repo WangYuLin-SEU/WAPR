@@ -89,7 +89,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 ### 04 / TACO：滚筒和木盒
 
 <p align="center">
-  <a href="https://wangyulin-seu.github.io/WAPR/pages/docs/figures/taco_pose_compare.mp4"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/taco_first_pair.png" alt="TACO: WAPR estimates beside motion-capture reference poses" width="960"/></a>
+  <a href="https://wangyulin-seu.github.io/WAPR/pages/docs/figures/taco_pose_compare.mp4"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/taco_first_pair.png" alt="TACO: WAPR estimates beside motion-capture reference poses" width="672"/></a>
 </p>
 
 <p align="center"><strong><a href="https://wangyulin-seu.github.io/WAPR/pages/docs/figures/taco_pose_compare.mp4">▶ 播放 TACO 视频</a></strong> · <a href="https://wangyulin-seu.github.io/WAPR/pages/docs/applications-taco.html?lang=zh">数据与评估说明</a></p>
