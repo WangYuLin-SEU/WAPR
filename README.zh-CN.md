@@ -44,17 +44,15 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 ---
 
-### 02 / 2D 候选、6D 位姿与交互式 3D 场景
+### 02 / 七个 BOP 数据集的 6D 位姿估计
 
 <p align="center">
-  <a href="https://wangyulin-seu.github.io/WAPR/pages/?lang=zh#lmo-det"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/lmo_zh.jpg" alt="LM-O: 2D candidates, filtered candidates, 6D poses and depth-cloud scene" width="960"/></a>
+  <a href="https://wangyulin-seu.github.io/WAPR/pages/?lang=zh#showcase"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/bop-seven-poses.jpg" alt="七个 BOP 数据集的 6D 位姿估计" width="1200"/></a>
 </p>
 
-<p align="center">左上为 2D 候选框，右上为筛选后的候选；左下为 6D 位姿，右下为传感器点云中的物体网格。点击预览打开交互界面，可选择实例、旋转和缩放。</p>
+<p align="center">LM-O、T-LESS、TUD-L、IC-BIN、YCB-V、HB 和 ITODD 的位姿定位示例。彩色轮廓与 3D 包围盒展示预测位姿。</p>
 
-<p align="center"><strong><a href="https://wangyulin-seu.github.io/WAPR/pages/?lang=zh#lmo-det">打开 3D 查看器</a></strong> · <a href="https://wangyulin-seu.github.io/WAPR/pages/?lang=zh#showcase">多物体定位与真值对照</a></p>
-
-<p align="center">图中分数与计时对应链接中说明的实验条件。GitHub README 展示静态预览，点击图片可进入网页进行 3D 操作。</p>
+<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/pages/?lang=zh#showcase">查看交互结果与真值对照</a></p>
 
 
 ---

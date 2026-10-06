@@ -44,17 +44,15 @@ WAPR estimates and refines 6D poses of objects unseen during pose-model training
 
 ---
 
-### 02 / 2D candidates, 6D poses and an interactive 3D scene
+### 02 / 6D pose estimation across seven BOP datasets
 
 <p align="center">
-  <a href="https://wangyulin-seu.github.io/WAPR/pages/?lang=en#lmo-det"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/lmo_en.jpg" alt="LM-O: 2D candidates, filtered candidates, 6D poses and depth-cloud scene" width="960"/></a>
+  <a href="https://wangyulin-seu.github.io/WAPR/pages/?lang=en#showcase"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/bop-seven-poses.jpg" alt="6D pose estimation across seven BOP datasets" width="1200"/></a>
 </p>
 
-<p align="center">Top: 2D candidate boxes before and after filtering. Bottom: 6D poses and object meshes in the sensor point cloud. Click the preview to select instances, orbit and zoom in the interactive viewer.</p>
+<p align="center">Pose localization examples on LM-O, T-LESS, TUD-L, IC-BIN, YCB-V, HB and ITODD. Colored contours and 3D bounding boxes show the predicted poses.</p>
 
-<p align="center"><strong><a href="https://wangyulin-seu.github.io/WAPR/pages/?lang=en#lmo-det">Open the 3D viewer</a></strong> · <a href="https://wangyulin-seu.github.io/WAPR/pages/?lang=en#showcase">Multi-object localization and ground-truth comparison</a></p>
-
-<p align="center">Scores and timings follow the conditions described in the linked experiments. GitHub README shows static previews; click through to the website for 3D interaction.</p>
+<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/pages/?lang=en#showcase">Explore the interactive results and ground-truth comparison</a></p>
 
 
 ---
