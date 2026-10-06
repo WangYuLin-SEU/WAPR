@@ -13,7 +13,7 @@
 <h3 align="center">A foundation model for unseen-object 6D pose estimation</h3>
 
 <p align="center">
-  Yulin Wang<sup>*</sup> &nbsp; · &nbsp; Mengting Hu<sup>*</sup> &nbsp; · &nbsp; Hongli Li &nbsp; · &nbsp; Jianghao Zhou &nbsp; · &nbsp; Chen Luo
+  Yulin&nbsp;Wang<sup>*</sup> &nbsp; · &nbsp; Mengting&nbsp;Hu<sup>*</sup> &nbsp; · &nbsp; Hongli&nbsp;Li &nbsp; · &nbsp; Jianghao&nbsp;Zhou &nbsp; · &nbsp; Chen&nbsp;Luo
 </p>
 <p align="center"><sub><sup>*</sup> Equal contribution. Affiliations are listed on the project page.</sub></p>
 
@@ -21,7 +21,7 @@
 
 <p align="center"><strong>Large-angle correction · 12 initial hypotheses by default · Batched multi-object inference</strong></p>
 
-<p align="center"><a href="#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg?v=color1" width="18" height="18" alt=""/> Awards</a> &nbsp; · &nbsp; <a href="#results"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/gallery.svg?v=color1" width="18" height="18" alt=""/> Gallery</a> &nbsp; · &nbsp; <a href="#pipeline"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/method.svg?v=color1" width="18" height="18" alt=""/> Method</a> &nbsp; · &nbsp; <a href="#start"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg?v=color1" width="18" height="18" alt=""/> Get started</a> &nbsp; · &nbsp; <a href="#citation"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg?v=color1" width="18" height="18" alt=""/> Citation & license</a></p>
+<p align="center"><a href="#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg?v=color1" width="18" height="18" alt=""/>&nbsp;Awards</a> &nbsp; <a href="#results"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/gallery.svg?v=color1" width="18" height="18" alt=""/>&nbsp;Gallery</a> &nbsp; <a href="#pipeline"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/method.svg?v=color1" width="18" height="18" alt=""/>&nbsp;Method</a> &nbsp; <a href="#start"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg?v=color1" width="18" height="18" alt=""/>&nbsp;Get&nbsp;started</a> &nbsp; <a href="#citation"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg?v=color1" width="18" height="18" alt=""/>&nbsp;Citation&nbsp;&amp;&nbsp;license</a></p>
 
 ---
 

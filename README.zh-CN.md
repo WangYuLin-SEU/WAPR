@@ -13,7 +13,7 @@
 <h3 align="center">面向未见物体 6D 位姿估计的基础模型</h3>
 
 <p align="center">
-  Yulin Wang<sup>*</sup> &nbsp; · &nbsp; Mengting Hu<sup>*</sup> &nbsp; · &nbsp; Hongli Li &nbsp; · &nbsp; Jianghao Zhou &nbsp; · &nbsp; Chen Luo
+  Yulin&nbsp;Wang<sup>*</sup> &nbsp; · &nbsp; Mengting&nbsp;Hu<sup>*</sup> &nbsp; · &nbsp; Hongli&nbsp;Li &nbsp; · &nbsp; Jianghao&nbsp;Zhou &nbsp; · &nbsp; Chen&nbsp;Luo
 </p>
 <p align="center"><sub><sup>*</sup> 共同一作。作者单位见宣传页。</sub></p>
 
@@ -21,7 +21,7 @@
 
 <p align="center"><strong>大角度修正 · 默认 12 个初始候选 · 多物体批量推理</strong></p>
 
-<p align="center"><a href="#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg?v=color1" width="18" height="18" alt=""/> 竞赛奖状</a> &nbsp; · &nbsp; <a href="#results"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/gallery.svg?v=color1" width="18" height="18" alt=""/> 效果展示</a> &nbsp; · &nbsp; <a href="#pipeline"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/method.svg?v=color1" width="18" height="18" alt=""/> 方法概览</a> &nbsp; · &nbsp; <a href="#start"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg?v=color1" width="18" height="18" alt=""/> 快速开始</a> &nbsp; · &nbsp; <a href="#citation"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg?v=color1" width="18" height="18" alt=""/> 引用与许可</a></p>
+<p align="center"><a href="#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg?v=color1" width="18" height="18" alt=""/>&nbsp;竞赛奖状</a> &nbsp; <a href="#results"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/gallery.svg?v=color1" width="18" height="18" alt=""/>&nbsp;效果展示</a> &nbsp; <a href="#pipeline"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/method.svg?v=color1" width="18" height="18" alt=""/>&nbsp;方法概览</a> &nbsp; <a href="#start"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg?v=color1" width="18" height="18" alt=""/>&nbsp;快速开始</a> &nbsp; <a href="#citation"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg?v=color1" width="18" height="18" alt=""/>&nbsp;引用与许可</a></p>
 
 ---
 
