@@ -60,28 +60,26 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 ### 03 / 跨较大帧间隔的位姿跟踪
 
 <p align="center">
-  <video src="assets/readme/demo/tracking/predicted_init/track_mustard_easy_00_02_s32.mp4" autoplay loop muted controls playsinline preload="metadata" width="960">芥末瓶跟踪对照视频</video>
+  <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/track_mustard_easy_00_02_s32.gif" alt="芥末瓶跟踪对照视频" width="800"/>
 </p>
 
-<p align="center"><strong><a href="assets/readme/demo/tracking/predicted_init/track_mustard_easy_00_02_s32.mp4">▶ 播放芥末瓶对照视频</a></strong> · <a href="https://wangyulin-seu.github.io/WAPR/docs/applications-ycbineoat.html?lang=zh">网页播放与实验说明</a></p>
 
 <p align="center">两种方法由同一份预测掩码初始化，每隔 32 帧更新位姿；这段芥末瓶序列不重新初始化位姿。跟踪允许中途丢失，视频中的案例不能作为所有序列的恢复保证。</p>
 
 <p align="center"><strong>饼干盒 · 步长 1</strong></p>
 
 <p align="center">
-  <video src="assets/readme/demo/tracking/predicted_init/track_cracker_box_reorient_s1.mp4" autoplay loop muted controls playsinline preload="metadata" width="960">饼干盒跟踪对照视频</video>
+  <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/track_cracker_box_reorient_s1.gif" alt="饼干盒跟踪对照视频" width="800"/>
 </p>
 
-<p align="center"><a href="assets/readme/demo/tracking/predicted_init/track_cracker_box_reorient_s1.mp4">▶ 播放饼干盒对照视频</a></p>
 
 <p align="center"><strong>糖盒 · 步长 32</strong></p>
 
 <p align="center">
-  <video src="assets/readme/demo/tracking/recover_sugar_box1_s32.mp4" autoplay loop muted controls playsinline preload="metadata" width="960">DINOv2 独立补救对照视频</video>
+  <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/recover_sugar_box1_s32.gif" alt="DINOv2 独立补救对照视频" width="800"/>
 </p>
 
-<p align="center"><a href="assets/readme/demo/tracking/recover_sugar_box1_s32.mp4">▶ 播放糖盒对照视频</a> · 共享给定初始掩码，双方独立执行 DINOv2 补救，使用各自状态和评分器。</p>
+<p align="center">共享给定初始掩码，双方独立执行 DINOv2 补救，使用各自状态和评分器。</p>
 
 
 ---

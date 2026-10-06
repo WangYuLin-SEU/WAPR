@@ -60,28 +60,26 @@ WAPR estimates and refines 6D poses of objects unseen during pose-model training
 ### 03 / Pose tracking across larger frame intervals
 
 <p align="center">
-  <video src="assets/readme/demo/tracking/predicted_init/track_mustard_easy_00_02_s32.mp4" autoplay loop muted controls playsinline preload="metadata" width="960">Mustard tracking comparison</video>
+  <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/track_mustard_easy_00_02_s32.gif" alt="Mustard tracking comparison" width="800"/>
 </p>
 
-<p align="center"><strong><a href="assets/readme/demo/tracking/predicted_init/track_mustard_easy_00_02_s32.mp4">▶ Play the mustard comparison</a></strong> · <a href="https://wangyulin-seu.github.io/WAPR/docs/applications-ycbineoat.html?lang=en">Website player and protocol</a></p>
 
 <p align="center">Both methods initialize from the same predicted mask and update poses every 32 frames. This mustard sequence does not reinitialize poses. Tracking can lose the target; these recordings do not guarantee recovery on every sequence.</p>
 
 <p align="center"><strong>Cracker box · stride 1</strong></p>
 
 <p align="center">
-  <video src="assets/readme/demo/tracking/predicted_init/track_cracker_box_reorient_s1.mp4" autoplay loop muted controls playsinline preload="metadata" width="960">Cracker-box tracking comparison</video>
+  <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/track_cracker_box_reorient_s1.gif" alt="Cracker-box tracking comparison" width="800"/>
 </p>
 
-<p align="center"><a href="assets/readme/demo/tracking/predicted_init/track_cracker_box_reorient_s1.mp4">▶ Play the cracker-box comparison</a></p>
 
 <p align="center"><strong>Sugar box · stride 32</strong></p>
 
 <p align="center">
-  <video src="assets/readme/demo/tracking/recover_sugar_box1_s32.mp4" autoplay loop muted controls playsinline preload="metadata" width="960">Independent DINOv2 recovery comparison</video>
+  <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/recover_sugar_box1_s32.gif" alt="Independent DINOv2 recovery comparison" width="800"/>
 </p>
 
-<p align="center"><a href="assets/readme/demo/tracking/recover_sugar_box1_s32.mp4">▶ Play the sugar-box comparison</a> · Supplied initial mask with independent DINOv2 recovery; each method uses its own state and scorer.</p>
+<p align="center">Supplied initial mask with independent DINOv2 recovery; each method uses its own state and scorer.</p>
 
 
 ---
