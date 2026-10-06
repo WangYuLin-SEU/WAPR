@@ -4,7 +4,27 @@ WAPR refines unseen-object 6D poses from RGB-D observations and a metric mesh. T
 
 WAPR 根据 RGB-D 观测与米制网格修正未见物体的 6D 位姿。本目录构建可安装的 `wapr` 包与 CUDA/EGL/OpenGL 渲染器。源码和示例见 [WAPR](https://github.com/WangYuLin-SEU/WAPR)，安装步骤和输入约定见 [Docs](https://wangyulin-seu.github.io/WAPR/docs/?lang=zh)。
 
-## Build / 构建
+## Source wheel / 源码 wheel
+
+For an existing Linux Python/PyTorch/CUDA environment, build a source-only wheel with the same build script. It includes WAPR's native sources and compiles the renderer on the target machine. It contains no compiled `.so`, PyTorch, model weights or TensorRT engines. The packaging host needs setuptools 77+ and wheel 0.45+; it does not need CUDA for this build.
+
+面向已有 Linux Python/PyTorch/CUDA 环境，用同一构建脚本生成仅含源码的 wheel。它包含 WAPR 的本地模块源码，在目标机器编译渲染器，不包含预编译 `.so`、PyTorch、权重或 TensorRT 引擎。打包机器需 setuptools 77+ 与 wheel 0.45+；这一构建不需要 CUDA。
+
+```bash
+WAPR_WHEEL_SOURCE_ONLY=1 python wheel_build/build_wheel.py
+python -m pip install --no-deps wheel_build/dist/wapr-0.0.1-py3-none-any.whl
+python -m wapr.bootstrap
+```
+
+Run these installation commands with the target's existing Python. The package entry prepares missing dependencies and preserves the existing torch, torchvision, torchaudio and NumPy versions unless a displayed replacement plan is explicitly approved. It selects TensorRT 10.x for the existing CUDA 11, 12 or 13 family and ONNX for export, and installs missing EGL/OpenGL development prerequisites on root-owned Debian/Ubuntu systems. Other systems receive an explicit prerequisite error. CUDA `nvcc` must already be available. A toolkit too old for the GPU's SM uses a supported PTX target; actual inference must still verify that configuration.
+
+安装时使用目标机器已有的 Python。包内入口补齐缺失依赖，默认保留已有 torch、torchvision、torchaudio 和 NumPy 版本；需要更换时先显示方案并获得明确同意；按 CUDA 11、12、13 家族选择 TensorRT 10.x，安装 ONNX，并在 root 用户的 Debian/Ubuntu 系统补齐缺少的 EGL/OpenGL 开发依赖。其他系统会明确提示前置依赖。机器须已有 CUDA `nvcc`。若 toolkit 不能编译该 GPU 的 SM，则选择支持的 PTX 目标；仍需实际推理验证该组合。
+
+Weights and samples are fetched by `wapr.download_assets`; `wapr.bootstrap.fetch_example()` fetches a public GitHub usage example. The package does not change the inference backend: select `wapr.recipe.backend = "torch"` explicitly for PyTorch, or keep `"trt"` and export engines on the target GPU with `python -m wapr.export_engines`.
+
+权重和样本由 `wapr.download_assets` 下载；`wapr.bootstrap.fetch_example()` 下载 GitHub 公开用法示例。包不改变推理后端：PyTorch 推理显式设置 `wapr.recipe.backend = "torch"`；或保留 `"trt"`，在目标显卡执行 `python -m wapr.export_engines` 导出引擎。
+
+## Precompiled wheel / 预编译 wheel
 
 Use Linux x86-64, Python 3.10, CUDA toolkit 12.8 with `nvcc`, CMake 3.18+, a C++17 compiler, pybind11 2.12.0, and EGL/OpenGL development libraries. Install the packaging tools, then run the existing build script from the repository root:
 
@@ -29,22 +49,69 @@ The wheel contains WAPR, not a bundled Python environment. Basic installation ad
 
 wheel 只交付 WAPR，不打包完整 Python 环境。基础安装补齐 NumPy、Pillow、trimesh 和 Hugging Face Hub，不固定其精确版本。请先按 GPU 环境准备带 CUDA 的 PyTorch；使用 TensorRT 后端时再准备 TensorRT 10.x。基础安装不会选择这些 GPU 包。位姿推理还需 Kornia 和一种 OpenCV 发行包；已有可用的 OpenCV 时继续使用，不要同时安装多种提供 `cv2` 的发行包。
 
-After preparing PyTorch and OpenCV, install Kornia and the local wheel:
+For a precompiled wheel, keep the existing GPU environment and prepare missing libraries through the package:
 
-准备好 PyTorch 和 OpenCV 后，安装 Kornia 与本地 wheel：
+预编译 wheel 也保留已有 GPU 环境，通过包内入口准备缺失库：
 
 ```bash
-python -m pip install kornia
-python -m pip install wheel_build/dist/wapr-0.1.0.dev0-cp310-cp310-linux_x86_64.whl
+python -m pip install --no-deps wheel_build/dist/wapr-0.0.1-cp310-cp310-linux_x86_64.whl
+python -m wapr.bootstrap
 ```
 
-For a new environment, the optional `pose` extra installs torch, Kornia and `opencv-python`; select a suitable CUDA-enabled torch build first. The `trt` extra selects CUDA 12 TensorRT 10.x; the `export` extra adds ONNX for engine export. These extras are opt-in, install dependencies as separate packages, and do not include third-party detector source trees. If GPU packages are already managed externally, install the base wheel and only add the missing libraries yourself. No `--upgrade` is needed.
+### Optional features / 可选功能
 
-新环境可选 `pose` 附加依赖，安装 torch、Kornia 与 `opencv-python`；应先选择适合设备的带 CUDA 的 torch。`trt` 附加依赖选择 CUDA 12 的 TensorRT 10.x；`export` 附加依赖补充导出引擎所需的 ONNX。这些附加依赖须显式选择，各自作为独立包安装，不包含第三方检测器源码。GPU 软件栈已由其他方式管理时，安装基础 wheel 并自行补齐缺失库即可，不需要使用 `--upgrade`。
+The minimal runtime prepares WAPR, SAPR, WBPS and OGL. Detection, reconstruction and robot dependencies are separate. Installing the wheel does not install those stacks or fetch their models. Calling a supported optional entry for the first time invokes the package's dependency preparation; importing a module alone does not. Incompatible features report unmet requirements. A proposed package replacement shows the installed and proposed versions and requires explicit user approval before installation; declining stops preparation of that feature.
 
-The current wheel has a CPython 3.10 ABI, so it requires Python 3.10. The CUDA 12.8 SDK above belongs to the controlled release build; installing a precompiled wheel does not require `nvcc` or that exact toolkit installation. Its CUDA runtime libraries, GPU driver and EGL/OpenGL must still be compatible. Source setup reports the selected compiler instead of rejecting other toolkit versions, but removing a gate does not verify a new environment. Other Python versions, Windows and general manylinux compatibility are not declared. Installed-package resources use the user cache; an absolute `WAPR_CACHE_DIR` can select another root. Weights and sample packs are downloaded separately, and TensorRT engines must be built for the target GPU and TensorRT version. Installation itself does not run inference or fetch models. Follow the Docs for the complete detector setup.
+最小运行环境准备 WAPR、SAPR、WBPS 与 OGL。检测、重建和机器人依赖单独准备；安装 wheel 不安装这些完整环境，也不下载其模型。首次调用受支持的可选入口时，由包内依赖准备流程处理；仅导入模块不会触发安装。不兼容功能会明确报告缺少的条件。需要更换已有库时，先列出已安装版本与建议版本，得到用户明确同意后才安装；拒绝则停止该功能的准备。
 
-当前 wheel 使用 CPython 3.10 ABI，因此需要 Python 3.10。上方 CUDA 12.8 SDK 属于受控的正式构建环境；安装预编译 wheel 不需要 `nvcc`，也不要求安装同一精确版本的 toolkit，但所需 CUDA 运行库、驱动和 EGL/OpenGL 仍须兼容。源码安装会报告所选编译器，不再拒绝其他 toolkit 版本；去掉检查不代表已验证新环境。不声明支持其他 Python 版本、Windows 或通用 manylinux 环境。安装版资源使用用户缓存，可用绝对路径 `WAPR_CACHE_DIR` 指定其他根目录。权重与小样另行下载，TensorRT 引擎需在目标 GPU 和 TensorRT 版本上构建。安装本身不运行推理或下载模型，完整检测环境按 Docs 准备。
+Inspect the current environment before choosing features, or prepare one explicitly:
+
+先检查当前环境，再选择功能；也可显式准备某项功能：
+
+```bash
+python -m wapr.bootstrap --check
+python -m wapr.bootstrap --feature det2d
+python -m wapr.bootstrap --feature robot
+python -m wapr.bootstrap --feature compatible
+```
+
+`compatible` considers features against the existing environment and prepares those whose prerequisites can be satisfied. Its report distinguishes installed/importable packages, satisfied declared requirements, skipped features and runtime verification. Passing a version check alone does not prove model inference works. Package replacements require a user decision after the old and proposed versions are shown. Interactive sessions ask for approval; noninteractive sessions deny replacements by default. `--yes` is explicit permission for the displayed replacements, not a claim that every feature is compatible.
+
+`compatible` 根据已有环境考虑各项功能，准备满足前置条件的部分。报告区分已安装且可导入的包、满足声明条件的功能、跳过的功能以及运行验证结果。仅通过版本检查不代表模型推理已验证。更换已有库前先显示旧版本与建议版本，由用户决定。交互终端会询问；非交互环境默认拒绝更换。`--yes` 是对所列更换的明确许可，不代表全部功能都兼容。
+
+Standard pip extras select only lightweight helpers used for HTTP transfer, metadata/version inspection and source configuration. They contain no torch dependency or fixed CUDA-family TensorRT selection:
+
+标准 pip extras 仅选择 HTTP 传输、元数据与版本检查、源码配置所需的轻量辅助包，不声明 torch 依赖，也不固定 TensorRT 的 CUDA 家族：
+
+| Extra | Scope / 范围 | Helpers / 辅助包 |
+| --- | --- | --- |
+| `pose`, `trt` | Environment selection / 环境选择 | packaging |
+| `export` | ONNX export / ONNX 导出 | onnx |
+| `det2d` | 2D detection / 2D 检测 | packaging, requests, PyYAML |
+| `dinov2` | DINOv2 features / DINOv2 特征 | packaging, requests |
+| `sam2` | SAM 2 segmentation / SAM 2 分割 | packaging, PyYAML |
+| `sam3d` | SAM 3D reconstruction / SAM 3D 重建 | packaging, requests, PyYAML |
+| `roma`, `qwen` | Matching or vision-language helpers / 匹配或视觉语言辅助 | packaging, requests |
+| `reconstruction` | Reconstruction prerequisites / 重建前置依赖 | packaging, requests, PyYAML |
+| `robot` | Robot configuration / 机器人配置 | packaging, PyYAML |
+| `compatible` | Available-feature preparation / 可用功能准备 | packaging, requests, PyYAML |
+
+For example, in an environment whose base dependencies are already prepared:
+
+例如，在基础依赖已准备好的环境中：
+
+```bash
+python -m pip install 'wheel_build/dist/wapr-0.0.1-py3-none-any.whl[det2d]'
+python -m wapr.bootstrap --feature det2d
+```
+
+Pip accepts `wapr[det2d]` syntax, not arbitrary installation arguments that execute WAPR code. Installing an extra does **not** run bootstrap, compile a third-party component or select all compatible features. Use the explicit package command or the first-call preparation for that work. With an existing GPU stack, the `--no-deps` minimal installation above plus bootstrap is the controlled route: bootstrap protects installed torch, torchvision, torchaudio and NumPy while resolving missing dependencies, and asks before applying a displayed replacement plan. No optional feature is claimed compatible with every PyTorch/CUDA version, Windows or macOS.
+
+pip 支持 `wapr[det2d]` 语法，不支持通过任意安装参数执行 WAPR 代码。安装 extra **不会**执行 bootstrap、编译第三方组件或自动选择全部兼容功能；这些工作由显式包内命令或首次调用准备流程执行。已有 GPU 软件栈时，推荐上方 `--no-deps` 最小安装加 bootstrap：解析缺失依赖时保护已有 torch、torchvision、torchaudio 和 NumPy；如需更换，先显示方案并征求同意。不声明所有可选功能兼容全部 PyTorch/CUDA 版本、Windows 或 macOS。
+
+The precompiled wheel has a CPython 3.10 ABI, so it requires Python 3.10. The source wheel contains no native binary and declares Python 3.8 or later; its renderer and dependencies still need target-environment preparation. The CUDA 12.8 SDK above belongs to the controlled precompiled build; installing a precompiled wheel does not require `nvcc` or that exact toolkit installation. Its CUDA runtime libraries, GPU driver and EGL/OpenGL must still be compatible. Source setup reports the selected compiler instead of rejecting other toolkit versions, but removing a gate does not verify a new environment. The precompiled wheel does not declare other Python ABIs; Windows and general manylinux compatibility are not declared for either variant. Installed-package resources use the user cache; an absolute `WAPR_CACHE_DIR` can select another root. Weights and sample packs are downloaded separately, and TensorRT engines must be built for the target GPU and TensorRT version. Installation itself does not run inference or fetch models. Follow the Docs for the complete detector setup.
+
+预编译 wheel 使用 CPython 3.10 ABI，因此需要 Python 3.10。源码 wheel 不包含本地二进制，声明 Python 3.8 及以上；渲染器与依赖仍需在目标环境准备。上方 CUDA 12.8 SDK 属于受控的预编译构建环境；安装预编译 wheel 不需要 `nvcc`，也不要求安装同一精确版本的 toolkit，但所需 CUDA 运行库、驱动和 EGL/OpenGL 仍须兼容。源码安装会报告所选编译器，不再拒绝其他 toolkit 版本；去掉检查不代表已验证新环境。预编译 wheel 不声明其他 Python ABI；两种构建均不声明支持 Windows 或通用 manylinux 环境。安装版资源使用用户缓存，可用绝对路径 `WAPR_CACHE_DIR` 指定其他根目录。权重与小样另行下载，TensorRT 引擎需在目标 GPU 和 TensorRT 版本上构建。安装本身不运行推理或下载模型，完整检测环境按 Docs 准备。
 
 For source setup, `requirements.txt` contains pose/export/build dependencies and `requirements-detector.txt` contains additional 2D dependencies. The installer checks user-selected PyTorch, TensorRT and OpenCV first, and checks torchvision when 2D detection is enabled. It constrains pip to the installed torch/torchvision versions; a conflict fails instead of silently replacing them. Other packages have no exact pins. Source revisions and actual native ABI constraints still apply; a wider dependency declaration is not a claim that every release has been tested.
 
@@ -52,21 +119,43 @@ For source setup, `requirements.txt` contains pose/export/build dependencies and
 
 ## Release / 发行
 
-The suggested first stable version is **0.1.0**, pending the maintainer's confirmation. `0.1.0.dev0` is a preparation version, not the final release version. Before publishing, set the confirmed stable version in `pyproject.toml` and use its matching `vX.Y.Z` release tag.
+The initial release version is **0.0.1**. Optional feature compatibility depends on the target environment; installation or import alone does not establish inference compatibility. The matching release tag is `v0.0.1`.
 
-首个正式版本建议为 **0.1.0**，待作者确认。`0.1.0.dev0` 是预备版本，不是最终发行版本。发布前在 `pyproject.toml` 中填写已确认的正式版本，并使用一致的 `vX.Y.Z` Release 标签。
+首次发行版本为 **0.0.1**。可选功能的兼容性取决于目标环境；安装或导入成功不代表实际推理已验证。对应发行标签为 `v0.0.1`。
 
-`.github/workflows/release.yml` runs only for a published, non-prerelease GitHub Release. Its `build-wheel` job uses a dedicated self-hosted runner labeled `wapr-cuda-12-8`; configure Linux, x64, Python 3.10, CUDA 12.8, build libraries, an NVIDIA GPU and working EGL/OpenGL on that runner. The job builds the wheel, installs it into an isolated virtual environment outside the checkout, and checks package/native imports and CUDA/EGL initialization without downloading weights or constructing the estimator. Only the verified wheel and its checksum are transferred to the publishing job.
+`.github/workflows/release.yml` runs only for a published, non-prerelease GitHub Release. The `build-wheel` job uses a controlled self-hosted Linux CUDA runner labeled `wapr-cuda-12-8`. It executes the existing builder with `WAPR_WHEEL_SOURCE_ONLY=1`, producing a `py3-none-any` wheel containing WAPR Python code and renderer sources. PyTorch, model weights, engines and complete third-party repositories are not bundled. The job checks metadata, licenses, checksum and README rendering, then installs the wheel outside the source checkout and verifies the installed package and target-built renderer. Only the verified wheel and checksum reach the publishing job.
 
-`.github/workflows/release.yml` 仅由已发布、非预发行的 GitHub Release 触发。`build-wheel` 使用带 `wapr-cuda-12-8` 标签的专用 self-hosted runner；需配置 Linux、x64、Python 3.10、CUDA 12.8、开发库、NVIDIA GPU 及可用的 EGL/OpenGL。该 job 构建 wheel，在源码检出目录之外的独立虚拟环境安装，并检查包与本地模块导入及 CUDA/EGL 初始化；不下载权重，不构造估计器。仅将验证后的 wheel 与校验和传给发布 job。
+`.github/workflows/release.yml` 仅由已发布、非预发行的 GitHub Release 触发。`build-wheel` 使用带 `wapr-cuda-12-8` 标签的受控 self-hosted Linux CUDA runner，设置 `WAPR_WHEEL_SOURCE_ONLY=1` 执行现有构建脚本，生成包含 WAPR Python 代码与渲染器源码的 `py3-none-any` wheel，不打包 PyTorch、模型权重、引擎或完整第三方仓库。该 job 检查元数据、许可、校验和与 README 渲染，并在源码检出目录之外安装 wheel，验证安装包与目标环境编译的渲染器。仅将已验证的 wheel 与校验和交给发布 job。
 
-`publish-pypi` runs on `ubuntu-latest`, checks the artifact checksum and stable version/tag, and uses the `pypi` environment with OIDC. It does not rebuild the wheel, use long-lived PyPI credentials or publish an sdist. Create `pypi` in **WAPR → Settings → Environments**, configure the required reviewer and restrict release tags to maintainers. Configure the Pending Trusted Publisher as project `wapr`, owner `WangYuLin-SEU`, repository `WAPR`, workflow `release.yml`, environment `pypi`.
+The source wheel's `Requires-Python >=3.8` and `py3-none-any` tag describe package installation and the absence of a bundled native ABI. They do not establish Windows/macOS, every Python release or every GPU/CUDA combination as supported. The runtime still needs a compatible Linux/CUDA/EGL/OpenGL environment. The separate precompiled build remains available for controlled local use; its `linux_x86_64` wheel is not the artifact selected for this PyPI workflow.
 
-`publish-pypi` 在 `ubuntu-latest` 上核对产物校验和、正式版本与标签，使用 `pypi` Environment 和 OIDC；不重新构建 wheel，不使用长期 PyPI 凭据，不发布 sdist。在 **WAPR → Settings → Environments** 创建 `pypi`，设置审核人，并限制正式标签由维护者创建。Pending Trusted Publisher 填写：项目 `wapr`，所有者 `WangYuLin-SEU`，仓库 `WAPR`，工作流 `release.yml`，环境 `pypi`。
+源码 wheel 的 `Requires-Python >=3.8` 与 `py3-none-any` 标签描述包的安装条件及不含预编译本地 ABI，不代表已验证 Windows/macOS、所有 Python 版本或所有 GPU/CUDA 组合。运行仍需要兼容的 Linux/CUDA/EGL/OpenGL 环境。预编译构建保留用于受控本地安装；其 `linux_x86_64` wheel 不是此 PyPI workflow 选择的产物。
 
-The current native builder produces a `linux_x86_64` wheel. [PyPI platform validation](https://github.com/pypi/warehouse/blob/main/warehouse/utils/wheel.py) rejects that tag. The publishing job stops before upload for such a file. A PyPI-accepted Linux wheel requires a verified ABI and dependency policy, such as an audited manylinux build; changing its filename alone is insufficient. Keep the generated wheel for installation checks until that build is available.
+Before creating a formal GitHub Release:
 
-当前本地编译流程生成 `linux_x86_64` wheel；[PyPI 平台检查](https://github.com/pypi/warehouse/blob/main/warehouse/utils/wheel.py) 不接受该标签，发布 job 会在上传前停止。PyPI 可接受的 Linux wheel 需要经过验证的 ABI 与依赖约束，例如通过审计的 manylinux 构建；仅修改文件名并不成立。在完成这种构建前，生成的 wheel 用于安装验证。
+创建正式 GitHub Release 前：
+
+1. Build version **0.0.1** and use its matching `v0.0.1` tag.
+2. Configure the controlled CUDA runner with Python 3.10, CUDA development tools, EGL/OpenGL and an NVIDIA GPU for the package checks.
+3. Create **WAPR → Settings → Environments → pypi**, configure a required reviewer and protect release-tag creation.
+4. Configure PyPI Pending Trusted Publisher with the following values. The publishing job uses OIDC with `id-token: write`; no token, password or sdist is required.
+
+1. 构建 **0.0.1** 版本，使用一致的 `v0.0.1` 标签。
+2. 配置受控 CUDA runner，准备 Python 3.10、CUDA 开发工具、EGL/OpenGL 和用于包校验的 NVIDIA GPU。
+3. 在 **WAPR → Settings → Environments → pypi** 创建环境，设置审核人并限制正式标签创建权限。
+4. 按下表配置 PyPI Pending Trusted Publisher。发布 job 使用 OIDC 与 `id-token: write`，不需要长期 token、密码或 sdist。
+
+| Field / 字段 | Value / 值 |
+| --- | --- |
+| PyPI project / 项目 | `wapr` |
+| Owner / 所有者 | `WangYuLin-SEU` |
+| Repository / 仓库 | `WAPR` |
+| Workflow / 工作流 | `release.yml` |
+| Environment / 环境 | `pypi` |
+
+Local wheel building does not publish anything. A formal Release is the publishing trigger; prepare and review the version, runner, environment and publisher configuration before creating one.
+
+本地构建 wheel 不发布任何内容。正式 Release 是发布触发条件；创建前应先准备并审核版本、runner、Environment 与 publisher 配置。
 
 ### Model attribution / 模型署名
 

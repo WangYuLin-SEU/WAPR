@@ -54,6 +54,11 @@ def main():
 
     编译渲染器、构建带 ABI 标签的 wheel，并检查其内容。
     """
+    # Explicit build choice: source wheel preserves the target Python/CUDA stack.
+    # 显式构建选择：源码 wheel 保留目标机器已有的 Python/CUDA 软件栈。
+    if os.environ.get("WAPR_WHEEL_SOURCE_ONLY") == "1":
+        build_source_wheel()
+        return
     if sys.version_info[:2] != (3, 10):
         raise RuntimeError("Build with Python 3.10 / 请使用 Python 3.10 构建")
     if sys.platform != "linux":
@@ -149,6 +154,59 @@ def main():
     print("WHEEL_BUILT", wheel_path, flush=True)
     print("WHEEL_SHA256", digest.hexdigest(), flush=True)
     print("WHEEL_CONTENT", {"native": native_members[0], "shaders": shader_members}, flush=True)
+
+
+def build_source_wheel():
+    """Bundle runtime and native sources, without prebuilt GPU binaries.
+
+    打包运行库及本地模块源码，不包含预编译 GPU 二进制。
+    WAPR_WHEEL_SOURCE_ONLY=1 python wheel_build/build_wheel.py
+    """
+    os.makedirs(DIST_DIR, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="wapr-source-wheel-") as temporary_dir:
+        stage_dir = os.path.join(temporary_dir, "stage")
+        os.makedirs(stage_dir)
+        for name in ("setup.py", "README.md"):
+            shutil.copy2(os.path.join(SCRIPT_DIR, name), stage_dir)
+        metadata_path = os.path.join(SCRIPT_DIR, "pyproject.toml")
+        with open(metadata_path, encoding="utf-8") as stream:
+            metadata = stream.read()
+        metadata = metadata.replace('requires-python = "==3.10.*"', 'requires-python = ">=3.8"')
+        metadata += '\n# Native sources compile on the target. / 本地源码在目标机器编译。\n'
+        metadata += '[tool.setuptools.exclude-package-data]\nwapr = ["**/*.so", "**/*.pyc"]\n'
+        metadata = metadata.replace('"ogl_native/_gpu_render*.so",',
+                                    '"ogl_native/CMakeLists.txt", "ogl_native/cpp/*", "ogl_native/cuda/*", "ogl_native/python/*",')
+        with open(os.path.join(stage_dir, "pyproject.toml"), "w", encoding="utf-8") as stream:
+            stream.write(metadata)
+        for name in ("LICENSE", "AUTHORS.md", "WEIGHTS_LICENSE.txt", "THIRD_PARTY_NOTICES.txt"):
+            shutil.copy2(os.path.join(RELEASE_DIR, name), stage_dir)
+        shutil.copytree(os.path.join(RELEASE_DIR, "wapr"), os.path.join(stage_dir, "wapr"), ignore=source_ignore)
+        output_dir = os.path.join(temporary_dir, "dist")
+        subprocess.check_call([sys.executable, "-m", "pip", "wheel", "--no-deps", "--no-build-isolation",
+                               "--wheel-dir", output_dir, stage_dir])
+        wheels = [name for name in os.listdir(output_dir) if name.endswith(".whl")]
+        if len(wheels) != 1 or not wheels[0].endswith("-py3-none-any.whl"):
+            raise RuntimeError("Expected one source-only Python wheel / 应产生一个仅含源码的 wheel")
+        wheel_path = os.path.join(DIST_DIR, wheels[0])
+        shutil.copy2(os.path.join(output_dir, wheels[0]), wheel_path)
+    with zipfile.ZipFile(wheel_path) as archive:
+        members = archive.namelist()
+        required = ["wapr/bootstrap.py", "wapr/ogl_native/CMakeLists.txt",
+                    "wapr/ogl_native/python/gpu_render_pybind.cpp",
+                    "wapr/ogl_native/cuda/pack_outputs.cu"]
+        if any(name not in members for name in required):
+            raise RuntimeError("Native source or setup entry missing / 缺少本地源码或安装入口")
+        prohibited = {"reports", "benchmarks", "samples", "third_party", "outputs", "__pycache__", "tools", "pages"}
+        if any(prohibited.intersection(name.split("/")) or name.endswith((".so", ".pth", ".engine", ".onnx", ".pyc")) for name in members):
+            raise RuntimeError("Non-runtime content in wheel / wheel 含非运行内容")
+        for name in ("LICENSE", "AUTHORS.md", "WEIGHTS_LICENSE.txt", "THIRD_PARTY_NOTICES.txt"):
+            if not any(member.endswith(".dist-info/licenses/" + name) for member in members):
+                raise RuntimeError("Missing license / 缺少许可: " + name)
+    with open(wheel_path, "rb") as stream:
+        digest = hashlib.sha256(stream.read()).hexdigest()
+    print("WHEEL_BUILT", wheel_path, flush=True)
+    print("WHEEL_SHA256", digest, flush=True)
+    print("WHEEL_CONTENT", members, flush=True)
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: LGPL-2.1-only
 """Carry weight attribution through WAPR exports. / 在 WAPR 导出中保留权重署名。"""
 import hashlib
+import inspect
 import json
 from pathlib import Path
 import struct
@@ -44,7 +45,10 @@ def validate_metadata(metadata):
 def checkpoint_metadata(path, name):
     """Read attribution or supply it for legacy weights. / 读取署名，兼容旧权重。"""
     import torch
-    checkpoint = torch.load(path, map_location="cpu", weights_only=True)
+    load_options = {"map_location": "cpu"}
+    if "weights_only" in inspect.signature(torch.load).parameters:
+        load_options["weights_only"] = True
+    checkpoint = torch.load(path, **load_options)
     metadata = checkpoint.get(METADATA_KEY) if isinstance(checkpoint, dict) else None
     metadata = weight_metadata(name) if metadata is None else validate_metadata(metadata)
     if metadata["model_name"] != name:

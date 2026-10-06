@@ -46,18 +46,21 @@ Construct the detector with WAPRDet2D(template, ...). Call detect_many_categorie
 用 WAPRDet2D(template, ...) 构造检测器。调用 detect_many_categories_many_instances(rgb, ...) 获取 2D 实例。onboard_meshes(...) 建立 CAD 库。
 """
 import hashlib
+import inspect
 import json
 import os
+import re
 import shutil
 import sys
 import time
 import urllib.request
+import zipfile
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 
-from wapr.resources import weights_dir
+from wapr.resources import weights_dir, resource_root, source_checkout
 
 
 release_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -65,17 +68,18 @@ default_weights_dir = os.path.join(weights_dir(), 'det2d')
 # The checksum catalog lives beside this module in both source and wheel layouts.
 # 校验清单在源码目录和 wheel 中都与此模块同处 wapr/。
 det2d_manifest_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'det2d_assets.json')
-default_dino_repo = os.path.join(release_dir, 'third_party', 'dinov2')
+source_parent = os.path.join(release_dir, 'third_party') if source_checkout else os.path.join(resource_root(), 'sources')
+default_dino_repo = os.path.join(source_parent, 'dinov2')
 # A fresh GroundingDINO clone still calls its CUDA extension on GPU.
 # The checkout used here calls multi_scale_deformable_attn_pytorch instead.
 # The text encoder is a local bert-base-uncased directory, not a hub download.
 # 新克隆的 GroundingDINO 在 GPU 上仍会调用它的 CUDA 扩展。
 # 这里的检出改为调用 multi_scale_deformable_attn_pytorch。
 # 文本编码器是本地的 bert-base-uncased 目录，不从 hub 下载。
-grounding_repo = os.path.join(release_dir, 'third_party', 'GroundingDINO')
+grounding_repo = os.path.join(source_parent, 'GroundingDINO')
 if os.path.isdir(grounding_repo) and grounding_repo not in sys.path:
     sys.path.insert(0, grounding_repo)
-sam_repo = os.path.join(release_dir, 'third_party', 'ultralytics')
+sam_repo = os.path.join(source_parent, 'ultralytics')
 if os.path.isdir(sam_repo) and sam_repo not in sys.path:
     sys.path.insert(0, sam_repo)
 
@@ -305,7 +309,7 @@ def _download_file(url, dest):
     ## Args
 
         - url: the HTTP address. The request sends User-Agent WAPR-det2d.
-        - dest: the final file path. Bytes go to dest + '.part', then os.replace moves that file to dest. A failed download deletes the partial file and reraises.
+        - dest: the final file path. Verified response bytes remain in dest + '.part' for bounded Range retries. Only a complete file is moved to dest.
 
     ---
 
@@ -316,25 +320,91 @@ def _download_file(url, dest):
     ## 参数
 
         - url: HTTP 地址。请求带的 User-Agent 是 WAPR-det2d。
-        - dest: 最终文件路径。字节先写到 dest + '.part'，再用 os.replace 移到 dest。下载失败会删掉半截文件并重新抛出。
+        - dest: 最终文件路径。响应字节暂存于 dest + '.part' 并有限续传，仅完整文件才移到 dest。
 
 """
     os.makedirs(os.path.dirname(dest), exist_ok=True)
     partial = dest + '.part'
     print('DET2D_DOWNLOAD', {'url': url, 'path': dest}, flush=True)
-    request = urllib.request.Request(url, headers={'User-Agent': 'WAPR-det2d'})
-    try:
-        with urllib.request.urlopen(request) as response, open(partial, 'wb') as stream:
-            while True:
-                chunk = response.read(1024 * 1024)
-                if not chunk:
-                    break
-                stream.write(chunk)
-        os.replace(partial, dest)
-    except Exception:
-        if os.path.isfile(partial):
-            os.remove(partial)
-        raise
+    expected_total = None
+    for attempt in range(6):
+        direct = attempt > 0
+        # Retry the same official URL without a failing regional proxy.
+        # 地区代理失败时直连同一官方地址，不替换下载资源。
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({})) if direct else urllib.request.build_opener()
+        offset = os.path.getsize(partial) if os.path.isfile(partial) else 0
+        headers = {'User-Agent': 'WAPR-det2d', 'Accept-Encoding': 'identity'}
+        if offset:
+            headers['Range'] = 'bytes=%d-' % offset
+        request = urllib.request.Request(url, headers=headers)
+        try:
+            with opener.open(request, timeout=120) as response:
+                content_length = response.headers.get('Content-Length')
+                expected_bytes = int(content_length) if content_length is not None else None
+                content_range = response.headers.get('Content-Range')
+                append = False
+                if content_range is not None:
+                    # A proxy may return only a cached byte range despite a full request.
+                    # 代理可能把完整请求错误地返回为缓存片段，不能将该片段发布为权重。
+                    match = re.fullmatch(r'bytes (\d+)-(\d+)/(\d+)', content_range.strip())
+                    if match is None:
+                        raise RuntimeError('Incomplete HTTP range / HTTP 只返回部分文件: ' + str(content_range))
+                    start, end, total = map(int, match.groups())
+                    if start != offset or end < start or end >= total or (expected_total is not None and total != expected_total):
+                        raise RuntimeError('Invalid HTTP range / HTTP 续传范围不匹配: ' + str(content_range))
+                    if expected_bytes is not None and expected_bytes != end - start + 1:
+                        raise RuntimeError('Invalid range length / 续传响应长度不匹配')
+                    expected_bytes = end - start + 1
+                    expected_total = total
+                    append = offset > 0
+                else:
+                    # Servers ignoring Range must replace, never append, their full response.
+                    # 服务端忽略 Range 时重新完整写入，不能把完整文件追加到片段。
+                    if getattr(response, 'status', 200) == 206:
+                        raise RuntimeError('Missing Content-Range / 续传响应缺少范围头')
+                    offset = 0
+                    expected_total = expected_bytes
+                downloaded_bytes = 0
+                with open(partial, 'ab' if append else 'wb') as stream:
+                    while True:
+                        chunk = response.read(1024 * 1024)
+                        if not chunk:
+                            break
+                        if expected_bytes is not None and downloaded_bytes + len(chunk) > expected_bytes:
+                            raise RuntimeError('HTTP body exceeds declared length / HTTP 主体超过声明长度')
+                        stream.write(chunk)
+                        downloaded_bytes += len(chunk)
+                # Keep the final path untouched when a connection ends prematurely.
+                # 连接提前结束时保留最终路径原状，并保留 .part 供续传。
+                if expected_bytes is not None and downloaded_bytes != expected_bytes:
+                    raise RuntimeError('Incomplete download / 下载不完整: expected %d bytes, received %d' %
+                                       (expected_bytes, downloaded_bytes))
+                if expected_total is not None and os.path.getsize(partial) != expected_total:
+                    raise RuntimeError('Incomplete total download / 文件尚未下载完整')
+            zip_checkpoints = {spec['file'] for spec in DINO_CHOICES.values()}
+            zip_checkpoints.update(('sam2.1_hiera_large.pt', 'sam2.1_hiera_tiny.pt'))
+            if os.path.basename(dest) in zip_checkpoints:
+                # Validate before publishing: a proxy may mislabel a truncated body as complete.
+                # 发布前核验：代理可能把截断主体错误标成完整 HTTP 响应。
+                try:
+                    with zipfile.ZipFile(partial) as archive:
+                        broken_record = archive.testzip()
+                        if broken_record is not None:
+                            raise RuntimeError('Invalid checkpoint record / 权重数据记录损坏: ' + broken_record)
+                except Exception:
+                    os.remove(partial)
+                    expected_total = None
+                    raise
+            os.replace(partial, dest)
+            return
+        except Exception:
+            # Retain verified response bytes for bounded retries and the next invocation.
+            # 保留已写入的响应字节，供有限重试及下次调用续传；错误响应不写入。
+            retained_bytes = os.path.getsize(partial) if os.path.isfile(partial) else 0
+            print('DET2D_DOWNLOAD_RETRY', {'attempt': attempt + 1, 'bytes': retained_bytes, 'total': expected_total}, flush=True)
+            if attempt == 5:
+                raise
+            print('DET2D_DOWNLOAD_RETRY_DIRECT', flush=True)
 
 
 def _place_file(weights_dir, relative, url, expected_sha):
@@ -429,6 +499,17 @@ def _place_config(weights_dir, spec):
     return dest
 
 
+def _load_tensor_file(path, map_location='cpu'):
+    """Load verified tensor resources across PyTorch versions.
+
+    跨 PyTorch 版本读取已校验的张量资源；旧版没有 weights_only 参数。
+    """
+    load_options = {'map_location': map_location}
+    if 'weights_only' in inspect.signature(torch.load).parameters:
+        load_options['weights_only'] = True
+    return torch.load(path, **load_options)
+
+
 def prepare_det2d_weights(weights_dir, dino='vitl14', grounding='swinb'):
     """
     # Place the selected DINOv2, GroundingDINO, SAM, and BERT files under weights_dir.
@@ -474,6 +555,8 @@ def prepare_det2d_weights(weights_dir, dino='vitl14', grounding='swinb'):
         - 返回已发布资源的标识，或 None。
 
 """
+    from wapr.bootstrap import ensure_optional
+    ensure_optional('det2d')
     weights_dir = os.path.abspath(os.fspath(weights_dir))
     os.makedirs(weights_dir, exist_ok=True)
     dino_spec = det2d_choice(DINO_CHOICES, dino, 'dino')
@@ -498,35 +581,46 @@ def prepare_dino_weight(weights_dir, dino='vitl14'):
     """
     # Make the selected DINOv2 weight available.
 
-        vitl14 also places the published pack.
+        Only the selected DINOv2 checkpoint is fetched; detector assets are independent.
 
-        Return that pack id, or None.
+        Return the catalog id for vitl14, or None. This is not full detector verification.
 
     ## Args
 
         - weights_dir: the directory the file is placed in.
-        - dino: a DINO_CHOICES key. The default is vitl14. vitl14 calls prepare_det2d_weights with grounding swinb and returns that result. Any other choice places only its own DINOv2 file and returns None.
+        - dino: a DINO_CHOICES key. The default is vitl14. Only its checkpoint is placed.
 
     ---
 
     # 保证所选 DINOv2 权重可用。
 
-        vitl14 还会放好已发布的那一套。
+        只获取选中的 DINOv2 权重，检测器资源独立准备。
 
-        返回该套资源文件的标识，或 None。
+        vitl14 返回目录标识，其他返回 None；不表示已核对整个检测器资源包。
 
     ## 参数
 
         - weights_dir: 放置该文件的目录。
-        - dino: DINO_CHOICES 的键。默认是 vitl14。vitl14 会以 grounding swinb 调用 prepare_det2d_weights，并返回它的结果。其他选择只放置自己的 DINOv2 文件，并返回 None。
+        - dino: DINO_CHOICES 的键。默认是 vitl14。仅放置该权重。
 
 """
-    if str(dino) == 'vitl14':
-        return prepare_det2d_weights(weights_dir, dino='vitl14', grounding='swinb')
     spec = det2d_choice(DINO_CHOICES, dino, 'dino')
     weights_dir = os.path.abspath(os.fspath(weights_dir))
     os.makedirs(weights_dir, exist_ok=True)
     _place_file(weights_dir, spec['file'], spec['url'], spec.get('sha256'))
+    if spec.get('sha256') is None:
+        # The small-model upstream catalog has no checksum; validate its ZIP records.
+        # 小型号上游目录没有校验值，至少核验 PyTorch ZIP 索引及数据完整性。
+        checkpoint = os.path.join(weights_dir, spec['file'])
+        try:
+            with zipfile.ZipFile(checkpoint) as archive:
+                broken_record = archive.testzip()
+                if broken_record is not None:
+                    raise RuntimeError('Invalid checkpoint record / 权重数据记录损坏: ' + broken_record)
+        except (zipfile.BadZipFile, EOFError, OSError) as error:
+            raise RuntimeError('Incomplete DINOv2 checkpoint / DINOv2 权重不完整: ' + checkpoint) from error
+    if str(dino) == 'vitl14':
+        return sha256(det2d_manifest_path)
     return None
 
 
@@ -1096,6 +1190,14 @@ class NativeDino:
             - dino_repo: 本地 DINOv2 源码目录。默认是 default_dino_repo。它必须包含 hubconf.py。hub 加载使用 pretrained False，然后以 strict True 载入 state dict。
             - dino: vits14、vitb14 或 vitl14。默认是 vitl14。patch 大小必须是 14。embed 宽度必须和目录行一致。
         """
+        from wapr.bootstrap import ensure_optional
+        from wapr.installation import prepare_optional
+        if os.path.abspath(dino_repo) == os.path.abspath(default_dino_repo):
+            ensure_optional('dinov2')
+        else:
+            dependency_result = prepare_optional('dinov2')
+            if dependency_result.get('status') not in ('ready', 'installed'):
+                raise RuntimeError('DINOv2 dependencies not ready / DINOv2 依赖未就绪: ' + str(dependency_result))
         self.device = torch.device(device)
         self.spec = det2d_choice(DINO_CHOICES, dino, 'dino')
         self.dino = str(dino)
@@ -1106,7 +1208,7 @@ class NativeDino:
             raise FileNotFoundError('Missing local DINOv2 source: ' + dino_repo)
         with torch.cuda.device(self.device):
             self.model = torch.hub.load(dino_repo, self.spec['hub'], source='local', pretrained=False)
-            self.model.load_state_dict(torch.load(self.weight_path, map_location='cpu', weights_only=True), strict=True)
+            self.model.load_state_dict(_load_tensor_file(self.weight_path, map_location='cpu'), strict=True)
             self.model = self.model.eval().to(self.device)
         if int(self.model.patch_size) != 14:
             raise ValueError('DINOv2 patch size must be 14')
@@ -1682,10 +1784,15 @@ class GroundingSAM:
             - grounding: swinb 或 swint。默认是 swinb。权重的键若超出允许的 position-id 和 label-encoder 键，就抛出 RuntimeError。
 
 """
+        from wapr.bootstrap import ensure_optional
+        ensure_optional('det2d')
         from groundingdino.models import build_model
         from groundingdino.util.slconfig import SLConfig
         from groundingdino.util.utils import clean_state_dict
         from groundingdino.datasets import transforms
+        # Package changes must pass WAPR's reviewed installation plan.
+        # 包变更必须经过 WAPR 安装计划确认，禁用上游隐式自动安装。
+        os.environ['YOLO_AUTOINSTALL'] = 'false'
         from ultralytics import SAM
 
         self.device = torch.device(device)
@@ -1695,7 +1802,7 @@ class GroundingSAM:
             values = json.load(stream)
         values.update(text_encoder_type=os.path.join(weights_dir, 'bert-base-uncased'), device=str(self.device))
         self.model = build_model(SLConfig(values))
-        checkpoint = torch.load(os.path.join(weights_dir, self.spec['file']), map_location='cpu', weights_only=True)
+        checkpoint = _load_tensor_file(os.path.join(weights_dir, self.spec['file']), map_location='cpu')
         incompatible = self.model.load_state_dict(clean_state_dict(checkpoint['model']), strict=False)
         if set(incompatible.missing_keys) - {'bert.embeddings.position_ids'} or set(incompatible.unexpected_keys) - {'label_enc.weight', 'bert.embeddings.position_ids'}:
             raise RuntimeError('GroundingDINO checkpoint mismatch: ' + str(incompatible))
@@ -2125,7 +2232,7 @@ class WAPRDet2D:
                 raise RuntimeError('Template bank hash mismatch')
             if sha256(dino_path) != manifest['weight_sha256']:
                 raise RuntimeError('Template bank and DINO weight differ')
-            bank = torch.load(template_path, map_location=self.device, weights_only=True)
+            bank = _load_tensor_file(template_path, map_location=self.device)
             template_bytes = os.path.getsize(template_path)
             template_store = 'disk'
         obj_ids = bank['obj_ids']

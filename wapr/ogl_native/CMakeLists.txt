@@ -39,7 +39,11 @@ set(WAPR_OGL_SOURCES
     python/gpu_render_pybind.cpp
 )
 
-pybind11_add_module(_gpu_render ${WAPR_OGL_SOURCES})
+# Keep pybind11 from adding LTO after our compiler flags; some system linkers
+# cannot read the Conda compiler's LTO objects and silently lose PyInit symbols.
+# 禁止 pybind11 在编译选项之后再追加 LTO；部分系统链接器无法读取镜像编译器的
+# LTO 对象，导致生成的库丢失 PyInit 导出符号。
+pybind11_add_module(_gpu_render NO_EXTRAS ${WAPR_OGL_SOURCES})
 
 target_include_directories(_gpu_render PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}

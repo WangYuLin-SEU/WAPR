@@ -1559,7 +1559,9 @@ def pack_array_upload(
     )
 
 import importlib.util
+import hashlib
 import os
+import shutil
 import subprocess
 import sys
 import weakref
@@ -1730,19 +1732,42 @@ def ensure_ogl():
         return _NATIVE
     native_dir = _native_dir()
     so = _find_so(native_dir)
+    build_stamp = native_dir / "build-source.sha256"
+    source_digest = None
+    if (native_dir / "CMakeLists.txt").is_file():
+        # An installed source wheel can update CMake or C++ without pip removing
+        # generated libraries. Rebuild stale outputs, keeping the source files.
+        # 安装源码 wheel 时 pip 不清理生成库；源码或编译配置变化后重建生成文件。
+        digest = hashlib.sha256(sys.implementation.cache_tag.encode("ascii"))
+        digest.update(str(torch.version.cuda).encode("ascii"))
+        for source_path in sorted(native_dir.rglob("*")):
+            if source_path.is_file() and "build" not in source_path.relative_to(native_dir).parts:
+                if source_path.suffix in (".cpp", ".h", ".hpp", ".cu") or source_path.name == "CMakeLists.txt":
+                    digest.update(str(source_path.relative_to(native_dir)).encode("utf-8"))
+                    digest.update(source_path.read_bytes())
+        source_digest = digest.hexdigest()
+        if not build_stamp.is_file() or build_stamp.read_text().strip() != source_digest:
+            if so is not None:
+                so.unlink()
+            build = native_dir / "build"
+            if build.is_dir():
+                shutil.rmtree(build)
+            so = None
     if so is None:
         # Derived from the missing library. There is no separate compile switch.
         # 由库文件是否存在决定。没有单独的编译开关。
         print("OGL library missing, compiling now. / 没有 OGL 库，现在编译。", flush=True)
         build = native_dir / "build"
+        from wapr.bootstrap import native_build_options
+        compiler_options = native_build_options()
         subprocess.check_call(
             [
                 "cmake", "-S", str(native_dir), "-B", str(build),
                 "-DCMAKE_BUILD_TYPE=Release",
                 "-DPython3_EXECUTABLE=%s" % sys.executable,
-            ]
+            ] + compiler_options
         )
-        subprocess.check_call(["cmake", "--build", str(build), "-j"])
+        subprocess.check_call(["cmake", "--build", str(build), "-j", "4"])
         so = _find_so(native_dir)
     if so is None:
         raise RuntimeError("ogl")
@@ -1755,6 +1780,8 @@ def ensure_ogl():
         raise RuntimeError("ogl")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
+    if source_digest is not None:
+        build_stamp.write_text(source_digest + "\n")
     _NATIVE = module
     return module
 

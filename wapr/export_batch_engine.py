@@ -20,6 +20,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from wapr import recipe
+from wapr.export_engines import onnx_export_options
 from wapr.model_metadata import checkpoint_metadata, write_onnx_metadata, read_onnx_metadata, pack_engine
 from wapr.nets import load_net
 from wapr.pose_groups import wbps_group_sizes
@@ -97,8 +98,7 @@ def main():
     layout = torch.empty((objects, group, 1), device="cuda:0")
     torch.onnx.export(
         wrapper, (A, B, layout), onnx_path, input_names=["A", "B", "layout"],
-        output_names=["within_group", "between_group"], opset_version=17,
-        dynamo=False,
+        output_names=["within_group", "between_group"], **onnx_export_options(),
         dynamic_axes={"A": {0: "rows"}, "B": {0: "rows"},
                       "layout": {0: "objects", 1: "hypotheses"},
                       "within_group": {0: "objects", 1: "hypotheses"},

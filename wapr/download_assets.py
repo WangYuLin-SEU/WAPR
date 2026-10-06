@@ -19,6 +19,25 @@ import socket
 import sys
 import tempfile
 from pathlib import Path
+from urllib.request import getproxies, proxy_bypass as is_http_proxy_bypassed
+
+# Use resumable HTTP for public weights; acceleration proxies often do not
+# support the Xet transfer service. Respect an explicit user setting.
+# 公开权重使用可续传 HTTP；加速代理常不支持 Xet 传输服务。保留用户显式设置。
+if os.path.isfile("/etc/network_turbo"):
+    os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
+os.environ.setdefault("HF_HUB_DOWNLOAD_TIMEOUT", "120")
+# The public mirror and signed CDN transfers must bypass an academic proxy
+# that only forwards GitHub/Hugging Face front-end hosts.
+# 公开镜像与签名 CDN 下载绕开只支持 GitHub/Hugging Face 前端域名的学术代理。
+if os.path.isfile("/etc/network_turbo") and getproxies().get("https"):
+    proxy_bypass = os.environ.get("NO_PROXY", os.environ.get("no_proxy", ""))
+    proxy_bypass_hosts = [host.strip() for host in proxy_bypass.split(",") if host.strip()]
+    for proxy_bypass_host in ("hf-mirror.com", "cas-bridge.xethub.hf.co", "cas-server.xethub.hf.co", "transfer.xethub.hf.co"):
+        if proxy_bypass_host not in proxy_bypass_hosts:
+            proxy_bypass_hosts.append(proxy_bypass_host)
+    os.environ["NO_PROXY"] = ",".join(proxy_bypass_hosts)
+    os.environ["no_proxy"] = os.environ["NO_PROXY"]
 
 from wapr.resources import resource_root, samples_dir, weights_dir
 
@@ -380,19 +399,17 @@ def _fetch_snapshot(staging_dir, names):
         EntryNotFoundError,
         GatedRepoError,
         HFValidationError,
+        LocalEntryNotFoundError,
         RepositoryNotFoundError,
         RevisionNotFoundError,
     )
 
     official = hub_official.rstrip("/")
     mirror = hub_mirror.rstrip("/")
-    chosen = os.environ.get("HF_ENDPOINT", "").strip().rstrip("/")
-    order = [official, mirror]
-    if chosen != "":
-        order = [chosen]
-        for item in (official, mirror):
-            if item not in order:
-                order.append(item)
+    from wapr.download_route import hub_endpoints
+    # User HF_ENDPOINT stays first. The other addresses are ordered by a measured prefix.
+    # 用户设置的 HF_ENDPOINT 仍排在最前。其余地址按实测前缀排序。
+    order = hub_endpoints(official, mirror)
     repo_missing = (
         RepositoryNotFoundError,
         GatedRepoError,
@@ -406,18 +423,23 @@ def _fetch_snapshot(staging_dir, names):
     staging = Path(staging_dir)
     for endpoint in order:
         host = endpoint.split("://", 1)[-1].split("/", 1)[0]
-        try:
-            with socket.create_connection((host, 443), timeout=hub_connect_timeout_s):
-                connected = True
-        except OSError:
-            connected = False
+        # A configured HTTPS proxy can reach the hub even when direct TCP cannot.
+        # 已配置 HTTPS 代理时，官方源可能经代理可达，不能以直连 TCP 失败跳过它。
+        if getproxies().get("https") and not is_http_proxy_bypassed(host):
+            connected = True
+        else:
+            try:
+                with socket.create_connection((host, 443), timeout=hub_connect_timeout_s):
+                    connected = True
+            except OSError:
+                connected = False
         if not connected:
             print("WAPR_HUB", {"endpoint": endpoint, "connect": False}, flush=True)
             continue
         attempt = staging / "_attempt"
-        if attempt.exists():
-            shutil.rmtree(attempt)
-        attempt.mkdir()
+        # Reuse validated Hub cache metadata and incomplete HTTP downloads.
+        # 复用 Hub 校验元数据及未完成的 HTTP 下载，避免网络重试重新传全部权重。
+        attempt.mkdir(exist_ok=True)
         print("WAPR_HUB", {"endpoint": endpoint, "connect": True}, flush=True)
         try:
             snapshot_download(
@@ -426,11 +448,20 @@ def _fetch_snapshot(staging_dir, names):
                 allow_patterns=_patterns(names),
                 local_dir=str(attempt),
                 endpoint=endpoint,
-                etag_timeout=hub_connect_timeout_s,
+                etag_timeout=30.0,
+                # Avoid optional Brotli decoder ABI mismatches in base images.
+                # 避免基础镜像中可选 Brotli 解码器 ABI 不匹配；二进制下载无需 HTTP 压缩。
+                headers={"Accept-Encoding": "identity"},
                 # These public assets need no account token, including on a mirror.
                 # 公开资源无需账号令牌；切换镜像时也不向第三方站点发送本机令牌。
                 token=False,
             )
+        except LocalEntryNotFoundError as exc:
+            # A failed network lookup with no local cache is not a missing repo.
+            # 网络查询失败且无本地缓存不表示仓库不存在，应继续尝试下一源。
+            last_error = exc
+            print("WAPR_HUB", {"endpoint": endpoint, "error": type(exc).__name__}, flush=True)
+            continue
         except repo_missing:
             raise
         except Exception as exc:
@@ -497,7 +528,15 @@ def download(names):
             _place_weight_license()
         return
     RESOURCE_ROOT.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="wapr_hf_", dir=RESOURCE_ROOT) as staging_dir:
+    # Stable download staging survives disconnects; files are placed only after
+    # the Hub finishes the requested snapshot. Keep the existing resource root.
+    # 固定下载暂存目录保留断线续传；Hub 完成请求后再放置文件，不改变现有资源根目录。
+    staging_dir = RESOURCE_ROOT / ".downloads" / "-".join(sorted(pending))
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    with (staging_dir / ".lock").open("a") as download_lock:
+        if os.name == "posix":
+            import fcntl
+            fcntl.flock(download_lock.fileno(), fcntl.LOCK_EX)
         _fetch_snapshot(staging_dir, pending)
         _place_download(staging_dir, pending)
     for name in pending:

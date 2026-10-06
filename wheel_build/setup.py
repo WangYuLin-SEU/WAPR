@@ -10,6 +10,7 @@
 将暂存的本地编译的渲染器 wheel 标为对应的 Python 与 Linux ABI。
 """
 
+import os
 from setuptools import Distribution, setup
 
 
@@ -27,4 +28,9 @@ class NativeWheelDistribution(Distribution):
         return True
 
 
-setup(distclass=NativeWheelDistribution)
+# Source-only wheels compile their native module on the target machine.
+# 仅含源码的 wheel 在目标机器编译本地模块，因此包本身不含二进制 ABI。
+if os.environ.get("WAPR_WHEEL_SOURCE_ONLY") == "1":
+    setup()
+else:
+    setup(distclass=NativeWheelDistribution)

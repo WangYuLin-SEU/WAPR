@@ -10,6 +10,7 @@
 # Run from anywhere: python -m wapr.export_engines
 # 任意目录可运行：python -m wapr.export_engines
 import sys
+import inspect
 from pathlib import Path
 
 import torch
@@ -25,6 +26,127 @@ from wapr import recipe
 from wapr.model_metadata import checkpoint_metadata, write_onnx_metadata, read_onnx_metadata, pack_engine
 from wapr.nets import load_net
 from wapr.pose_groups import wbps_group_sizes
+
+
+def _onnx_unflatten(graph, tensor, axis, sizes):
+    """Replace one shape dimension with sizes while retaining runtime dimensions.
+
+    用 sizes 替换一个形状维度，其余维度来自运行时 Shape，保留动态 batch。
+    """
+    from torch.onnx import symbolic_helper
+    axis = symbolic_helper._get_const(axis, "i", "axis")
+    rank = symbolic_helper._get_tensor_rank(tensor)
+    if axis < 0:
+        if rank is None:
+            raise RuntimeError("Unflatten with a negative axis needs known rank / 负轴 unflatten 需要已知 rank")
+        axis += rank
+    if axis < 0 or (rank is not None and axis >= rank):
+        raise ValueError("Unflatten axis outside tensor rank / unflatten 轴超出张量 rank")
+    shape = graph.op("Shape", tensor)
+    prefix = graph.op(
+        "Slice", shape,
+        graph.op("Constant", value_t=torch.tensor([0], dtype=torch.long)),
+        graph.op("Constant", value_t=torch.tensor([axis], dtype=torch.long)),
+    )
+    suffix = graph.op(
+        "Slice", shape,
+        graph.op("Constant", value_t=torch.tensor([axis + 1], dtype=torch.long)),
+        graph.op("Constant", value_t=torch.tensor([9223372036854775807], dtype=torch.long)),
+    )
+    if symbolic_helper._is_packed_list(sizes):
+        elements = symbolic_helper._unpack_list(sizes)
+        sizes = graph.op("Concat", *[
+            symbolic_helper._unsqueeze_helper(graph, element, [0]) for element in elements
+        ], axis_i=0)
+    output_shape = graph.op("Concat", prefix, sizes, suffix, axis_i=0)
+    return symbolic_helper._reshape_helper(graph, tensor, output_shape)
+
+
+def _onnx_scaled_dot_product_attention(graph, query, key, value, mask=None,
+                                       dropout=0.0, causal=False, scale=None, enable_gqa=False):
+    """Export inference attention as its standard matrix operations.
+
+    用标准矩阵算子导出推理注意力；不修改 forward，不近似掩码语义。
+    """
+    from torch.onnx import symbolic_helper
+    dropout = symbolic_helper._get_const(dropout, "f", "dropout")
+    causal = symbolic_helper._get_const(causal, "b", "causal")
+    if not isinstance(enable_gqa, bool):
+        enable_gqa = symbolic_helper._get_const(enable_gqa, "b", "enable_gqa")
+    if dropout != 0.0 or enable_gqa:
+        raise RuntimeError("Attention compatibility export requires dropout=0 and no GQA / 注意力兼容导出要求 dropout=0 且不启用 GQA")
+    rank = symbolic_helper._get_tensor_rank(key)
+    if rank is None or rank < 2:
+        raise RuntimeError("Attention key rank must be known / 注意力 key rank 须已知")
+    scalar_type = query.type().scalarType()
+    dtype = {"Float": torch.float32, "Double": torch.float64, "Half": torch.float16, "BFloat16": torch.bfloat16}.get(scalar_type)
+    onnx_dtype = {"Float": 1, "Double": 11, "Half": 10, "BFloat16": 16}.get(scalar_type)
+    if dtype is None:
+        raise RuntimeError("Attention input floating dtype must be known / 注意力输入浮点类型须已知")
+    if scale is None or symbolic_helper._is_none(scale):
+        width = graph.op("Gather", graph.op("Shape", query), graph.op("Constant", value_t=torch.tensor(-1, dtype=torch.long)), axis_i=0)
+        factor = graph.op("Reciprocal", graph.op("Sqrt", graph.op("Cast", width, to_i=onnx_dtype)))
+    else:
+        factor = graph.op("Constant", value_t=torch.tensor(symbolic_helper._get_const(scale, "f", "scale"), dtype=dtype))
+    axes = list(range(rank))
+    axes[-2], axes[-1] = axes[-1], axes[-2]
+    logits = graph.op("MatMul", graph.op("Mul", query, factor), graph.op("Transpose", key, perm_i=axes))
+    zero = graph.op("Constant", value_t=torch.tensor(0.0, dtype=dtype))
+    negative_infinity = graph.op("Constant", value_t=torch.tensor(float("-inf"), dtype=dtype))
+    has_mask = mask is not None and not symbolic_helper._is_none(mask)
+    if causal:
+        if has_mask:
+            raise RuntimeError("Causal attention plus explicit mask is unsupported / 不支持因果注意力同时指定 mask")
+        # Causal position comparisons remain dynamic for unequal query/key lengths.
+        # 因果位置比较保留动态长度，支持 query/key 长度不同。
+        query_length = graph.op("Gather", graph.op("Shape", query), graph.op("Constant", value_t=torch.tensor(-2, dtype=torch.long)), axis_i=0)
+        key_length = graph.op("Gather", graph.op("Shape", key), graph.op("Constant", value_t=torch.tensor(-2, dtype=torch.long)), axis_i=0)
+        start = graph.op("Constant", value_t=torch.tensor(0, dtype=torch.long))
+        step = graph.op("Constant", value_t=torch.tensor(1, dtype=torch.long))
+        rows = symbolic_helper._unsqueeze_helper(graph, graph.op("Range", start, query_length, step), [1])
+        columns = symbolic_helper._unsqueeze_helper(graph, graph.op("Range", start, key_length, step), [0])
+        bias = graph.op("Where", graph.op("LessOrEqual", columns, rows), zero, negative_infinity)
+        logits = graph.op("Add", logits, bias)
+    elif has_mask:
+        bias = graph.op("Where", mask, zero, negative_infinity) if symbolic_helper._is_bool(mask) else mask
+        logits = graph.op("Add", logits, bias)
+    probabilities = graph.op("Softmax", logits, axis_i=-1)
+    return graph.op("MatMul", probabilities, value)
+
+
+def onnx_export_options():
+    """Keep the legacy exporter and derive an opset supported by this torch.
+
+    保留同一追踪导出器，按当前 torch 支持的最高版本确定 ONNX opset。
+    """
+    try:
+        from torch.onnx import _constants
+        maximum_opset = int(_constants.ONNX_MAX_OPSET)
+    except (ImportError, AttributeError):
+        from torch.onnx import symbolic_helper
+        maximum_opset = int(symbolic_helper._onnx_main_opset)
+    options = {"opset_version": min(17, maximum_opset)}
+    # Query the exporter registry before adding missing standard-operator mappings.
+    # 先查导出注册表，仅补缺失算子的标准 ONNX 表达；不修改网络或 PyTorch forward。
+    try:
+        from torch.onnx._internal import registration
+        unflatten_supported = registration.registry.is_registered_op("aten::unflatten", options["opset_version"])
+        attention_supported = registration.registry.is_registered_op("aten::scaled_dot_product_attention", options["opset_version"])
+    except ImportError:
+        from torch.onnx import symbolic_registry
+        symbolic_registry.register_version("", options["opset_version"])
+        unflatten_supported = symbolic_registry.is_registered_op("unflatten", "", options["opset_version"])
+        attention_supported = symbolic_registry.is_registered_op("scaled_dot_product_attention", "", options["opset_version"])
+    if not unflatten_supported:
+        torch.onnx.register_custom_op_symbolic("aten::unflatten", _onnx_unflatten, options["opset_version"])
+        print("WAPR_ONNX_COMPAT", "aten::unflatten -> Shape/Slice/Concat/Reshape", flush=True)
+    if not attention_supported:
+        torch.onnx.register_custom_op_symbolic("aten::scaled_dot_product_attention", _onnx_scaled_dot_product_attention, options["opset_version"])
+        print("WAPR_ONNX_COMPAT", "aten::scaled_dot_product_attention -> MatMul/Softmax/MatMul", flush=True)
+    if "dynamo" in inspect.signature(torch.onnx.export).parameters:
+        options["dynamo"] = False
+    print("WAPR_ONNX_EXPORT", {"torch": torch.__version__, **options}, flush=True)
+    return options
 
 
 class _RefineWrap(nn.Module):
@@ -296,7 +418,7 @@ def _build_fp16_engine(onnx_path, engine_path, min_shape, opt_shape, max_shape):
 
 def main():
     """
-    # Write one FP32 ONNX beside each weight, opset 17, then a TensorRT 10 FP16 engine.
+    # Write FP32 ONNX using an opset supported by torch (up to 17), then a TensorRT 10 FP16 engine.
 
         The four names are wapr_w_mask, wapr_wo_mask, sapr, and wbps.
 
@@ -314,7 +436,7 @@ def main():
 
     ---
 
-    # 在每份权重旁边写一份 FP32 ONNX，opset 17，再写 TensorRT 10 的 FP16 引擎。
+    # 在每份权重旁写 FP32 ONNX，使用 torch 支持且不高于 17 的 opset，再写 TensorRT 10 FP16 引擎。
 
         四个名字是 wapr_w_mask、wapr_wo_mask、sapr 和 wbps。
 
@@ -331,7 +453,7 @@ def main():
         - 返回 None。
     """
     device = "cuda:0"
-    opset = 17
+    export_options = onnx_export_options()
     group = int(recipe.n_view * recipe.n_inplane)
     if group not in wbps_group_sizes:
         raise ValueError("recipe pose group %d is unsupported" % group)
@@ -365,8 +487,7 @@ def main():
             input_names=["A", "B"],
             output_names=out_names,
             dynamic_axes={"A": {0: "batch"}, "B": {0: "batch"}, **dyn_out},
-            opset_version=opset,
-            dynamo=False,
+            **export_options,
         )
         print("exported", name, "group", group, "max_batch", max_batch, flush=True)
         write_onnx_metadata(onnx_path, checkpoint_metadata(ckpt, name))

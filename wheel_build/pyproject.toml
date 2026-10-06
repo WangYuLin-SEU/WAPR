@@ -11,9 +11,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wapr"
-# Preparation build; confirm the final version before a stable release.
-# 预备构建版本；正式发行前由作者确认最终版本号。
-version = "0.1.0.dev0"
+# Initial release version confirmed by the maintainer.
+# 作者确认的首次发行版本。
+version = "0.0.1"
 description = "Wide-angle refinement for unseen object 6D pose estimation"
 authors = [{name = "Yulin Wang", email = "yulinwang@seu.edu.cn"}]
 readme = "README.md"
@@ -30,11 +30,22 @@ dependencies = [
 # Select GPU packages for the target machine before enabling inference extras.
 # 先按目标设备选择 GPU 包，再安装推理附加依赖；基础安装不选择 GPU 软件栈。
 [project.optional-dependencies]
-pose = ["torch", "kornia", "opencv-python"]
+pose = ["packaging"]
 # Current engine creation uses the TensorRT 10 API, including FP16 builder flags.
 # 当前引擎构建使用 TensorRT 10 API，包括 FP16 构建标志；不限定 10.x 的小版本。
-trt = ["tensorrt-cu12>=10,<11"]
+trt = ["packaging"]
 export = ["onnx"]
+# Extras prepare safe helpers; bootstrap selects native/model dependencies.
+# extras 仅准备安全辅助依赖；本地模块与模型依赖由 bootstrap 按环境选择。
+det2d = ["packaging", "requests", "PyYAML"]
+dinov2 = ["packaging", "requests"]
+sam2 = ["packaging", "PyYAML"]
+sam3d = ["packaging", "requests", "PyYAML"]
+roma = ["packaging", "requests"]
+qwen = ["packaging", "requests"]
+reconstruction = ["packaging", "requests", "PyYAML"]
+robot = ["packaging", "PyYAML"]
+compatible = ["packaging", "requests", "PyYAML"]
 
 [project.urls]
 Source = "https://github.com/WangYuLin-SEU/WAPR"
@@ -46,4 +57,4 @@ packages = ["wapr"]
 include-package-data = true
 
 [tool.setuptools.package-data]
-wapr = ["ogl_native/_gpu_render*.so", "ogl_native/shaders/*.vert", "ogl_native/shaders/*.frag", "det2d_assets.json", "fonts/*", "weight_license/*"]
+wapr = ["ogl_native/_gpu_render*.so", "ogl_native/shaders/*.vert", "ogl_native/shaders/*.frag", "det2d_assets.json", "fonts/*", "weight_license/*", "runtime_assets/groundingdino/*", "runtime_assets/patches/*"]

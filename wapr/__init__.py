@@ -7,6 +7,12 @@
 
 # Public entry: from wapr import WAPREstimator.
 # 对外入口：from wapr import WAPREstimator。
-from wapr.estimator import WAPREstimator
-
 __all__ = ["WAPREstimator"]
+
+
+def __getattr__(name):
+    """Load inference after dependency preparation. / 依赖准备后再载入推理模块。"""
+    if name == "WAPREstimator":
+        from wapr.estimator import WAPREstimator
+        return WAPREstimator
+    raise AttributeError(name)

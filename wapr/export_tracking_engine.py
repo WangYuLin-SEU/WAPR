@@ -21,6 +21,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from wapr import recipe
+from wapr.export_engines import onnx_export_options
 from wapr.model_metadata import checkpoint_metadata, write_onnx_metadata, read_onnx_metadata, pack_engine
 from wapr.export_engines import _build_fp16_engine
 from wapr.nets import load_net
@@ -107,7 +108,7 @@ def main():
     B = torch.zeros_like(A)
     torch.onnx.export(
         wrapper, (A, B), onnx_path, input_names=["A", "B"],
-        output_names=["within_group", "between_group"], opset_version=17,
+        output_names=["within_group", "between_group"], **onnx_export_options(),
         dynamic_axes={"A": {0: "pose_rows"}, "B": {0: "pose_rows"},
                       "within_group": {0: "objects"}, "between_group": {0: "objects"}},
     )

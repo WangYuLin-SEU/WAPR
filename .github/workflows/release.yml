@@ -27,6 +27,9 @@ jobs:
       contents: read
     env:
       RELEASE_TAG: ${{ github.event.release.tag_name }}
+      # Ship Python and native sources; compile for the user's existing stack.
+      # 交付 Python 与本地模块源码，在用户已有软件栈编译。
+      WAPR_WHEEL_SOURCE_ONLY: '1'
     steps:
       - name: Checkout release source
         uses: actions/checkout@v4
@@ -72,12 +75,21 @@ jobs:
           name, version, _, tags = parse_wheel_filename(wheel.name)
           assert name == 'wapr' and not version.is_prerelease and not version.is_devrelease
           assert not version.local and str(version) == os.environ['RELEASE_TAG'][1:]
-          assert all(tag.interpreter == 'cp310' and tag.abi == 'cp310' for tag in tags)
+          assert len(tags) == 1
+          assert all(str(tag) == 'py3-none-any' for tag in tags)
           with zipfile.ZipFile(wheel) as archive:
               info = next(x for x in archive.namelist() if x.endswith('.dist-info/METADATA'))
               metadata = BytesParser().parsebytes(archive.read(info))
+              members = archive.namelist()
+              assert not any(x.endswith(('.so', '.pyd', '.dll', '.pth', '.pt', '.engine', '.onnx')) for x in members)
+              assert 'wapr/ogl_native/CMakeLists.txt' in members
+              assert 'wapr/ogl_native/cuda/pack_outputs.cu' in members
+              license_root = info.rsplit('/', 1)[0] + '/licenses/'
+              licenses = metadata.get_all('License-File', [])
+              assert {'LICENSE', 'AUTHORS.md', 'THIRD_PARTY_NOTICES.txt', 'WEIGHTS_LICENSE.txt'} <= set(licenses)
+              assert all(license_root + name in members for name in licenses)
           assert metadata['Name'] == 'wapr' and metadata['Version'] == str(version)
-          assert metadata['Requires-Python'] == '==3.10.*'
+          assert metadata['Requires-Python'] == '>=3.8'
           digest = hashlib.sha256(wheel.read_bytes()).hexdigest()
           (directory / 'SHA256SUMS').write_text(digest + '  ' + wheel.name + '\n')
           print('VERIFIED_WHEEL', wheel.name, digest)
@@ -96,10 +108,10 @@ jobs:
           # 这里选择发行验证环境，不将该版本写入用户依赖约束。
           "$smoke_dir/venv/bin/python" -m pip install 'torch==2.8.0' --index-url https://download.pytorch.org/whl/cu128
           "$smoke_dir/venv/bin/python" -m pip install "${wheel_files[0]}"
-          "$smoke_dir/venv/bin/python" -m pip check
           cd "$smoke_dir"
+          "$smoke_dir/venv/bin/python" -I -m wapr.bootstrap
+          "$smoke_dir/venv/bin/python" -m pip check
           "$smoke_dir/venv/bin/python" -I - <<'PY'
-          import importlib
           import os
           import pathlib
           import sys
@@ -114,7 +126,8 @@ jobs:
           assert not resources.source_checkout
           assert torch.cuda.is_available()
           assert torch.ones(3, device='cuda:0').sum().item() == 3
-          native = importlib.import_module('wapr.ogl_native._gpu_render')
+          from wapr.ogl import ensure_ogl
+          native = ensure_ogl()
           shaders = package_file.parent / 'ogl_native' / 'shaders'
           runtime = native.GpuRenderRuntime(0, str(shaders))
           assert runtime.gl_version_string()
@@ -167,11 +180,9 @@ jobs:
           assert len(wheels) == 1 and len(files) == 2
           wheel = wheels[0]
           name, version, interpreter, abi, platform = wheel.stem.split('-')
-          assert name == 'wapr' and interpreter == 'cp310' and abi == 'cp310'
+          assert name == 'wapr' and interpreter == 'py3' and abi == 'none' and platform == 'any'
           assert re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version)
           assert os.environ['RELEASE_TAG'] == 'v' + version
-          if not all(re.fullmatch(r'(?:manylinux_2_[0-9]+|manylinux1|manylinux2010|manylinux2014)_x86_64', tag) for tag in platform.split('.')):
-              raise SystemExit('PyPI needs a validated manylinux wheel; generic linux_x86_64 is not accepted. Do not rename an unaudited wheel.')
           destination = pathlib.Path('../dist')
           destination.mkdir()
           shutil.copyfile(wheel, destination / wheel.name)

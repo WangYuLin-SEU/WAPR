@@ -471,7 +471,9 @@ def _right_multiply_center(poses, center, sign):
     if int(center_t.numel()) == 3:
         shift = torch.eye(4, device=poses.device, dtype=poses.dtype)
         shift[:3, 3] = float(sign) * center_t.reshape(3)
-        return poses @ shift
+        # Preserve FP32 pose geometry when old PyTorch enables TF32 matmul.
+        # 旧 PyTorch 默认启用 TF32 矩阵乘时，位姿几何仍使用原有 FP32 精度。
+        return (poses[:, :, :, None] * shift[None, None, :, :]).sum(dim=2)
     center_t = center_t.reshape(-1, 3)
     if int(center_t.shape[0]) == 1 and int(poses.shape[0]) > 1:
         center_t = center_t.expand(int(poses.shape[0]), 3)
@@ -480,7 +482,7 @@ def _right_multiply_center(poses, center, sign):
     eye = torch.eye(4, device=poses.device, dtype=poses.dtype)
     shift = eye.reshape(1, 4, 4).expand(int(poses.shape[0]), 4, 4).contiguous().clone()
     shift[:, :3, 3] = float(sign) * center_t
-    return torch.matmul(poses, shift)
+    return (poses[:, :, :, None] * shift[:, None, :, :]).sum(dim=2)
 
 
 def poses_original_to_centered(poses, center):
@@ -570,7 +572,10 @@ def so3_exp(rotvec):
         dim=-1,
     ).reshape(-1, 3, 3)
     th = theta_c.unsqueeze(-1)
-    R = eye + torch.sin(th) * K + (1.0 - torch.cos(th)) * (K @ K)
+    # Small geometric products must not inherit TF32 rounding from network matmul.
+    # 小型几何矩阵乘积不应继承网络矩阵乘的 TF32 舍入；网络精度设置保持原样。
+    K_squared = (K[:, :, :, None] * K[:, None, :, :]).sum(dim=2)
+    R = eye + torch.sin(th) * K + (1.0 - torch.cos(th)) * K_squared
     # Preserve the zero-angle rule without synchronizing a CUDA Boolean on CPU.
     # 保留零角度规则，用 GPU 选择避免将 CUDA 布尔值同步到 CPU。
     R = torch.where(near_zero[:, None, None], eye, R)
@@ -607,7 +612,8 @@ def egocentric_delta_pose_to_pose(A_in_cam, trans_delta, rot_mat_delta):
 
 """
     trans = A_in_cam[:, :3, 3] + trans_delta
-    rot = rot_mat_delta @ A_in_cam[:, :3, :3]
+    current_rot = A_in_cam[:, :3, :3]
+    rot = (rot_mat_delta[:, :, :, None] * current_rot[:, None, :, :]).sum(dim=2)
     RT_34 = torch.cat([rot, trans[..., None]], dim=2)
     RT_14 = torch.zeros_like(RT_34[:, 0:1, :])
     RT_14[:, 0, 3] = 1
@@ -689,7 +695,9 @@ def guess_translations(depth_m, masks, K, device="cpu"):
     ys = torch.arange(height, device=device)
     x_plane = xs.view(1, 1, width).expand_as(valid)
     y_plane = ys.view(1, height, 1).expand_as(valid)
-    far = float(width + height)
+    # Pixel indices are int64; old torch.where requires the sentinel to match.
+    # 像素索引为 int64；旧版 torch.where 要求哨兵值同为整数，数值与边界不变。
+    far = width + height
     x_min = torch.where(valid, x_plane, far).amin(dim=(1, 2))
     x_max = torch.where(valid, x_plane, -far).amax(dim=(1, 2))
     y_min = torch.where(valid, y_plane, far).amin(dim=(1, 2))

@@ -8,6 +8,7 @@
 # WAPR, SAPR, and WBPS. A and B are (N, C, H, W).
 # WAPR、SAPR、WBPS。A 和 B 的形状是 (N, C, H, W)。
 import math
+import inspect
 from pathlib import Path
 
 import torch
@@ -1660,7 +1661,12 @@ def _load_weights(module, path, kind):
 """
     # Keys that already match this module are kept. Any other layout is renamed onto it.
     # 键名已经和本模块一致就直接用。其他布局会改名到本模块上。
-    src = _strip_module(torch.load(path, map_location="cpu", weights_only=False))
+    # PyTorch 1.11 predates weights_only; keep the same state-dict loader there.
+    # PyTorch 1.11 尚无 weights_only；该版本继续使用相同的参数字典加载流程。
+    load_options = {"map_location": "cpu"}
+    if "weights_only" in inspect.signature(torch.load).parameters:
+        load_options["weights_only"] = False
+    src = _strip_module(torch.load(path, **load_options))
     for key in src:
         if key.startswith("encodeAB.5.fc.") or key.startswith("encoderAB.5.fc."):
             raise RuntimeError("checkpoint does not match")
