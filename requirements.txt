@@ -1,0 +1,11 @@
+# Source pose setup: keep installed packages unless a dependency needs a change.
+# 源码位姿环境：不固定普通依赖版本，不使用 --upgrade 替换现有环境。
+# Install CUDA-enabled PyTorch, TensorRT 10.x and one OpenCV distribution yourself.
+# 带 CUDA 的 PyTorch、TensorRT 10.x 和一种 OpenCV 发行包由用户自行准备。
+numpy
+kornia
+trimesh
+pybind11
+pillow
+onnx
+huggingface-hub

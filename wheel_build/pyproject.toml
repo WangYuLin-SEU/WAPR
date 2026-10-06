@@ -1,0 +1,60 @@
+# Author: Yulin Wang (yulinwang@seu.edu.cn)
+# School of Mechanical Engineering, Southeast University, China
+# Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+# SPDX-License-Identifier: LGPL-2.1-only
+# 作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+# Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+
+[build-system]
+requires = ["setuptools>=77", "wheel>=0.45"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wapr"
+# Initial release version confirmed by the maintainer.
+# 作者确认的首次发行版本。
+version = "0.0.1"
+description = "Wide-angle refinement for unseen object 6D pose estimation"
+authors = [{name = "Yulin Wang", email = "yulinwang@seu.edu.cn"}]
+readme = "README.md"
+requires-python = "==3.10.*"
+license = "LGPL-2.1-only"
+license-files = ["LICENSE", "AUTHORS.md", "WEIGHTS_LICENSE.txt", "THIRD_PARTY_NOTICES.txt", "wapr/fonts/LICENSE_DEJAVU", "wapr/fonts/wqy-microhei-copyright.txt", "wapr/fonts/Apache-2.0.txt"]
+dependencies = [
+    "numpy",
+    "trimesh",
+    "Pillow",
+    "huggingface-hub",
+]
+
+# Select GPU packages for the target machine before enabling inference extras.
+# 先按目标设备选择 GPU 包，再安装推理附加依赖；基础安装不选择 GPU 软件栈。
+[project.optional-dependencies]
+pose = ["packaging"]
+# Current engine creation uses the TensorRT 10 API, including FP16 builder flags.
+# 当前引擎构建使用 TensorRT 10 API，包括 FP16 构建标志；不限定 10.x 的小版本。
+trt = ["packaging"]
+export = ["onnx"]
+# Extras prepare safe helpers; bootstrap selects native/model dependencies.
+# extras 仅准备安全辅助依赖；本地模块与模型依赖由 bootstrap 按环境选择。
+det2d = ["packaging", "requests", "PyYAML"]
+dinov2 = ["packaging", "requests"]
+sam2 = ["packaging", "PyYAML"]
+sam3d = ["packaging", "requests", "PyYAML"]
+roma = ["packaging", "requests"]
+qwen = ["packaging", "requests"]
+reconstruction = ["packaging", "requests", "PyYAML"]
+robot = ["packaging", "PyYAML"]
+compatible = ["packaging", "requests", "PyYAML"]
+
+[project.urls]
+Source = "https://github.com/WangYuLin-SEU/WAPR"
+Documentation = "https://wangyulin-seu.github.io/WAPR/docs/"
+Paper = "https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"
+
+[tool.setuptools]
+packages = ["wapr"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+wapr = ["ogl_native/_gpu_render*.so", "ogl_native/shaders/*.vert", "ogl_native/shaders/*.frag", "det2d_assets.json", "fonts/*", "weight_license/*", "runtime_assets/groundingdino/*", "runtime_assets/patches/*"]

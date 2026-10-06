@@ -1,0 +1,195 @@
+diff --git a/sam3d_objects/model/backbone/tdfy_dit/renderers/gaussian_render.py b/sam3d_objects/model/backbone/tdfy_dit/renderers/gaussian_render.py
+index a72c46a..c473663 100755
+--- a/sam3d_objects/model/backbone/tdfy_dit/renderers/gaussian_render.py
++++ b/sam3d_objects/model/backbone/tdfy_dit/renderers/gaussian_render.py
+@@ -31,7 +31,8 @@ except ImportError:
+         ImportWarning,
+     )
+ 
+-from gsplat import rasterization
++# gsplat is imported only on the gsplat backend path.
++# 只有走 gsplat 后端时才导入。
+ 
+ 
+ def intrinsics_to_projection(
+@@ -178,6 +179,8 @@ def render(
+         gsplat_colors = colors_precomp if colors_precomp is not None else shs
+         gsplat_sh_degree = pc.active_sh_degree if shs is not None else None
+ 
++        from gsplat import rasterization
++
+         render_colors, render_alphas, meta = rasterization(
+             means=means3D,
+             quats=rotations,
+diff --git a/sam3d_objects/model/backbone/tdfy_dit/utils/postprocessing_utils.py b/sam3d_objects/model/backbone/tdfy_dit/utils/postprocessing_utils.py
+index de7a4da..cbea7c3 100644
+--- a/sam3d_objects/model/backbone/tdfy_dit/utils/postprocessing_utils.py
++++ b/sam3d_objects/model/backbone/tdfy_dit/utils/postprocessing_utils.py
+@@ -19,6 +19,13 @@ from ..renderers import GaussianRenderer
+ from ..representations import Strivec, Gaussian, MeshExtractResult
+ from loguru import logger
+ 
++# Defaults match the original to_glb call. A caller may assign these before baking.
++# 默认和原来的 to_glb 调用一样。调用方可以在烘焙前改这些值。
++TEXTURE_BAKE_VIEWS = 100
++TEXTURE_BAKE_RESOLUTION = 1024
++TEXTURE_BAKE_STEPS = 2500
++TEXTURE_BAKE_MODE = "opt"
++
+ @torch.no_grad()
+ def _fill_holes(
+     verts,
+@@ -534,7 +541,7 @@ def bake_texture(
+             return render
+         
+         
+-        total_steps = 2500
++        total_steps = int(TEXTURE_BAKE_STEPS)
+         
+         with tqdm(
+             total=total_steps,
+@@ -572,16 +579,67 @@ def bake_texture(
+         texture = np.clip(
+             texture[0].flip(0).detach().cpu().numpy() * 255, 0, 255
+         ).astype(np.uint8)
+-        mask = 1 - utils3d.torch.rasterize_triangle_faces(
+-            rastctx, (uvs * 2 - 1)[None], faces, texture_size, texture_size
+-        )["mask"][0].detach().cpu().numpy().astype(np.uint8)
+-        texture = cv2.inpaint(texture, mask, 3, cv2.INPAINT_TELEA)
++        texture = fill_unbaked_holes(
++            texture,
++            uvs.detach().cpu().numpy(),
++            faces.detach().cpu().numpy(),
++        )
+     else:
+         raise ValueError(f"Unknown mode: {mode}")
+ 
+     return texture
+ 
+ 
++# Texels the short optimizer never writes stay black inside the chart.
++# The outside-only inpaint does not see them, and mipmaps then pick up the gutter.
++# 短优化没写到的纹素会留在色块里面，变成黑色。
++# 只补色块外面的修补看不到它们，mipmap 还会采到色块之间的黑边。
++BAKE_HOLE_SUM = 48
++BAKE_PAD_PX = 8
++
++
++def fill_unbaked_holes(texture, uvs, faces, dark_sum=BAKE_HOLE_SUM, pad_px=BAKE_PAD_PX):
++    """Fill black texels inside UV charts, then bleed color a few pixels into the gutter.
++
++    补上 UV 色块内部的黑纹素，再把颜色向外渗几个像素，盖住色块之间的黑边。
++    """
++    from scipy.spatial import cKDTree
++
++    image = np.asarray(texture)
++    if image.ndim != 3 or image.shape[2] < 3:
++        return texture
++    image = np.ascontiguousarray(image[:, :, :3]).copy()
++    height, width = image.shape[:2]
++    uv = np.asarray(uvs, dtype=np.float64).reshape(-1, 2)
++    triangles = np.asarray(faces, dtype=np.int32).reshape(-1, 3)
++    coverage = np.zeros((height, width), np.uint8)
++    pixels = np.stack([
++        uv[:, 0] * (width - 1),
++        (1.0 - uv[:, 1]) * (height - 1),
++    ], axis=1)
++    for face in triangles:
++        polygon = np.rint(pixels[face]).astype(np.int32)
++        if polygon[:, 0].max() < 0 or polygon[:, 1].max() < 0 or polygon[:, 0].min() >= width or polygon[:, 1].min() >= height:
++            continue
++        cv2.fillConvexPoly(coverage, polygon, 255)
++    colored = (coverage > 0) & (image.sum(axis=2) >= int(dark_sum))
++    if not np.any(colored):
++        return image
++    kernel = cv2.getStructuringElement(
++        cv2.MORPH_ELLIPSE, (int(pad_px) * 2 + 1, int(pad_px) * 2 + 1),
++    )
++    grown = cv2.dilate(colored.astype(np.uint8) * 255, kernel)
++    holes = ((coverage > 0) & np.logical_not(colored)) | ((grown > 0) & (coverage == 0))
++    if not np.any(holes):
++        return image
++    source_y, source_x = np.where(colored)
++    tree = cKDTree(np.stack([source_x, source_y], axis=1))
++    hole_y, hole_x = np.where(holes)
++    _dist, nearest = tree.query(np.stack([hole_x, hole_y], axis=1), k=1)
++    image[hole_y, hole_x] = image[source_y[nearest], source_x[nearest]]
++    return image
++
++
+ def to_glb(
+     app_rep: Union[Strivec, Gaussian],
+     mesh: MeshExtractResult,
+@@ -636,7 +694,9 @@ def to_glb(
+ 
+         # bake texture
+         observations, extrinsics, intrinsics = render_multiview(
+-            app_rep, resolution=1024, nviews=100
++            app_rep,
++            resolution=int(TEXTURE_BAKE_RESOLUTION),
++            nviews=int(TEXTURE_BAKE_VIEWS),
+         )
+         masks = [np.any(observation > 0, axis=-1) for observation in observations]
+         extrinsics = [extrinsics[i].cpu().numpy() for i in range(len(extrinsics))]
+@@ -650,7 +710,7 @@ def to_glb(
+             extrinsics,
+             intrinsics,
+             texture_size=texture_size,
+-            mode="opt",
++            mode=str(TEXTURE_BAKE_MODE),
+             lambda_tv=0.01,
+             verbose=verbose,
+             rendering_engine=rendering_engine
+diff --git a/sam3d_objects/pipeline/layout_post_optimization_utils.py b/sam3d_objects/pipeline/layout_post_optimization_utils.py
+index b5736c4..d912719 100644
+--- a/sam3d_objects/pipeline/layout_post_optimization_utils.py
++++ b/sam3d_objects/pipeline/layout_post_optimization_utils.py
+@@ -19,9 +19,38 @@ import random
+ import open3d as o3d
+ from scipy.ndimage import label, binary_dilation, binary_fill_holes, binary_erosion, minimum_filter
+ import copy
+-from sam3d_objects.model.backbone.tdfy_dit.renderers.gaussian_render import GaussianRenderer
++# gsplat is imported only when a Gaussian layout render is requested.
++# 只有做高斯布局渲染时才导入 gsplat。
+ from loguru import logger
+-from utils3d.numpy import depth_edge
++
++
++def depth_edge(depth, atol=None, rtol=None, kernel_size=3, mask=None):
++    """Mark pixels whose depth jumps relative to a neighbor.
++
++    标出深度相对邻域跳变的像素。
++    """
++    depth = np.asarray(depth, dtype=np.float64)
++    if depth.ndim == 3:
++        depth = depth[..., 0]
++    valid = np.isfinite(depth)
++    if mask is not None:
++        valid = valid & np.asarray(mask, dtype=bool)
++    edge = np.zeros(depth.shape, dtype=bool)
++    radius = max(int(kernel_size) // 2, 1)
++    for dy in range(-radius, radius + 1):
++        for dx in range(-radius, radius + 1):
++            if dy == 0 and dx == 0:
++                continue
++            shifted = np.roll(np.roll(depth, dy, axis=0), dx, axis=1)
++            shifted_valid = np.roll(np.roll(valid, dy, axis=0), dx, axis=1)
++            diff = np.abs(depth - shifted)
++            limit = 0.0
++            if atol is not None:
++                limit = limit + float(atol)
++            if rtol is not None:
++                limit = limit + float(rtol) * np.maximum(np.abs(depth), np.abs(shifted))
++            edge |= valid & shifted_valid & (diff > limit)
++    return edge
+ 
+ def remove_small_regions(mask, min_area=100):
+     """
+@@ -617,6 +646,7 @@ def get_gs_mask_renderer(Mask, min_size, Intrinsics, device, backend="gsplat"):
+     intrinsics_tensor = Intrinsics.to(device)
+ 
+     # Setup GS renderer with square resolution only (no modifications to gaussian_render.py needed)
++    from sam3d_objects.model.backbone.tdfy_dit.renderers.gaussian_render import GaussianRenderer
+     gs_renderer = GaussianRenderer({
+         "resolution": square_size,
+         "near": 0.8,
