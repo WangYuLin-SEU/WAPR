@@ -67,3 +67,17 @@ The suggested first stable version is **0.1.0**, pending the maintainer's confir
 The current native builder produces a `linux_x86_64` wheel. [PyPI platform validation](https://github.com/pypi/warehouse/blob/main/warehouse/utils/wheel.py) rejects that tag. The publishing job stops before upload for such a file. A PyPI-accepted Linux wheel requires a verified ABI and dependency policy, such as an audited manylinux build; changing its filename alone is insufficient. Keep the generated wheel for installation checks until that build is available.
 
 当前本地编译流程生成 `linux_x86_64` wheel；[PyPI 平台检查](https://github.com/pypi/warehouse/blob/main/warehouse/utils/wheel.py) 不接受该标签，发布 job 会在上传前停止。PyPI 可接受的 Linux wheel 需要经过验证的 ABI 与依赖约束，例如通过审计的 manylinux 构建；仅修改文件名并不成立。在完成这种构建前，生成的 wheel 用于安装验证。
+
+### Model attribution / 模型署名
+
+The four pose weights carry `wapr.metadata` alongside `model_state_dict`. WAPR ONNX exports retain this attribution in model metadata. Exported `.engine` files are WAPR containers holding the original TensorRT engine and attribution; WAPR loads these containers and native engines. For TensorRT tools that require native engine files, extract the payload:
+
+四份位姿权重在 `model_state_dict` 同级保存 `wapr.metadata`。WAPR 导出 ONNX 时保留该署名；导出的 `.engine` 文件封装原生 TensorRT 引擎及署名信息，WAPR 可以读取封装及原生引擎。需要原生引擎的 TensorRT 工具可使用以下方法提取：
+
+```python
+from pathlib import Path
+from wapr.model_metadata import unpack_engine
+
+native, metadata = unpack_engine(Path("sapr.engine").read_bytes())
+Path("sapr.native.engine").write_bytes(native)
+```

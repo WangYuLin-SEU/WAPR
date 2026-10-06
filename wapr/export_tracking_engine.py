@@ -21,6 +21,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from wapr import recipe
+from wapr.model_metadata import checkpoint_metadata, write_onnx_metadata, read_onnx_metadata, pack_engine
 from wapr.export_engines import _build_fp16_engine
 from wapr.nets import load_net
 from wapr.pose_groups import wbps_group_sizes
@@ -110,6 +111,7 @@ def main():
         dynamic_axes={"A": {0: "pose_rows"}, "B": {0: "pose_rows"},
                       "within_group": {0: "objects"}, "between_group": {0: "objects"}},
     )
+    write_onnx_metadata(onnx_path, checkpoint_metadata(recipe.weight_file("wbps"), "wbps"))
     _build_fp16_engine(onnx_path, engine_path, (group, *shape[1:]),
                        (opt_rows, *shape[1:]), (max_rows, *shape[1:]))
     print("WAPR_TRACKING_ENGINE", {"engine": engine_path, "group": group,

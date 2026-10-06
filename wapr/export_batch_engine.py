@@ -20,6 +20,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from wapr import recipe
+from wapr.model_metadata import checkpoint_metadata, write_onnx_metadata, read_onnx_metadata, pack_engine
 from wapr.nets import load_net
 from wapr.pose_groups import wbps_group_sizes
 
@@ -103,6 +104,7 @@ def main():
                       "within_group": {0: "objects", 1: "hypotheses"},
                       "between_group": {0: "objects", 1: "hypotheses"}},
     )
+    write_onnx_metadata(onnx_path, checkpoint_metadata(recipe.weight_file("wbps"), "wbps"))
     logger = trt.Logger(getattr(trt.Logger, "WARNING"))
     builder = trt.Builder(logger)
     network = builder.create_network(0)
@@ -122,7 +124,7 @@ def main():
     serialized = builder.build_serialized_network(network, config)
     if serialized is None:
         raise RuntimeError("WBPS batch engine build failed")
-    Path(engine_path).write_bytes(bytes(serialized))
+    Path(engine_path).write_bytes(pack_engine(bytes(serialized), read_onnx_metadata(onnx_path)))
     print("WAPR_BATCH_ENGINE", {"engine": engine_path, "max_rows": max_rows,
                                 "group_sizes": sorted(wbps_group_sizes)}, flush=True)
 

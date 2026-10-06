@@ -15,6 +15,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from wapr import recipe
+from wapr.model_metadata import unpack_engine
 from wapr.pose_groups import wbps_group_sizes
 
 
@@ -1720,7 +1721,7 @@ class _Engine:
 
         ## Args
 
-            - path: a path whose read_bytes result is a TensorRT engine. A failed deserialize raises RuntimeError.
+            - path: a native TensorRT engine or WAPR engine container. A failed deserialize raises RuntimeError.
             - out_names: the output tensor names, stored as a list. The input profile read here is A, profile 0. max_batch is that profile's maximum shape at dimension 0.
 
         ## Returns
@@ -1733,7 +1734,7 @@ class _Engine:
 
         ## 参数
 
-            - path: 一个路径，它的 read_bytes 结果是 TensorRT 引擎。反序列化失败时抛出 RuntimeError。
+            - path: 原生 TensorRT 引擎或 WAPR 引擎封装的路径。反序列化失败时抛出 RuntimeError。
             - out_names: 输出张量名，按列表存下。这里读取的输入 profile 是 A 的 profile 0。max_batch 是该 profile 最大形状的第 0 维。
 
         ## 返回
@@ -1749,7 +1750,7 @@ class _Engine:
         Runtime = getattr(trt, "Runtime")
         logger = Logger(getattr(Logger, "ERROR"))
         runtime = Runtime(logger)
-        blob = path.read_bytes()
+        blob, self.metadata = unpack_engine(path.read_bytes())
         self.engine = runtime.deserialize_cuda_engine(blob)
         if self.engine is None:
             raise RuntimeError("engine")

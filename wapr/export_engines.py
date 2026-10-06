@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from wapr import recipe
+from wapr.model_metadata import checkpoint_metadata, write_onnx_metadata, read_onnx_metadata, pack_engine
 from wapr.nets import load_net
 from wapr.pose_groups import wbps_group_sizes
 
@@ -290,7 +291,7 @@ def _build_fp16_engine(onnx_path, engine_path, min_shape, opt_shape, max_shape):
     serialized = builder.build_serialized_network(network, config)
     if serialized is None:
         raise RuntimeError("FP16 engine build failed")
-    Path(engine_path).write_bytes(bytes(serialized))
+    Path(engine_path).write_bytes(pack_engine(bytes(serialized), read_onnx_metadata(onnx_path)))
 
 
 def main():
@@ -368,6 +369,7 @@ def main():
             dynamo=False,
         )
         print("exported", name, "group", group, "max_batch", max_batch, flush=True)
+        write_onnx_metadata(onnx_path, checkpoint_metadata(ckpt, name))
         _build_fp16_engine(
             onnx_path,
             ckpt.with_suffix(".engine"),
