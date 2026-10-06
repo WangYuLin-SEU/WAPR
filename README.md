@@ -102,7 +102,7 @@ WAPR estimates and refines 6D poses of objects unseen during pose-model training
 ### 05 / ROBI: positive and negative reflective-screw predictions
 
 <p align="center">
-  <a href="https://wangyulin-seu.github.io/WAPR/pages/?lang=en#robi"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/robi/chrome/nearest_comparison.jpg" alt="ROBI: WAPR, AAE, PPF and Line2D; blue positives and red negatives" width="850"/></a>
+  <a href="https://wangyulin-seu.github.io/WAPR/pages/?lang=en#robi"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/robi-four-methods.jpg" alt="ROBI: WAPR, AAE, PPF and Line2D; blue positives and red negatives" width="1200"/></a>
 </p>
 
 <p align="center">Each annotation selects its nearest saved candidate by symmetry-aware ADD from all saved predictions. Blue denotes ADD &lt; 0.1d; red denotes failures. This is a post-hoc nearest-candidate comparison, not one-to-one recall of normal outputs. Click to inspect each instance’s error and status.</p>

@@ -102,7 +102,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 ### 05 / ROBI：反光螺丝的正负样本对照
 
 <p align="center">
-  <a href="https://wangyulin-seu.github.io/WAPR/pages/?lang=zh#robi"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/robi/chrome/nearest_comparison.jpg" alt="ROBI: WAPR, AAE, PPF and Line2D; blue positives and red negatives" width="850"/></a>
+  <a href="https://wangyulin-seu.github.io/WAPR/pages/?lang=zh#robi"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/robi-four-methods.jpg" alt="ROBI: WAPR, AAE, PPF and Line2D; blue positives and red negatives" width="1200"/></a>
 </p>
 
 <p align="center">使用全部保存候选，为每个真值选择对称 ADD 最小的预测。蓝色为 ADD &lt; 0.1d，红色为未达阈值；这是事后最近候选对照，不能读成正常输出的一对一召回率。点击图片可逐实例查看误差和正负状态。</p>
