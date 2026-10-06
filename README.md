@@ -21,16 +21,16 @@
 
 <p align="center"><strong>Large-angle correction · 12 initial hypotheses by default · Batched multi-object inference</strong></p>
 
-<p align="center"><a href="#results">▦ Gallery</a> &nbsp; · &nbsp; <a href="#awards">☆ Awards</a> &nbsp; · &nbsp; <a href="#pipeline">◇ Method</a> &nbsp; · &nbsp; <a href="#start">▷ Get started</a> &nbsp; · &nbsp; <a href="#citation">§ Citation & license</a></p>
+<p align="center"><a href="#results"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/gallery.svg" width="18" height="18" alt=""/> Gallery</a> &nbsp; · &nbsp; <a href="#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg" width="18" height="18" alt=""/> Awards</a> &nbsp; · &nbsp; <a href="#pipeline"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/method.svg" width="18" height="18" alt=""/> Method</a> &nbsp; · &nbsp; <a href="#start"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg" width="18" height="18" alt=""/> Get started</a> &nbsp; · &nbsp; <a href="#citation"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg" width="18" height="18" alt=""/> Citation & license</a></p>
 
 ---
 
 WAPR estimates and refines 6D poses of objects unseen during pose-model training, without per-object fine-tuning. Supply **RGB-D, camera intrinsics, a metric mesh, and a mask or box**; the optional 2D front end can find candidate regions first.
 
 <a id="results"></a>
-## ▦ Gallery
+## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/gallery.svg" width="26" height="26" alt=""/> Gallery
 
-### ↻ Wide-angle refinement: three objects, three methods
+### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/rotate.svg" width="22" height="22" alt=""/> Wide-angle refinement: three objects, three methods
 
 <p align="center">
   <a href="https://wangyulin-seu.github.io/WAPR/demo/wide/tudl_dragon.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/wide/tudl_dragon.jpg" alt="TUD-L dragon: WAPR / MegaPose / FoundationPose, five updates" width="960"/></a>
@@ -48,7 +48,7 @@ WAPR estimates and refines 6D poses of objects unseen during pose-model training
 
 ---
 
-### ◈ 6D pose estimation across seven BOP datasets
+### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/pose.svg" width="22" height="22" alt=""/> 6D pose estimation across seven BOP datasets
 
 <p align="center">
   <a href="https://wangyulin-seu.github.io/WAPR/?lang=en#showcase"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/bop-seven-poses.jpg" alt="6D pose estimation across seven BOP datasets" width="1200"/></a>
@@ -61,10 +61,10 @@ WAPR estimates and refines 6D poses of objects unseen during pose-model training
 
 ---
 
-### ↔ Pose tracking across larger frame intervals
+### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/tracking.svg" width="22" height="22" alt=""/> Pose tracking across larger frame intervals
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/track_mustard_easy_00_02_s32.gif" alt="Mustard tracking comparison" width="800"/>
+  <a id="animation-track_mustard_easy_00_02_s32" href="#animation-track_mustard_easy_00_02_s32"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/track_mustard_easy_00_02_s32.gif" alt="Mustard tracking comparison" width="800"/></a>
 </p>
 
 
@@ -73,14 +73,14 @@ WAPR estimates and refines 6D poses of objects unseen during pose-model training
 <p align="center"><strong>Cracker box · stride 1</strong></p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/track_cracker_box_reorient_s1.gif" alt="Cracker-box tracking comparison" width="800"/>
+  <a id="animation-track_cracker_box_reorient_s1" href="#animation-track_cracker_box_reorient_s1"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/track_cracker_box_reorient_s1.gif" alt="Cracker-box tracking comparison" width="800"/></a>
 </p>
 
 
 <p align="center"><strong>Sugar box · stride 32</strong></p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/recover_sugar_box1_s32.gif" alt="Independent DINOv2 recovery comparison" width="800"/>
+  <a id="animation-recover_sugar_box1_s32" href="#animation-recover_sugar_box1_s32"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/recover_sugar_box1_s32.gif" alt="Independent DINOv2 recovery comparison" width="800"/></a>
 </p>
 
 <p align="center">Supplied initial mask with independent DINOv2 recovery; each method uses its own state and scorer.</p>
@@ -88,10 +88,10 @@ WAPR estimates and refines 6D poses of objects unseen during pose-model training
 
 ---
 
-### ◎ TACO: roller and wooden box
+### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/multi.svg" width="22" height="22" alt=""/> TACO: roller and wooden box
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/taco_pose_compare.gif" alt="TACO: WAPR estimates beside motion-capture reference poses" width="672"/>
+  <a id="animation-taco_pose_compare" href="#animation-taco_pose_compare"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/taco_pose_compare.gif" alt="TACO: WAPR estimates beside motion-capture reference poses" width="672"/></a>
 </p>
 
 
@@ -100,7 +100,7 @@ WAPR estimates and refines 6D poses of objects unseen during pose-model training
 
 ---
 
-### ⚙ ROBI: positive and negative reflective-screw predictions
+### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/industrial.svg" width="22" height="22" alt=""/> ROBI: positive and negative reflective-screw predictions
 
 <p align="center">
   <a href="https://wangyulin-seu.github.io/WAPR/?lang=en#robi"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/robi-four-methods.jpg" alt="ROBI: WAPR, AAE, PPF and Line2D; blue positives and red negatives" width="1200"/></a>
@@ -111,7 +111,7 @@ WAPR estimates and refines 6D poses of objects unseen during pose-model training
 
 ---
 
-### △ White wedges: 6D pose predictions
+### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/wedge.svg" width="22" height="22" alt=""/> White wedges: 6D pose predictions
 
 <p align="center">
   <a href="https://wangyulin-seu.github.io/WAPR/?lang=en#wedge"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/wedge_pose_en.jpg" alt="White wedges in a bowl: predicted 6D poses" width="480"/></a>
@@ -122,7 +122,7 @@ WAPR estimates and refines 6D poses of objects unseen during pose-model training
 
 ---
 
-### ▱ Reconstructed mesh for cross-scene pose estimation
+### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/reconstruct.svg" width="22" height="22" alt=""/> Reconstructed mesh for cross-scene pose estimation
 
 <p align="center">
   <a href="https://wangyulin-seu.github.io/WAPR/docs/applications-reconstruct.html?lang=en#cross-scene-recorded-result"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/docs/figures/cross_scene_flow_en.svg" alt="Source image, reconstructed mesh, cross-scene 2D detection and 6D pose" width="960"/></a>
@@ -140,7 +140,7 @@ WAPR estimates and refines 6D poses of objects unseen during pose-model training
 
 ---
 
-### ⌘ Robot simulation: table and wrist cameras
+### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/robot.svg" width="22" height="22" alt=""/> Robot simulation: table and wrist cameras
 
 <p align="center">
   <video src="assets/readme/demo/robot/bottle_cameras_en.mp4" autoplay loop muted controls playsinline preload="metadata" width="960">Table and wrist camera pose tracking in robot simulation</video>
@@ -156,7 +156,7 @@ WAPR estimates and refines 6D poses of objects unseen during pose-model training
 
 <a id="awards"></a>
 
-## ☆ 2025 challenge certificates
+## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg" width="26" height="26" alt=""/> 2025 challenge certificates
 
 The certificates included in this repository are shown below; click to view the certificates. BPC Best One-shot Solution / 4th Place is from WAPR, and Second Place from FRTPose-WAPR. BOP certificates name FRTPose-WAPR system submissions with different 2D detectors.
 
@@ -168,7 +168,7 @@ The certificates included in this repository are shown below; click to view the 
 ---
 
 <a id="pipeline"></a>
-## ◇ Method overview
+## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/method.svg" width="26" height="26" alt=""/> Method overview
 
 > **Region → 12 hypotheses → WAPR × 3 → SAPR × 2 → WBPS → 6D pose**
 
@@ -187,7 +187,7 @@ Generated-mesh alignment defaults to gray geometry for WAPR/SAPR refinement and 
 ---
 
 <a id="start"></a>
-## ▷ Get started
+## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg" width="26" height="26" alt=""/> Get started
 
 This repository provides WAPR inference source and examples. Obtain model weights and sample inputs separately; prepare TensorRT engines on the target GPU. Follow the installation guide for supported environments.
 
@@ -220,7 +220,7 @@ See the [Docs website](https://wangyulin-seu.github.io/WAPR/docs/?lang=en) for c
 ---
 
 <a id="citation"></a>
-## § Citation and license
+## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg" width="26" height="26" alt=""/> Citation and license
 
 ```bibtex
 @InProceedings{wang2026wapr,
