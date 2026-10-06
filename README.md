@@ -21,11 +21,24 @@
 
 <p align="center"><strong>Large-angle correction · 12 initial hypotheses by default · Batched multi-object inference</strong></p>
 
-<p align="center"><a href="#results"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/gallery.svg" width="18" height="18" alt=""/> Gallery</a> &nbsp; · &nbsp; <a href="#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg" width="18" height="18" alt=""/> Awards</a> &nbsp; · &nbsp; <a href="#pipeline"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/method.svg" width="18" height="18" alt=""/> Method</a> &nbsp; · &nbsp; <a href="#start"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg" width="18" height="18" alt=""/> Get started</a> &nbsp; · &nbsp; <a href="#citation"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg" width="18" height="18" alt=""/> Citation & license</a></p>
+<p align="center"><a href="#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg" width="18" height="18" alt=""/> Awards</a> &nbsp; · &nbsp; <a href="#results"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/gallery.svg" width="18" height="18" alt=""/> Gallery</a> &nbsp; · &nbsp; <a href="#pipeline"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/method.svg" width="18" height="18" alt=""/> Method</a> &nbsp; · &nbsp; <a href="#start"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg" width="18" height="18" alt=""/> Get started</a> &nbsp; · &nbsp; <a href="#citation"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg" width="18" height="18" alt=""/> Citation & license</a></p>
 
 ---
 
 WAPR estimates and refines 6D poses of objects unseen during pose-model training, without per-object fine-tuning. Supply **RGB-D, camera intrinsics, a metric mesh, and a mask or box**; the optional 2D front end can find candidate regions first.
+
+<a id="awards"></a>
+
+## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg" width="26" height="26" alt=""/> 2025 challenge certificates
+
+The certificates included in this repository are shown below; click to view the certificates. BPC Best One-shot Solution / 4th Place is from WAPR, and Second Place from FRTPose-WAPR. BOP certificates name FRTPose-WAPR system submissions with different 2D detectors.
+
+<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=en#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/awards-bpc-bop.jpg" alt="Eight BOP and BPC challenge certificates" width="1400"/></a></p>
+
+
+[Award sources and system descriptions](https://wangyulin-seu.github.io/WAPR/?lang=en#awards)
+
+---
 
 <a id="results"></a>
 ## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/gallery.svg" width="26" height="26" alt=""/> Gallery
@@ -151,19 +164,6 @@ WAPR estimates and refines 6D poses of objects unseen during pose-model training
 <p align="center">Top: table camera on the left, wrist camera on the right. Bottom: their respective fields of view. Red contours show estimated poses; green shows simulator ground truth.</p>
 
 <p align="center">A saved temporal-tracking experiment; the wrist view can lose the target when visibility is limited. Blue side-grasp lines are visualizations, not new control commands at every frame.</p>
-
----
-
-<a id="awards"></a>
-
-## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg" width="26" height="26" alt=""/> 2025 challenge certificates
-
-The certificates included in this repository are shown below; click to view the certificates. BPC Best One-shot Solution / 4th Place is from WAPR, and Second Place from FRTPose-WAPR. BOP certificates name FRTPose-WAPR system submissions with different 2D detectors.
-
-<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=en#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/awards-eight.jpg" alt="Eight BOP and BPC challenge certificates" width="1400"/></a></p>
-
-
-[Award sources and system descriptions](https://wangyulin-seu.github.io/WAPR/?lang=en#awards)
 
 ---
 

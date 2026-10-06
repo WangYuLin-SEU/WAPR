@@ -21,11 +21,24 @@
 
 <p align="center"><strong>大角度修正 · 默认 12 个初始候选 · 多物体批量推理</strong></p>
 
-<p align="center"><a href="#results"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/gallery.svg" width="18" height="18" alt=""/> 效果展示</a> &nbsp; · &nbsp; <a href="#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg" width="18" height="18" alt=""/> 竞赛奖状</a> &nbsp; · &nbsp; <a href="#pipeline"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/method.svg" width="18" height="18" alt=""/> 方法概览</a> &nbsp; · &nbsp; <a href="#start"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg" width="18" height="18" alt=""/> 快速开始</a> &nbsp; · &nbsp; <a href="#citation"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg" width="18" height="18" alt=""/> 引用与许可</a></p>
+<p align="center"><a href="#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg" width="18" height="18" alt=""/> 竞赛奖状</a> &nbsp; · &nbsp; <a href="#results"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/gallery.svg" width="18" height="18" alt=""/> 效果展示</a> &nbsp; · &nbsp; <a href="#pipeline"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/method.svg" width="18" height="18" alt=""/> 方法概览</a> &nbsp; · &nbsp; <a href="#start"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg" width="18" height="18" alt=""/> 快速开始</a> &nbsp; · &nbsp; <a href="#citation"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg" width="18" height="18" alt=""/> 引用与许可</a></p>
 
 ---
 
 WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过的物体的 6D 位姿。输入为 **RGB-D、相机内参、米制网格，以及 mask 或包围盒**；也可先用可选的 2D 前端寻找候选区域。
+
+<a id="awards"></a>
+
+## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg" width="26" height="26" alt=""/> 2025 竞赛奖状
+
+下方展示仓库收录的奖状，点击可查看证书。BPC 的最佳单次方案／第 4 名来自 WAPR；第二名来自 FRTPose-WAPR。BOP 奖状对应搭配不同 2D 检测器的 FRTPose-WAPR 系统提交。
+
+<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/awards-bpc-bop.jpg" alt="八张 BOP 与 BPC 竞赛证书" width="1400"/></a></p>
+
+
+[奖项来源与系统说明](https://wangyulin-seu.github.io/WAPR/?lang=zh#awards)
+
+---
 
 <a id="results"></a>
 ## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/gallery.svg" width="26" height="26" alt=""/> 效果展示
@@ -151,19 +164,6 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 <p align="center">左上为桌面相机，右上为腕部相机；下方显示两台相机各自的视野。红色轮廓为估计位姿，绿色为仿真真值。</p>
 
 <p align="center">保存的时序跟踪实验；腕部视野受限时可能丢失目标。蓝色侧抓线用于展示，不代表每帧重新发送控制指令。</p>
-
----
-
-<a id="awards"></a>
-
-## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg" width="26" height="26" alt=""/> 2025 竞赛奖状
-
-下方展示仓库收录的奖状，点击可查看证书。BPC 的最佳单次方案／第 4 名来自 WAPR；第二名来自 FRTPose-WAPR。BOP 奖状对应搭配不同 2D 检测器的 FRTPose-WAPR 系统提交。
-
-<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/awards-eight.jpg" alt="八张 BOP 与 BPC 竞赛证书" width="1400"/></a></p>
-
-
-[奖项来源与系统说明](https://wangyulin-seu.github.io/WAPR/?lang=zh#awards)
 
 ---
 
