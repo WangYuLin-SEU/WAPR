@@ -21,7 +21,7 @@
 
 <p align="center"><strong>大角度修正 · 默认 12 个初始候选 · 多物体批量推理</strong></p>
 
-<p align="center"><a href="#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg" width="18" height="18" alt=""/> 竞赛奖状</a> &nbsp; · &nbsp; <a href="#results"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/gallery.svg" width="18" height="18" alt=""/> 效果展示</a> &nbsp; · &nbsp; <a href="#pipeline"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/method.svg" width="18" height="18" alt=""/> 方法概览</a> &nbsp; · &nbsp; <a href="#start"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg" width="18" height="18" alt=""/> 快速开始</a> &nbsp; · &nbsp; <a href="#citation"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg" width="18" height="18" alt=""/> 引用与许可</a></p>
+<p align="center"><a href="#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg?v=color1" width="18" height="18" alt=""/> 竞赛奖状</a> &nbsp; · &nbsp; <a href="#results"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/gallery.svg?v=color1" width="18" height="18" alt=""/> 效果展示</a> &nbsp; · &nbsp; <a href="#pipeline"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/method.svg?v=color1" width="18" height="18" alt=""/> 方法概览</a> &nbsp; · &nbsp; <a href="#start"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg?v=color1" width="18" height="18" alt=""/> 快速开始</a> &nbsp; · &nbsp; <a href="#citation"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg?v=color1" width="18" height="18" alt=""/> 引用与许可</a></p>
 
 ---
 
@@ -29,7 +29,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 <a id="awards"></a>
 
-## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg" width="26" height="26" alt=""/> 2025 竞赛奖状
+## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg?v=color1" width="26" height="26" alt=""/> 2025 竞赛奖状
 
 下方展示仓库收录的奖状，点击可查看证书。BPC 的最佳单次方案／第 4 名来自 WAPR；第二名来自 FRTPose-WAPR。BOP 奖状对应搭配不同 2D 检测器的 FRTPose-WAPR 系统提交。
 
@@ -41,9 +41,9 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 ---
 
 <a id="results"></a>
-## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/gallery.svg" width="26" height="26" alt=""/> 效果展示
+## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/gallery.svg?v=color1" width="26" height="26" alt=""/> 效果展示
 
-### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/rotate.svg" width="22" height="22" alt=""/> 广角位姿修正：三个物体、三种方法
+### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/rotate.svg?v=color1" width="22" height="22" alt=""/> 广角位姿修正：三个物体、三种方法
 
 <p align="center">
   <a href="https://wangyulin-seu.github.io/WAPR/demo/wide/tudl_dragon.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/wide/tudl_dragon.jpg" alt="TUD-L dragon: WAPR / MegaPose / FoundationPose, five updates" width="960"/></a>
@@ -61,7 +61,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 ---
 
-### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/pose.svg" width="22" height="22" alt=""/> 七个 BOP 数据集的 6D 位姿估计
+### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/pose.svg?v=color1" width="22" height="22" alt=""/> 七个 BOP 数据集的 6D 位姿估计
 
 <p align="center">
   <a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#showcase"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/bop-seven-poses.jpg" alt="七个 BOP 数据集的 6D 位姿估计" width="1200"/></a>
@@ -74,7 +74,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 ---
 
-### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/tracking.svg" width="22" height="22" alt=""/> 跨较大帧间隔的位姿跟踪
+### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/tracking.svg?v=color1" width="22" height="22" alt=""/> 跨较大帧间隔的位姿跟踪
 
 <p align="center">
   <a id="animation-track_mustard_easy_00_02_s32" href="#animation-track_mustard_easy_00_02_s32"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/track_mustard_easy_00_02_s32.gif" alt="芥末瓶跟踪对照视频" width="800"/></a>
@@ -101,7 +101,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 ---
 
-### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/multi.svg" width="22" height="22" alt=""/> TACO：滚筒和木盒
+### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/multi.svg?v=color1" width="22" height="22" alt=""/> TACO：滚筒和木盒
 
 <p align="center">
   <a id="animation-taco_pose_compare" href="#animation-taco_pose_compare"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/taco_pose_compare.gif" alt="TACO: WAPR estimates beside motion-capture reference poses" width="672"/></a>
@@ -113,7 +113,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 ---
 
-### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/industrial.svg" width="22" height="22" alt=""/> ROBI：反光螺丝的正负样本对照
+### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/industrial.svg?v=color1" width="22" height="22" alt=""/> ROBI：反光螺丝的正负样本对照
 
 <p align="center">
   <a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#robi"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/robi-four-methods.jpg" alt="ROBI: WAPR, AAE, PPF and Line2D; blue positives and red negatives" width="1200"/></a>
@@ -124,7 +124,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 ---
 
-### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/wedge.svg" width="22" height="22" alt=""/> 白色三角块：6D 位姿预测
+### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/wedge.svg?v=color1" width="22" height="22" alt=""/> 白色三角块：6D 位姿预测
 
 <p align="center">
   <a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#wedge"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/wedge_pose_zh.jpg" alt="White wedges in a bowl: predicted 6D poses" width="480"/></a>
@@ -135,7 +135,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 ---
 
-### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/reconstruct.svg" width="22" height="22" alt=""/> 重建网格用于跨场景位姿估计
+### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/reconstruct.svg?v=color1" width="22" height="22" alt=""/> 重建网格用于跨场景位姿估计
 
 <p align="center">
   <a href="https://wangyulin-seu.github.io/WAPR/docs/applications-reconstruct.html?lang=zh#cross-scene-recorded-result"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/docs/figures/cross_scene_flow_zh.svg" alt="Source image, reconstructed mesh, cross-scene 2D detection and 6D pose" width="960"/></a>
@@ -153,7 +153,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 ---
 
-### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/robot.svg" width="22" height="22" alt=""/> 机器人仿真：桌面与腕部双相机
+### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/robot.svg?v=color1" width="22" height="22" alt=""/> 机器人仿真：桌面与腕部双相机
 
 <p align="center">
   <video src="assets/readme/demo/robot/bottle_cameras.mp4" autoplay loop muted controls playsinline preload="metadata" width="960">桌面与腕部双相机位姿跟踪仿真视频</video>
@@ -168,7 +168,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 ---
 
 <a id="pipeline"></a>
-## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/method.svg" width="26" height="26" alt=""/> 方法概览
+## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/method.svg?v=color1" width="26" height="26" alt=""/> 方法概览
 
 > **区域 → 12 个候选 → WAPR × 3 → SAPR × 2 → WBPS → 6D 位姿**
 
@@ -187,7 +187,7 @@ WBPS 在每个实例的组内选位姿；公开分数取该完整组的 `(100 - 
 ---
 
 <a id="start"></a>
-## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg" width="26" height="26" alt=""/> 快速开始
+## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg?v=color1" width="26" height="26" alt=""/> 快速开始
 
 本仓库提供 WAPR 推理源码与使用示例。模型权重和样本输入另行获取，TensorRT 引擎在目标 GPU 上生成。运行环境和安装步骤见安装文档。
 
@@ -220,7 +220,7 @@ python examples/02_one_category_one_instance.py
 ---
 
 <a id="citation"></a>
-## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg" width="26" height="26" alt=""/> 引用与许可
+## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg?v=color1" width="26" height="26" alt=""/> 引用与许可
 
 ```bibtex
 @InProceedings{wang2026wapr,
