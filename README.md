@@ -3,7 +3,7 @@
 <p align="center"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/language-en-active.svg" width="78" height="28" alt="English"/> &nbsp; <a href="README.zh-CN.md"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/language-zh-link.svg" width="60" height="28" alt="中文"/></a></p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/wapr-banner.png" alt="WAPR" width="960"/>
+  <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/wapr-banner-readme.webp" alt="WAPR" width="960"/>
 </p>
 
 <h1 align="center">WAPR · Wide-Angle Pose Refinement</h1>
@@ -33,7 +33,7 @@ WAPR estimates and refines 6D poses of objects unseen during pose-model training
 
 The certificates included in this repository are shown below; click to view the certificates. BPC Best One-shot Solution / 4th Place is from WAPR, and Second Place from FRTPose-WAPR. BOP certificates name FRTPose-WAPR system submissions with different 2D detectors.
 
-<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=en#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/awards-bpc-bop.jpg" alt="Eight BOP and BPC challenge certificates" width="1400"/></a></p>
+<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=en#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/awards-bpc-bop-readme.webp" alt="Eight BOP and BPC challenge certificates" width="1400"/></a></p>
 
 
 [Award sources and system descriptions](https://wangyulin-seu.github.io/WAPR/?lang=en#awards)
@@ -46,14 +46,14 @@ The certificates included in this repository are shown below; click to view the 
 ### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/rotate.svg?v=color1" width="22" height="22" alt=""/> Wide-angle refinement: three objects, three methods
 
 <p align="center">
-  <a href="https://wangyulin-seu.github.io/WAPR/demo/wide/tudl_dragon.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/wide/tudl_dragon.jpg" alt="TUD-L dragon: WAPR / MegaPose / FoundationPose, five updates" width="960"/></a>
+  <a href="https://wangyulin-seu.github.io/WAPR/demo/wide/tudl_dragon.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/wide/tudl_dragon-readme.webp" alt="TUD-L dragon: WAPR / MegaPose / FoundationPose, five updates" width="960"/></a>
 </p>
 
 <p align="center">The TUD-L dragon starts at <strong>100°</strong>, with all five updates shown. Below: the LM-O driller starts at <strong>80°</strong>, and the YCB-V clamp at <strong>120°</strong>. All three methods use the same initial rotation with translation fixed to ground truth. The 100°/120° cases exceed WAPR’s 90° training perturbation range; these individual examples are not aggregate accuracy.</p>
 
 | LM-O driller | YCB-V clamp |
 | :---: | :---: |
-| <a href="https://wangyulin-seu.github.io/WAPR/demo/wide/lmo_driller.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/wide/lmo_driller.jpg" alt="LM-O driller: three-method rotation comparison" width="420"/></a> | <a href="https://wangyulin-seu.github.io/WAPR/demo/wide/ycbv_clamp.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/wide/ycbv_clamp.jpg" alt="YCB-V clamp: three-method rotation comparison" width="420"/></a> |
+| <a href="https://wangyulin-seu.github.io/WAPR/demo/wide/lmo_driller.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/wide/lmo_driller-readme.webp" alt="LM-O driller: three-method rotation comparison" width="420"/></a> | <a href="https://wangyulin-seu.github.io/WAPR/demo/wide/ycbv_clamp.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/wide/ycbv_clamp-readme.webp" alt="YCB-V clamp: three-method rotation comparison" width="420"/></a> |
 | WAPR: 80° → 4° | WAPR: 120° → 2° |
 
 <p align="center"><a href="https://wangyulin-seu.github.io/WAPR/docs/pose.html?lang=en#wide-angle-comparison">Comparison protocol and results</a></p>
@@ -64,7 +64,7 @@ The certificates included in this repository are shown below; click to view the 
 ### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/pose.svg?v=color1" width="22" height="22" alt=""/> 6D pose estimation across seven BOP datasets
 
 <p align="center">
-  <a href="https://wangyulin-seu.github.io/WAPR/?lang=en#showcase"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/bop-seven-poses.jpg" alt="6D pose estimation across seven BOP datasets" width="1200"/></a>
+  <a href="https://wangyulin-seu.github.io/WAPR/?lang=en#showcase"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/bop-seven-poses-readme.webp" alt="6D pose estimation across seven BOP datasets" width="1200"/></a>
 </p>
 
 <p align="center">Pose localization examples on LM-O, T-LESS, TUD-L, IC-BIN, YCB-V, HB and ITODD. Colored contours and 3D bounding boxes show the predicted poses.</p>
@@ -77,7 +77,7 @@ The certificates included in this repository are shown below; click to view the 
 ### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/tracking.svg?v=color1" width="22" height="22" alt=""/> Pose tracking across larger frame intervals
 
 <p align="center">
-  <a id="animation-track_mustard_easy_00_02_s32" href="#animation-track_mustard_easy_00_02_s32"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/track_mustard_easy_00_02_s32.gif" alt="Mustard tracking comparison" width="800"/></a>
+  <a id="animation-track_mustard_easy_00_02_s32" href="#animation-track_mustard_easy_00_02_s32"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/track_mustard_easy_00_02_s32-readme.webp" alt="Mustard tracking comparison" width="800"/></a>
 </p>
 
 
@@ -104,7 +104,7 @@ The certificates included in this repository are shown below; click to view the 
 ### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/multi.svg?v=color1" width="22" height="22" alt=""/> TACO: roller and wooden box
 
 <p align="center">
-  <a id="animation-taco_pose_compare" href="#animation-taco_pose_compare"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/taco_pose_compare.gif" alt="TACO: WAPR estimates beside motion-capture reference poses" width="672"/></a>
+  <a id="animation-taco_pose_compare" href="#animation-taco_pose_compare"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/taco_pose_compare-readme.webp" alt="TACO: WAPR estimates beside motion-capture reference poses" width="672"/></a>
 </p>
 
 
@@ -116,7 +116,7 @@ The certificates included in this repository are shown below; click to view the 
 ### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/industrial.svg?v=color1" width="22" height="22" alt=""/> ROBI: positive and negative reflective-screw predictions
 
 <p align="center">
-  <a href="https://wangyulin-seu.github.io/WAPR/?lang=en#robi"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/robi-four-methods.jpg" alt="ROBI: WAPR, AAE, PPF and Line2D; blue positives and red negatives" width="1200"/></a>
+  <a href="https://wangyulin-seu.github.io/WAPR/?lang=en#robi"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/robi-four-methods-readme.webp" alt="ROBI: WAPR, AAE, PPF and Line2D; blue positives and red negatives" width="1200"/></a>
 </p>
 
 <p align="center">Each annotation selects its nearest saved candidate by symmetry-aware ADD from all saved predictions. Blue denotes ADD &lt; 0.1d; red denotes failures. This is a post-hoc nearest-candidate comparison, not one-to-one recall of normal outputs. Click to inspect each instance’s error and status.</p>
@@ -127,7 +127,7 @@ The certificates included in this repository are shown below; click to view the 
 ### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/wedge.svg?v=color1" width="22" height="22" alt=""/> White wedges: 6D pose predictions
 
 <p align="center">
-  <a href="https://wangyulin-seu.github.io/WAPR/?lang=en#wedge"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/wedge_pose_en.jpg" alt="White wedges in a bowl: predicted 6D poses" width="480"/></a>
+  <a href="https://wangyulin-seu.github.io/WAPR/?lang=en#wedge"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/wedge_pose_en-readme.webp" alt="White wedges in a bowl: predicted 6D poses" width="480"/></a>
 </p>
 
 <p align="center"><strong><a href="https://wangyulin-seu.github.io/WAPR/?lang=en#wedge">Open the wedge 3D viewer</a></strong>. HCCEPose frame 000003 shows nine saved candidates; select an object to highlight its pose. This frame has no ground-truth poses.</p>
@@ -145,7 +145,7 @@ The certificates included in this repository are shown below; click to view the 
 
 | 2D detection | 6D pose and reconstructed mesh |
 | :---: | :---: |
-| <a href="https://wangyulin-seu.github.io/WAPR/demo/cross/detect.png"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/cross/detect.png" alt="Cross-scene 2D detection" width="360"/></a> | <a href="https://wangyulin-seu.github.io/WAPR/demo/cross/pose.png"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/cross/pose.png" alt="Cross-scene 6D pose and reconstructed mesh" width="572"/></a> |
+| <a href="https://wangyulin-seu.github.io/WAPR/demo/cross/detect.png"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/cross/detect-readme.webp" alt="Cross-scene 2D detection" width="360"/></a> | <a href="https://wangyulin-seu.github.io/WAPR/demo/cross/pose.png"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/cross/pose-readme.webp" alt="Cross-scene 6D pose and reconstructed mesh" width="572"/></a> |
 
 <p align="center">Source: the first YCBInEOAT mustard0 frame. Target: YCB-V scene 50, frame 1130. Target annotations are excluded from prediction. The reconstructed source mesh is used for pose estimation in the target frame; see the linked experiment for its configuration.</p>
 

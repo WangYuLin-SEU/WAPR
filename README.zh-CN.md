@@ -3,7 +3,7 @@
 <p align="center"><a href="README.md"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/language-en-link.svg" width="78" height="28" alt="English"/></a> &nbsp; <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/language-zh-active.svg" width="60" height="28" alt="中文"/></p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/wapr-banner.png" alt="WAPR" width="960"/>
+  <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/wapr-banner-readme.webp" alt="WAPR" width="960"/>
 </p>
 
 <h1 align="center">WAPR · 广角位姿修正</h1>
@@ -33,7 +33,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 下方展示仓库收录的奖状，点击可查看证书。BPC 的最佳单次方案／第 4 名来自 WAPR；第二名来自 FRTPose-WAPR。BOP 奖状对应搭配不同 2D 检测器的 FRTPose-WAPR 系统提交。
 
-<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/awards-bpc-bop.jpg" alt="八张 BOP 与 BPC 竞赛证书" width="1400"/></a></p>
+<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#awards"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/awards-bpc-bop-readme.webp" alt="八张 BOP 与 BPC 竞赛证书" width="1400"/></a></p>
 
 
 [奖项来源与系统说明](https://wangyulin-seu.github.io/WAPR/?lang=zh#awards)
@@ -46,14 +46,14 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 ### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/rotate.svg?v=color1" width="22" height="22" alt=""/> 广角位姿修正：三个物体、三种方法
 
 <p align="center">
-  <a href="https://wangyulin-seu.github.io/WAPR/demo/wide/tudl_dragon.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/wide/tudl_dragon.jpg" alt="TUD-L dragon: WAPR / MegaPose / FoundationPose, five updates" width="960"/></a>
+  <a href="https://wangyulin-seu.github.io/WAPR/demo/wide/tudl_dragon.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/wide/tudl_dragon-readme.webp" alt="TUD-L dragon: WAPR / MegaPose / FoundationPose, five updates" width="960"/></a>
 </p>
 
 <p align="center">TUD-L 恐龙从 <strong>100°</strong> 开始，展示五次更新。下方为从 <strong>80°</strong> 开始的 LM-O 电钻与从 <strong>120°</strong> 开始的 YCB-V 夹钳。三种方法使用相同初始旋转，平移固定为真值。100°／120° 是超过 WAPR 90° 训练扰动范围的单独案例，不代表汇总精度。</p>
 
 | LM-O 电钻 | YCB-V 夹钳 |
 | :---: | :---: |
-| <a href="https://wangyulin-seu.github.io/WAPR/demo/wide/lmo_driller.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/wide/lmo_driller.jpg" alt="LM-O driller: three-method rotation comparison" width="420"/></a> | <a href="https://wangyulin-seu.github.io/WAPR/demo/wide/ycbv_clamp.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/wide/ycbv_clamp.jpg" alt="YCB-V clamp: three-method rotation comparison" width="420"/></a> |
+| <a href="https://wangyulin-seu.github.io/WAPR/demo/wide/lmo_driller.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/wide/lmo_driller-readme.webp" alt="LM-O driller: three-method rotation comparison" width="420"/></a> | <a href="https://wangyulin-seu.github.io/WAPR/demo/wide/ycbv_clamp.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/wide/ycbv_clamp-readme.webp" alt="YCB-V clamp: three-method rotation comparison" width="420"/></a> |
 | WAPR: 80° → 4° | WAPR: 120° → 2° |
 
 <p align="center"><a href="https://wangyulin-seu.github.io/WAPR/docs/pose.html?lang=zh#wide-angle-comparison">对照协议与完整结果</a></p>
@@ -64,7 +64,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 ### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/pose.svg?v=color1" width="22" height="22" alt=""/> 七个 BOP 数据集的 6D 位姿估计
 
 <p align="center">
-  <a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#showcase"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/bop-seven-poses.jpg" alt="七个 BOP 数据集的 6D 位姿估计" width="1200"/></a>
+  <a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#showcase"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/bop-seven-poses-readme.webp" alt="七个 BOP 数据集的 6D 位姿估计" width="1200"/></a>
 </p>
 
 <p align="center">LM-O、T-LESS、TUD-L、IC-BIN、YCB-V、HB 和 ITODD 的位姿定位示例。彩色轮廓与 3D 包围盒展示预测位姿。</p>
@@ -77,7 +77,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 ### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/tracking.svg?v=color1" width="22" height="22" alt=""/> 跨较大帧间隔的位姿跟踪
 
 <p align="center">
-  <a id="animation-track_mustard_easy_00_02_s32" href="#animation-track_mustard_easy_00_02_s32"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/track_mustard_easy_00_02_s32.gif" alt="芥末瓶跟踪对照视频" width="800"/></a>
+  <a id="animation-track_mustard_easy_00_02_s32" href="#animation-track_mustard_easy_00_02_s32"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/track_mustard_easy_00_02_s32-readme.webp" alt="芥末瓶跟踪对照视频" width="800"/></a>
 </p>
 
 
@@ -104,7 +104,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 ### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/multi.svg?v=color1" width="22" height="22" alt=""/> TACO：滚筒和木盒
 
 <p align="center">
-  <a id="animation-taco_pose_compare" href="#animation-taco_pose_compare"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/taco_pose_compare.gif" alt="TACO: WAPR estimates beside motion-capture reference poses" width="672"/></a>
+  <a id="animation-taco_pose_compare" href="#animation-taco_pose_compare"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/taco_pose_compare-readme.webp" alt="TACO: WAPR estimates beside motion-capture reference poses" width="672"/></a>
 </p>
 
 
@@ -116,7 +116,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 ### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/industrial.svg?v=color1" width="22" height="22" alt=""/> ROBI：反光螺丝的正负样本对照
 
 <p align="center">
-  <a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#robi"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/robi-four-methods.jpg" alt="ROBI: WAPR, AAE, PPF and Line2D; blue positives and red negatives" width="1200"/></a>
+  <a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#robi"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/robi-four-methods-readme.webp" alt="ROBI: WAPR, AAE, PPF and Line2D; blue positives and red negatives" width="1200"/></a>
 </p>
 
 <p align="center">使用全部保存候选，为每个真值选择对称 ADD 最小的预测。蓝色为 ADD &lt; 0.1d，红色为未达阈值；这是事后最近候选对照，不能读成正常输出的一对一召回率。点击图片可逐实例查看误差和正负状态。</p>
@@ -127,7 +127,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 ### <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/wedge.svg?v=color1" width="22" height="22" alt=""/> 白色三角块：6D 位姿预测
 
 <p align="center">
-  <a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#wedge"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/wedge_pose_zh.jpg" alt="White wedges in a bowl: predicted 6D poses" width="480"/></a>
+  <a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#wedge"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/wedge_pose_zh-readme.webp" alt="White wedges in a bowl: predicted 6D poses" width="480"/></a>
 </p>
 
 <p align="center"><strong><a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#wedge">打开三角块 3D 查看器</a></strong>。HCCEPose 第 000003 帧，展示九个保存的候选；点击物体可联动选择。该帧没有位姿真值。</p>
@@ -145,7 +145,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 | 2D 检测 | 6D 位姿与重建网格 |
 | :---: | :---: |
-| <a href="https://wangyulin-seu.github.io/WAPR/demo/cross/detect.png"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/cross/detect.png" alt="Cross-scene 2D detection" width="360"/></a> | <a href="https://wangyulin-seu.github.io/WAPR/demo/cross/pose.png"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/cross/pose.png" alt="Cross-scene 6D pose and reconstructed mesh" width="572"/></a> |
+| <a href="https://wangyulin-seu.github.io/WAPR/demo/cross/detect.png"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/cross/detect-readme.webp" alt="Cross-scene 2D detection" width="360"/></a> | <a href="https://wangyulin-seu.github.io/WAPR/demo/cross/pose.png"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/cross/pose-readme.webp" alt="Cross-scene 6D pose and reconstructed mesh" width="572"/></a> |
 
 <p align="center">源图为 YCBInEOAT mustard0 首帧，目标为 YCB-V 场景 50、第 1130 帧。目标帧的标注类别、框和掩码不参与预测；源图重建出的网格用于目标帧位姿估计，具体配置见链接中的实验说明。</p>
 
