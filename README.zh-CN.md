@@ -107,10 +107,10 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 ---
 
-### 06 / 白色三角块：照片与 3D 点云联动
+### 06 / 白色三角块：6D 位姿预测
 
 <p align="center">
-  <a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#wedge"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/wedge_zh.jpg" alt="White wedges in a bowl: predicted poses and interactive point cloud" width="960"/></a>
+  <a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#wedge"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/wedge_pose_zh.jpg" alt="White wedges in a bowl: predicted 6D poses" width="480"/></a>
 </p>
 
 <p align="center"><strong><a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#wedge">打开三角块 3D 查看器</a></strong>。HCCEPose 第 000003 帧，展示九个保存的候选；点击物体可联动选择。该帧没有位姿真值。</p>

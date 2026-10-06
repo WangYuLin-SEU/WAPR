@@ -107,10 +107,10 @@ WAPR estimates and refines 6D poses of objects unseen during pose-model training
 
 ---
 
-### 06 / White wedges: linked image and 3D point cloud
+### 06 / White wedges: 6D pose predictions
 
 <p align="center">
-  <a href="https://wangyulin-seu.github.io/WAPR/?lang=en#wedge"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/wedge_en.jpg" alt="White wedges in a bowl: predicted poses and interactive point cloud" width="960"/></a>
+  <a href="https://wangyulin-seu.github.io/WAPR/?lang=en#wedge"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/wedge_pose_en.jpg" alt="White wedges in a bowl: predicted 6D poses" width="480"/></a>
 </p>
 
 <p align="center"><strong><a href="https://wangyulin-seu.github.io/WAPR/?lang=en#wedge">Open the wedge 3D viewer</a></strong>. HCCEPose frame 000003 shows nine saved candidates; select an object to highlight its pose. This frame has no ground-truth poses.</p>
