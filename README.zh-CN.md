@@ -17,7 +17,7 @@
 </p>
 <p align="center"><sub><sup>*</sup> 共同一作。作者单位见宣传页。</sub></p>
 
-<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=zh">文档网站</a> · <a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13">论文</a> · <a href="https://wangyulin-seu.github.io/WAPR/poster/wapr-eccv2026.jpg">海报</a></p>
+<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=zh"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/website.svg" width="18" height="18" alt=""/>&nbsp;文档网站</a> &nbsp; <a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/paper.svg" width="18" height="18" alt=""/>&nbsp;论文</a> &nbsp; <a href="https://wangyulin-seu.github.io/WAPR/poster/wapr-eccv2026.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/poster.svg" width="18" height="18" alt=""/>&nbsp;海报</a></p>
 
 <p align="center"><strong>大角度修正 · 默认 12 个初始候选 · 多物体批量推理</strong></p>
 
