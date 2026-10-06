@@ -253,7 +253,7 @@ See the [Docs website](https://wangyulin-seu.github.io/WAPR/docs/?lang=en) for c
 
 [Authorship and rights](AUTHORS.md) · [yulinwang@seu.edu.cn](mailto:yulinwang@seu.edu.cn).
 
-Code: [LGPL-2.1-only](LICENSE). Four first-party checkpoints: [CC BY-ND 4.0](WEIGHTS_LICENSE.txt), allowing commercial use with its attribution and redistribution conditions; modified weights may not be publicly redistributed under this license. Third-party components retain their own terms: [notices](THIRD_PARTY_NOTICES.txt) · [license manifest](licenses/manifest.json) · [acknowledgments](https://wangyulin-seu.github.io/WAPR/docs/credits.html?lang=en).
+Code: [LGPL-2.1-only](LICENSE). Four first-party checkpoints: [CC BY-ND 4.0](WEIGHTS_LICENSE.txt), allowing commercial use with its attribution and redistribution conditions; modified weights may not be publicly redistributed under this license. Third-party components retain their own terms: [notices](THIRD_PARTY_NOTICES.txt) · [acknowledgments](https://wangyulin-seu.github.io/WAPR/docs/credits.html?lang=en).
 
 Enterprise versions and customization: [shopedataset@gmail.com](mailto:shopedataset@gmail.com).
 

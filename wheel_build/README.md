@@ -19,9 +19,9 @@ Output is written to `wheel_build/dist/`. The script builds only a wheel, checks
 
 产物写入 `wheel_build/dist/`。脚本只构建 wheel，检查运行文件与许可，并打印 SHA256；它不会上传包。CUDA 架构列表是显式编译配置，不代表已验证其中所有 GPU。
 
-The wheel contains the Python runtime, `_gpu_render*.so`, shaders, detector resource catalog, fonts and license notices. Its `.dist-info/licenses/` directory contains `LICENSE`, `AUTHORS.md`, `THIRD_PARTY_NOTICES.txt`, `WEIGHTS_LICENSE.txt` and all files from `licenses/`. Model weights, TensorRT engines, samples, datasets, caches, user `paths.json`, reports, benchmark results, complete third-party trees, source-checkout tools and website files are excluded.
+The wheel contains the Python runtime, `_gpu_render*.so`, shaders, detector resource catalog, fonts and license notices. Its `.dist-info/licenses/` directory contains `LICENSE`, `AUTHORS.md`, `THIRD_PARTY_NOTICES.txt`, `WEIGHTS_LICENSE.txt` and notices for the bundled fonts. Model weights, TensorRT engines, samples, datasets, caches, user `paths.json`, reports, benchmark results, complete third-party trees, source-checkout tools and website files are excluded.
 
-wheel 包含 Python 运行实现、`_gpu_render*.so`、shader、检测资源清单、字体与许可说明。`.dist-info/licenses/` 中收录 `LICENSE`、`AUTHORS.md`、`THIRD_PARTY_NOTICES.txt`、`WEIGHTS_LICENSE.txt` 及 `licenses/` 的全部文件。模型权重、TensorRT 引擎、小样、数据集、缓存、用户 `paths.json`、报告、测速产物、完整第三方源码、源码安装工具和网站文件不进入 wheel。
+wheel 包含 Python 运行实现、`_gpu_render*.so`、shader、检测资源清单、字体与许可说明。`.dist-info/licenses/` 中收录 `LICENSE`、`AUTHORS.md`、`THIRD_PARTY_NOTICES.txt`、`WEIGHTS_LICENSE.txt` 及随包字体的许可说明。模型权重、TensorRT 引擎、小样、数据集、缓存、用户 `paths.json`、报告、测速产物、完整第三方源码、源码安装工具和网站文件不进入 wheel。
 
 ## Runtime / 运行
 

@@ -87,7 +87,6 @@ def main():
         # 上游许可副本随 wheel 元数据分发，不作为可执行代码打包。
         shutil.copy2(os.path.join(RELEASE_DIR, "THIRD_PARTY_NOTICES.txt"),
                      os.path.join(stage_dir, "THIRD_PARTY_NOTICES.txt"))
-        shutil.copytree(os.path.join(RELEASE_DIR, "licenses"), os.path.join(stage_dir, "licenses"))
         shutil.copytree(
             os.path.join(RELEASE_DIR, "wapr"),
             os.path.join(stage_dir, "wapr"),
@@ -138,8 +137,7 @@ def main():
             if parts[-1] in {"paths.json", "PATHS.txt", "AGENTS.md", "check_list.md"} or name.endswith((".pth", ".pt", ".engine", ".onnx", ".pyc", ".log")):
                 leaked.append(name)
         required_licenses = ["LICENSE", "AUTHORS.md", "THIRD_PARTY_NOTICES.txt", "WEIGHTS_LICENSE.txt"]
-        required_licenses += ["licenses/" + os.path.relpath(os.path.join(directory, filename), os.path.join(RELEASE_DIR, "licenses")).replace(os.sep, "/")
-                              for directory, _, filenames in os.walk(os.path.join(RELEASE_DIR, "licenses")) for filename in filenames]
+        required_licenses += ["wapr/fonts/LICENSE_DEJAVU", "wapr/fonts/wqy-microhei-copyright.txt", "wapr/fonts/Apache-2.0.txt"]
         missing_licenses = [name for name in required_licenses if not any(member.endswith(".dist-info/licenses/" + name) for member in members)]
         if len(native_members) != 1 or len(shader_members) != 2 or not detector_catalog or leaked or missing_licenses:
             raise RuntimeError("Wheel content check failed / wheel 内容检查失败: " + str((native_members, shader_members, detector_catalog, leaked, missing_licenses)))

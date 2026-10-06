@@ -1,407 +1,347 @@
 Third-party sources and licenses / 第三方来源与许可
 WAPR source LICENSE does not replace third-party terms. / WAPR 源码许可不替代第三方条款。
 Model weights, datasets and task assets may have separate licenses. / 权重、数据集和任务资源可能有独立许可。
-Sources and license copies: licenses/manifest.json. / 来源与许可副本：licenses/manifest.json。
 
 GroundingDINO — Apache-2.0
 Source / 来源: https://github.com/IDEA-Research/GroundingDINO
 Detector source; original notices retained.
 检测源码；保留原始声明。
-Copies / 原文: licenses/groundingdino/LICENSE, licenses/groundingdino/NOTICE
 
 Ultralytics — AGPL-3.0
 Source / 来源: https://github.com/ultralytics/ultralytics/tree/v8.3.70
 Ultralytics 8.3.70 loader; review AGPL obligations or obtain an upstream commercial license. Native Meta SAM 2 has separate terms.
 Ultralytics 8.3.70 加载器；须遵守 AGPL 条款或取得上游商业授权。Meta 原生 SAM 2 另有许可。
-Copies / 原文: licenses/ultralytics/LICENSE, licenses/ultralytics/NOTICE
 
 DINOv2 — Apache-2.0
 Source / 来源: https://github.com/facebookresearch/dinov2
 Code and official DINOv2 weights; retain copyright and license.
 源码与官方 DINOv2 权重；保留版权和许可。
-Copies / 原文: licenses/dinov2/LICENSE
 
 SAM 2 — Apache-2.0; cctorch: BSD-3-Clause
 Source / 来源: https://github.com/facebookresearch/sam2/tree/2b90b9f5ceec907a1c18123530e92e794ad901a4
 Native source and official checkpoints; cctorch carries an additional BSD notice. Ultralytics-converted files require checking their distributor terms.
 原生源码与官方权重；cctorch 另附 BSD 声明。Ultralytics 转换文件还需核对分发方条款。
-Copies / 原文: licenses/sam2/LICENSE, licenses/sam2/LICENSE_cctorch
 
 SAM 3D Objects — SAM License (custom)
 Source / 来源: https://github.com/facebookresearch/sam-3d-objects/tree/f91db411c50efee93d8db7aeb323885650f6f722
 Source and model materials follow the upstream custom agreement, including redistribution, attribution and use restrictions.
 源码及模型材料遵循上游自定义协议，包括再分发、署名与使用限制。
-Copies / 原文: licenses/sam3d/LICENSE
 
 MoGe — MIT; bundled notices also include Apache-2.0
 Source / 来源: https://github.com/microsoft/MoGe
 MoGe source and the selected moge-vitl model (model card: MIT); retain the complete combined LICENSE and dependency notices.
 MoGe 源码与所选 moge-vitl 权重（模型卡：MIT）；保留完整组合 LICENSE 及依赖声明。
-Copies / 原文: licenses/moge/LICENSE.txt
 
 UniPose9D — Apache-2.0
 Source / 来源: https://github.com/qq456cvb/UniPose9D
 Inference repository and its release; helper models retain their own terms.
 推理仓库及其发布材料；辅助模型保留各自条款。
-Copies / 原文: licenses/unipose9d/LICENSE.txt
 
 RoMa — MIT
 Source / 来源: https://github.com/Parskatt/RoMa
 Matching source; separately obtained checkpoints and dependencies retain upstream terms.
 匹配源码；另行获取的权重与依赖保留上游条款。
-Copies / 原文: licenses/roma/LICENSE.txt
 
 Qwen2.5-VL-3B-Instruct — Qwen Research License (custom)
 Source / 来源: https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct
 This exact 3B model permits non-commercial research/evaluation; commercial use requires permission from Alibaba Cloud. Do not infer its terms from other Qwen sizes.
 本项目选用的 3B 模型限定非商业研究/评估；商业使用须向 Alibaba Cloud 申请。不能套用其他 Qwen 规格的许可。
-Copies / 原文: licenses/qwen-vl-3b/LICENSE.txt
 
 Fast-SAM3D — Not independently declared / 未单独声明
 Source / 来源: https://github.com/wlfeng0509/Fast-SAM3D
 No root LICENSE was found in the checked upstream snapshot. SAM-derived code retains SAM terms; an independent grant for its added acceleration code remains unconfirmed.
 已检查的上游快照未发现根目录 LICENSE。SAM 派生代码保留 SAM 条款；新增加速代码的独立授权尚未确认。
-Copies / 原文: No separate license copy verified / 未核实独立许可副本
 
 BOP COCO evaluation fork — BSD-2-Clause
 Source / 来源: https://github.com/MartinSmeyer/cocoapi/tree/v1.0
 The vendored BOP COCO evaluation fork; exact file provenance is in the original source.
 随包 BOP COCO 评测分支；文件来源见 the original source。
-Copies / 原文: licenses/bop-coco/LICENSE
 
 FoundationPose — NVIDIA custom source license
 Source / 来源: https://github.com/NVlabs/FoundationPose
 Comparison method source has a custom license; do not describe it as MIT or presume weights share the same grant.
 对照方法源码使用自定义许可；不能标为 MIT，也不能推定权重有相同授权。
-Copies / 原文: licenses/foundationpose/LICENSE.txt
 
 MegaPose — Apache-2.0
 Source / 来源: https://github.com/megapose6d/megapose6d
 Comparison source; upstream model/data materials may have separate terms.
 对照源码；上游模型与数据可能有独立条款。
-Copies / 原文: licenses/megapose/LICENSE.txt
 
 Three.js — MIT
 Source / 来源: https://github.com/mrdoob/three.js/tree/r160
 JavaScript viewer dependency; keep its embedded copyright header.
 JavaScript 查看器依赖；保留其内嵌版权声明。
-Copies / 原文: licenses/threejs/LICENSE.txt
 
 WenQuanYi Micro Hei — Apache-2.0 OR GPL-3.0-or-later with font exception
 Source / 来源: https://wenq.org/wqy2/index.cgi?MicroHei
 Unmodified bundled font; complete dual-license copyright notice and Apache text are supplied.
 随包原版字体；提供完整双许可版权声明及 Apache 正文。
-Copies / 原文: licenses/wqy/wqy-microhei-copyright.txt, licenses/wqy/Apache-2.0.txt
 
 nvdiffrast — NVIDIA Source Code License (custom)
 Source / 来源: https://github.com/NVlabs/nvdiffrast
 Optional renderer dependency; consult the upstream source license.
 可选渲染后端依赖；以其上游源码许可为准。
-Copies / 原文: licenses/nvdiffrast/LICENSE.txt
 
 torch — BSD License
 Source / 来源: https://pytorch.org/
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-torch/LICENSE, licenses/package-torch/NOTICE
 
 torchvision — BSD
 Source / 来源: https://github.com/pytorch/vision
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-torchvision/LICENSE
 
 numpy — BSD License
 Source / 来源: https://numpy.org
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-numpy/LICENSE.txt
 
 kornia — Apache Software License
 Source / 来源: https://www.kornia.org
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-kornia/LICENSE
 
 opencv-contrib-python — Apache Software License
 Source / 来源: https://github.com/opencv/opencv-python
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-opencv-contrib-python/LICENSE-3RD-PARTY.txt, licenses/package-opencv-contrib-python/LICENSE.txt
 
 trimesh — MIT License
 Source / 来源: https://github.com/mikedh/trimesh
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-trimesh/LICENSE.md
 
 pybind11 — BSD License
 Source / 来源: https://github.com/pybind/pybind11
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-pybind11/LICENSE
 
 pillow — MIT-CMU
 Source / 来源: https://github.com/python-pillow/Pillow/releases
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-pillow/LICENSE
 
 transformers — Apache Software License
 Source / 来源: https://github.com/huggingface/transformers
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-transformers/LICENSE
 
 timm — Apache Software License
 Source / 来源: https://github.com/huggingface/pytorch-image-models
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-timm/LICENSE
 
 addict — MIT License
 Source / 来源: https://github.com/mewwts/addict
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-addict/LICENSE
 
 yapf — Apache Software License
 Source / 来源: https://github.com/google/yapf
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-yapf/LICENSE
 
 supervision — BSD License
 Source / 来源: https://github.com/roboflow/supervision
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-supervision/LICENSE.md
 
 pycocotools — BSD-2-Clause
 Source / 来源: https://github.com/ppwwyyxx/cocoapi
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-pycocotools/LICENSE-upstream.txt
 
 scipy — BSD License
 Source / 来源: https://scipy.org/
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-scipy/LICENSE.txt
 
 tensorrt-cu12 — Other/Proprietary License
 Source / 来源: https://github.com/nvidia/tensorrt
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-tensorrt-cu12/LICENSE.txt
 
 onnx — Apache-2.0
 Source / 来源: https://onnx.ai/
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-onnx/LICENSE, licenses/package-onnx/NOTICE
 
 ml-dtypes — Apache-2.0
 Source / 来源: https://github.com/jax-ml/ml_dtypes
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-ml-dtypes/LICENSE, licenses/package-ml-dtypes/LICENSE.eigen
 
 matplotlib — Python Software Foundation License
 Source / 来源: https://matplotlib.org
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-matplotlib/LICENSE
 
 pandas — BSD License
 Source / 来源: https://pandas.pydata.org
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-pandas/LICENSE
 
 seaborn — BSD License
 Source / 来源: http://seaborn.pydata.org
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-seaborn/LICENSE.md
 
 psutil — BSD-3-Clause
 Source / 来源: https://github.com/giampaolo/psutil
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-psutil/LICENSE
 
 py-cpuinfo — MIT License
 Source / 来源: https://github.com/workhorsy/py-cpuinfo
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-py-cpuinfo/LICENSE
 
 PyYAML — MIT License
 Source / 来源: https://pyyaml.org/
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-pyyaml/LICENSE
 
 requests — Apache Software License
 Source / 来源: https://requests.readthedocs.io
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-requests/LICENSE
 
 tqdm — MIT License
 Source / 来源: https://tqdm.github.io
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-tqdm/LICENSE-upstream.txt
 
 huggingface-hub — Apache Software License
 Source / 来源: https://github.com/huggingface/huggingface_hub
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-huggingface-hub/LICENSE
 
 tokenizers — Apache Software License
 Source / 来源: https://github.com/huggingface/tokenizers
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-tokenizers/LICENSE-upstream.txt
 
 safetensors — Apache Software License
 Source / 来源: https://github.com/huggingface/safetensors
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-safetensors/LICENSE
 
 ultralytics-thop — GNU Affero General Public License v3 or later (AGPLv3+)
 Source / 来源: https://ultralytics.com
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-ultralytics-thop/LICENSE
 
 mani-skill — Apache-2.0
 Source / 来源: https://github.com/mani-skill/ManiSkill
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-mani-skill/LICENSE, licenses/package-mani-skill/LICENSE-3RD-PARTY
 
 sapien — MIT License
 Source / 来源: https://sapien.ucsd.edu
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-sapien/LICENSE
 
 mplib — MIT License
 Source / 来源: https://pypi.org/project/mplib/
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-mplib/LICENSE
 
 pytorch3d — BSD-3-Clause
 Source / 来源: https://github.com/facebookresearch/pytorch3d
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-pytorch3d/LICENSE, licenses/package-pytorch3d/LICENSE-3RD-PARTY
 
 romatch — MIT
 Source / 来源: https://pypi.org/project/romatch/
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-romatch/LICENSE-upstream.txt
 
 moge — MIT
 Source / 来源: https://github.com/microsoft/MoGe
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-moge/LICENSE
 
 onnxruntime-gpu — MIT
 Source / 来源: https://onnxruntime.ai
 Optional inference runtime.
 可选推理后端。
-Copies / 原文: licenses/package-onnxruntime-gpu/LICENSE-upstream.txt
 
 xatlas — MIT License
 Source / 来源: https://github.com/mworchel/xatlas-python
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-xatlas/LICENSE
 
 scikit-image — BSD License
 Source / 来源: https://scikit-image.org
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-scikit-image/LICENSE.txt
 
 imageio-ffmpeg — BSD License
 Source / 来源: https://github.com/imageio/imageio-ffmpeg
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-imageio-ffmpeg/LICENSE
 
 gsplat — Apache-2.0
 Source / 来源: https://github.com/nerfstudio-project/gsplat
 Runtime dependency; dependencies and model/data assets retain their own licenses.
 运行依赖；依赖及模型/数据资源保留各自许可。
-Copies / 原文: licenses/package-gsplat/LICENSE
 
 beautifulsoup4 — MIT
 Source / 来源: https://pypi.org/project/beautifulsoup4/
 Documentation dependency.
 文档依赖。
-Copies / 原文: licenses/package-beautifulsoup4/LICENSE-sdist.txt
 
 BERT base uncased — Apache-2.0
 Source / 来源: https://huggingface.co/google-bert/bert-base-uncased
 Official selected text model; preserve its model-repository terms.
 所选官方文本模型；保留其模型仓库条款。
-Copies / 原文: licenses/bert/LICENSE.txt
 
 LM-O data — CC-BY-SA-4.0
 Source / 来源: https://bop.felk.cvut.cz/datasets/#LM-O
 Data and model excerpt, not the loader code.
 数据与模型摘录，不是读取代码。
-Copies / 原文: No separate license copy verified / 未核实独立许可副本
 
 T-LESS data — CC-BY-4.0
 Source / 来源: https://bop.felk.cvut.cz/datasets/#T-LESS
 Data and object models; attribute the original dataset.
 数据与物体模型；须标注原始数据集。
-Copies / 原文: No separate license copy verified / 未核实独立许可副本
 
 TUD-L data — CC-BY-SA-4.0
 Source / 来源: https://bop.felk.cvut.cz/datasets/#TUD-L
 Dataset terms are independent of WAPR source.
 数据许可独立于 WAPR 源码。
-Copies / 原文: No separate license copy verified / 未核实独立许可副本
 
 ITODD data — CC-BY-NC-SA-4.0
 Source / 来源: https://bop.felk.cvut.cz/datasets/#ITODD
 Non-commercial dataset; WAPR permissions do not replace dataset terms.
 非商业数据集；WAPR 授权不替代数据条款。
-Copies / 原文: No separate license copy verified / 未核实独立许可副本
 
 TACO data — Not separately verified / 未单独核实
 Source / 来源: https://huggingface.co/datasets/mzhobro/taco_dataset
 The referenced dataset card has no explicit license field; request the data owner's terms before redistribution or commercial use.
 所引用的数据卡未声明明确的许可字段；再分发或商业使用前须向数据权利方核实。
-Copies / 原文: No separate license copy verified / 未核实独立许可副本
 
 YCBInEOAT data — Not separately verified / 未单独核实
 Source / 来源: https://github.com/NVlabs/FoundationPose#datasets
 Tracking data permission must be checked at the original archive; the comparison code license does not establish the data license.
 跟踪数据许可须在原始归档核实；对照代码的许可不能作为数据许可。
-Copies / 原文: No separate license copy verified / 未核实独立许可副本
 
 ROBI data — Not separately verified / 未单独核实
 Source / 来源: https://github.com/junyang224/ROBI_Toolkit
 The saved public poses and dataset are credited to ROBI; an independent grant to redistribute them has not been verified.
 保存的公开位姿和数据均注明 ROBI 来源；其再分发授权尚未独立核实。
-Copies / 原文: No separate license copy verified / 未核实独立许可副本
 
 
 DejaVu fonts — Bitstream Vera license; DejaVu changes public domain
 Source / 来源: https://dejavu-fonts.github.io/
 Unmodified regular and bold Sans fonts for portable figures. Original terms retained.
 未修改的常规和粗体 Sans 字体，用于可迁移的图示；保留原始条款。
-Copies / 原文: licenses/dejavu/LICENSE; wapr/fonts/LICENSE_DEJAVU
+
+Bundled notices / 随附资源声明
+GroundingDINO adaptation: wapr/tools/compat/LICENSE
+SAM-derived reconstruction integration: examples/11_reconstruct_object/fast_sam3d/LICENSE
+DejaVu fonts: wapr/fonts/LICENSE_DEJAVU
+WenQuanYi font: wapr/fonts/wqy-microhei-copyright.txt, wapr/fonts/Apache-2.0.txt
+External dependencies provide their licenses in their own distributions.
+外部依赖的许可随各自发行包提供。

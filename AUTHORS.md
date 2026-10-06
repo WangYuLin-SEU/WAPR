@@ -23,10 +23,10 @@ license. Retain applicable copyright and license notices when redistributing.
 Third-party code and adapted upstream portions retain their original authorship
 and terms. Yulin Wang's attribution on integration files applies to the WAPR
 integration and modifications. See [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt)
-and [licenses/manifest.json](licenses/manifest.json).
+for sources and the notices accompanying bundled resources.
 
 第三方代码及改编的上游部分保留原作者署名和许可。集成文件中的 Yulin Wang 署名
-对应 WAPR 的集成与修改；来源和条款见上述第三方声明及清单。
+对应 WAPR 的集成与修改；来源和条款见上述第三方声明及随附资源说明。
 
 The paper's coauthor list is separate from code and website authorship and is
 preserved in the citation. The four first-party model weights use

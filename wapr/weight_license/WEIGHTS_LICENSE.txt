@@ -6,7 +6,7 @@ SPDX-License-Identifier: CC-BY-ND-4.0
 Official terms: https://creativecommons.org/licenses/by-nd/4.0/
 Full legal text: https://creativecommons.org/licenses/by-nd/4.0/legalcode.en
 Local copy: CC-BY-ND-4.0.txt beside this notice, or
-licenses/wapr-weights/CC-BY-ND-4.0.txt in the source distribution.
+wapr/weight_license/CC-BY-ND-4.0.txt in the source distribution.
 
 This license applies only to the four first-party WAPR model weight files:
   wapr_w_mask.pth — WAPR with a target mask

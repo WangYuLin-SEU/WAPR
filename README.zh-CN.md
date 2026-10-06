@@ -253,7 +253,7 @@ python examples/02_one_category_one_instance.py
 
 [作者与权益声明](AUTHORS.md) · [yulinwang@seu.edu.cn](mailto:yulinwang@seu.edu.cn)。
 
-代码采用 [LGPL-2.1-only](LICENSE)；四份第一方权重采用 [CC BY-ND 4.0](WEIGHTS_LICENSE.txt)，允许商用，但须遵守署名及再发行条件，本许可不允许公开再发行修改版权重。第三方组件仍适用各自条款：[来源与许可声明](THIRD_PARTY_NOTICES.txt) · [许可清单](licenses/manifest.json) · [致谢](https://wangyulin-seu.github.io/WAPR/docs/credits.html?lang=zh)。
+代码采用 [LGPL-2.1-only](LICENSE)；四份第一方权重采用 [CC BY-ND 4.0](WEIGHTS_LICENSE.txt)，允许商用，但须遵守署名及再发行条件，本许可不允许公开再发行修改版权重。第三方组件仍适用各自条款：[来源与许可声明](THIRD_PARTY_NOTICES.txt) · [致谢](https://wangyulin-seu.github.io/WAPR/docs/credits.html?lang=zh)。
 
 企业版本与定制需求：[shopedataset@gmail.com](mailto:shopedataset@gmail.com)。
 
