@@ -17,16 +17,16 @@
 
 <p align="center"><strong>大角度修正 · 默认 12 个初始候选 · 多物体批量推理</strong></p>
 
-<p align="center"><a href="#results">效果展示</a> &nbsp; · &nbsp; <a href="#awards">竞赛奖状</a> &nbsp; · &nbsp; <a href="#pipeline">方法概览</a> &nbsp; · &nbsp; <a href="#start">快速开始</a> &nbsp; · &nbsp; <a href="#citation">引用与许可</a></p>
+<p align="center"><a href="#results">▦ 效果展示</a> &nbsp; · &nbsp; <a href="#awards">☆ 竞赛奖状</a> &nbsp; · &nbsp; <a href="#pipeline">◇ 方法概览</a> &nbsp; · &nbsp; <a href="#start">▷ 快速开始</a> &nbsp; · &nbsp; <a href="#citation">§ 引用与许可</a></p>
 
 ---
 
 WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过的物体的 6D 位姿。输入为 **RGB-D、相机内参、米制网格，以及 mask 或包围盒**；也可先用可选的 2D 前端寻找候选区域。
 
 <a id="results"></a>
-## 01 · 效果展示
+## ▦ 效果展示
 
-### 01 / 广角位姿修正：三个物体、三种方法
+### ↻ 广角位姿修正：三个物体、三种方法
 
 <p align="center">
   <a href="https://wangyulin-seu.github.io/WAPR/demo/wide/tudl_dragon.jpg"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/demo/wide/tudl_dragon.jpg" alt="TUD-L dragon: WAPR / MegaPose / FoundationPose, five updates" width="960"/></a>
@@ -44,7 +44,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 ---
 
-### 02 / 七个 BOP 数据集的 6D 位姿估计
+### ◈ 七个 BOP 数据集的 6D 位姿估计
 
 <p align="center">
   <a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#showcase"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/bop-seven-poses.jpg" alt="七个 BOP 数据集的 6D 位姿估计" width="1200"/></a>
@@ -57,7 +57,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 ---
 
-### 03 / 跨较大帧间隔的位姿跟踪
+### ↔ 跨较大帧间隔的位姿跟踪
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/track_mustard_easy_00_02_s32.gif" alt="芥末瓶跟踪对照视频" width="800"/>
@@ -84,7 +84,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 ---
 
-### 04 / TACO：滚筒和木盒
+### ◎ TACO：滚筒和木盒
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/taco_pose_compare.gif" alt="TACO: WAPR estimates beside motion-capture reference poses" width="672"/>
@@ -96,7 +96,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 ---
 
-### 05 / ROBI：反光螺丝的正负样本对照
+### ⚙ ROBI：反光螺丝的正负样本对照
 
 <p align="center">
   <a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#robi"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/robi-four-methods.jpg" alt="ROBI: WAPR, AAE, PPF and Line2D; blue positives and red negatives" width="1200"/></a>
@@ -107,7 +107,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 ---
 
-### 06 / 白色三角块：6D 位姿预测
+### △ 白色三角块：6D 位姿预测
 
 <p align="center">
   <a href="https://wangyulin-seu.github.io/WAPR/?lang=zh#wedge"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/wedge_pose_zh.jpg" alt="White wedges in a bowl: predicted 6D poses" width="480"/></a>
@@ -118,7 +118,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 ---
 
-### 07 / 重建网格用于跨场景位姿估计
+### ▱ 重建网格用于跨场景位姿估计
 
 <p align="center">
   <a href="https://wangyulin-seu.github.io/WAPR/docs/applications-reconstruct.html?lang=zh#cross-scene-recorded-result"><img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/docs/figures/cross_scene_flow_zh.svg" alt="Source image, reconstructed mesh, cross-scene 2D detection and 6D pose" width="960"/></a>
@@ -136,7 +136,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 ---
 
-### 08 / 机器人仿真：桌面与腕部双相机
+### ⌘ 机器人仿真：桌面与腕部双相机
 
 <p align="center">
   <video src="assets/readme/demo/robot/bottle_cameras.mp4" autoplay loop muted controls playsinline preload="metadata" width="960">桌面与腕部双相机位姿跟踪仿真视频</video>
@@ -152,7 +152,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 
 <a id="awards"></a>
 
-## 02 · 2025 竞赛奖状
+## ☆ 2025 竞赛奖状
 
 下方展示仓库收录的奖状，点击可查看原图。BPC 的最佳单次方案／第 4 名来自 WAPR；第二名来自 FRTPose-WAPR。BOP 奖状对应搭配不同 2D 检测器的 FRTPose-WAPR 系统提交。
 
@@ -177,7 +177,7 @@ WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过
 ---
 
 <a id="pipeline"></a>
-## 03 · 方法概览
+## ◇ 方法概览
 
 > **区域 → 12 个候选 → WAPR × 3 → SAPR × 2 → WBPS → 6D 位姿**
 
@@ -196,7 +196,7 @@ WBPS 在每个实例的组内选位姿；公开分数取该完整组的 `(100 - 
 ---
 
 <a id="start"></a>
-## 04 · 快速开始
+## ▷ 快速开始
 
 本仓库提供 WAPR 推理源码与使用示例。模型权重和样本输入另行获取，TensorRT 引擎在目标 GPU 上生成。运行环境和安装步骤见安装文档。
 
@@ -229,7 +229,7 @@ python examples/02_one_category_one_instance.py
 ---
 
 <a id="citation"></a>
-## 05 · 引用与许可
+## § 引用与许可
 
 ```bibtex
 @InProceedings{wang2026wapr,
