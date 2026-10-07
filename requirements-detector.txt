@@ -1,0 +1,22 @@
+# Additional dependencies for the 2D detector source trees; not bundled in WAPR.
+# 2D 检测器源码所需的附加依赖；这些库不会打入 WAPR wheel。
+# Prepare torchvision matching your installed torch before running the installer.
+# 运行安装脚本前，自行准备与当前 torch 匹配的 torchvision。
+transformers
+timm
+addict
+yapf
+pycocotools
+scipy
+matplotlib
+pandas
+seaborn
+psutil
+py-cpuinfo
+PyYAML
+requests
+tqdm
+safetensors
+ultralytics-thop
+# Ultralytics itself uses the compatible source tree, not the pip distribution.
+# Ultralytics 本体使用兼容源码目录，不从 pip 安装。

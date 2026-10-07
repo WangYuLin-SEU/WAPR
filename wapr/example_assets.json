@@ -1,0 +1,74 @@
+{
+  "taco": {
+    "folder": "taco",
+    "source": "https://github.com/leolyliu/TACO-Instructions",
+    "files": {
+      "DATA_LICENSE.html": {
+        "sha256": "58230517b7895aa219ff46a6ed63e67057a1582fb9ea054b16728a8c13525650",
+        "bytes": 48742
+      },
+      "PROVENANCE.txt": {
+        "sha256": "e9e99e5fa02fda06cb1d0b254547b1a18521a2678496d166eaeb4bf276353e26",
+        "bytes": 1052
+      },
+      "clip/color.mp4": {
+        "sha256": "01157cfd429986cfef032c71d5321556c521d7eee963ae69462af3af458e2843",
+        "bytes": 296152
+      },
+      "clip/depth_u16_scale4000_512x376.npy": {
+        "sha256": "42596dc402b26f1dd99f2fb3f4acf0cf408069efcaa6ec69411ec806eff4aabb",
+        "bytes": 43892864
+      },
+      "meshes/076_cm.obj": {
+        "sha256": "5610658c80707b0fb801749dfd9fdecc12c25793a7d6445d5880b9d97904d8d2",
+        "bytes": 6814488
+      },
+      "meshes/093_cm.obj": {
+        "sha256": "0c487950aad8916c0a118b95a1e3ab56d00a854c8d688cca9ee2efcfdaa76b85",
+        "bytes": 7071925
+      },
+      "sample.json": {
+        "sha256": "86b75f47cd5292cce6b2f708405569e43e5559f41dd929e3502f439070490d4c",
+        "bytes": 933
+      },
+      "seq_cam/egocentric_intrinsic.txt": {
+        "sha256": "cfd0cea899937ed80b64049c86089c20906c4c29265c7061502fd3e2af3285f0",
+        "bytes": 225
+      }
+    }
+  },
+  "robi": {
+    "folder": "robi/zigzag_scene4_view0",
+    "source": "https://www.trailab.utias.utoronto.ca/robi",
+    "files": {
+      "CAD_readme.txt": {
+        "sha256": "6a7fcb831c2cd61265403db025a2d30cf163ceeb2c863ab75cae805c41cfcbcb",
+        "bytes": 1279
+      },
+      "DATA_LICENSE.html": {
+        "sha256": "527c4e0e75a7aafe819a9ed481c227f27645736fa800f25d6d94ed37a362afd7",
+        "bytes": 52858
+      },
+      "PROVENANCE.txt": {
+        "sha256": "96cbb49cdd1f4476c6a13b290ed33df98c2e6d04a616229d58fa910aa2fcd229",
+        "bytes": 1043
+      },
+      "Zigzag.stl": {
+        "sha256": "db022821ebc7099aaa4f0283073d6eeb2034feac7cff938a05f5cbc206a988f0",
+        "bytes": 45684
+      },
+      "camera.yml": {
+        "sha256": "77e0ff22b95afece583fec3f03471abae14629291bd3f3af5bef20bc5cc95a78",
+        "bytes": 144
+      },
+      "depth.png": {
+        "sha256": "421733f9d89d55a27664ff8977be5eeb72296922124cd7f87240d4843c10026c",
+        "bytes": 598194
+      },
+      "left.bmp": {
+        "sha256": "2c5410ec9eec4125acfb64d8052df1dcc6706cfb0ac04c06bbfaaadba1ecc5fd",
+        "bytes": 1311798
+      }
+    }
+  }
+}
