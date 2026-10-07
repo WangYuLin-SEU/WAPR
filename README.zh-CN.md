@@ -29,6 +29,14 @@
 
 WAPR 修正位姿模型训练时未见过的物体的 6D 位姿。输入为 RGB-D、相机内参、米制网格，以及 mask 或框。训练覆盖高达 90° 的候选旋转误差。默认流程使用 12 个候选、三次 WAPR 更新、两次 SAPR 更新，再由 WBPS 排序。推理时仍需提供米制网格。
 
+**功能亮点**
+
+- **广角位姿修正：**训练覆盖高达 90° 的旋转扰动，支持 mask 或框，不需要逐物体微调位姿模型。
+- **RGB-D 批量位姿估计：**RTX 5090、OpenGL + TensorRT FP16、每实例 12 个候选，预热后位姿阶段约 88–90 实例/秒；不含 2D 检测与 NMS。[测量条件](https://wangyulin-seu.github.io/WAPR/docs/pose-backend-scaling.html?lang=zh#backend-scaling-instances)。
+- **大运动 6D 位姿跟踪：**步长 32 的芥末瓶对照中，WAPR 的 ADD 达标率为 100%、平均 ADD 为 4.6 mm；FoundationPose 为 68.2% 和 36.3 mm，均不重新初始化位姿。这是此序列的结果。[视频与协议](https://wangyulin-seu.github.io/WAPR/docs/applications-ycbineoat.html?lang=zh)。
+- **位姿评分与可选跟踪补救：**WBPS 对候选位姿排序；独立 DINOv2 补救案例展示候选搜索与评分，并保留失败结果。[跟踪说明](https://wangyulin-seu.github.io/WAPR/docs/pose-track.html?lang=zh)。
+- **四份权重：**带掩码 WAPR、无掩码 WAPR、SAPR 和 WBPS；示例涵盖定位、检测、跟踪、重建及机器人仿真。位姿推理仍需米制网格。
+
 <a id="awards"></a>
 
 ## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg?v=color1" width="26" height="26" alt=""/> 2025 竞赛奖状

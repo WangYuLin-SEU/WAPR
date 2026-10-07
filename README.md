@@ -29,6 +29,14 @@
 
 WAPR refines the 6D pose of an object absent from pose-model training. Provide RGB-D, camera intrinsics, a metric mesh, and a mask or box. Training covers candidate rotation errors up to 90°. The default recipe uses 12 hypotheses, three WAPR updates, two SAPR updates, and WBPS ranking. A metric mesh is still required at inference.
 
+**Capabilities**
+
+- **Wide-angle pose refinement:** trained with rotation perturbations up to 90°; mask and box inputs, without per-object pose-model fine-tuning.
+- **Batched RGB-D pose estimation:** approximately 88–90 supplied instances/s on RTX 5090 with OpenGL + TensorRT FP16, 12 hypotheses per instance in the warmed pose stage; excludes 2D detection and NMS. [Measurement conditions](https://wangyulin-seu.github.io/WAPR/docs/pose-backend-scaling.html#backend-scaling-instances).
+- **Large-motion 6D pose tracking:** the stride-32 mustard comparison reaches 100% ADD recall / 4.6 mm mean ADD for WAPR versus 68.2% / 36.3 mm for FoundationPose, without pose reinitialization. These are sequence-specific results. [Video and protocol](https://wangyulin-seu.github.io/WAPR/docs/applications-ycbineoat.html).
+- **Pose scoring and optional lost-track recovery:** WBPS ranks pose candidates; the separate DINOv2 recovery example demonstrates candidate search and scoring, including failures. [Tracking guide](https://wangyulin-seu.github.io/WAPR/docs/pose-track.html).
+- **Four checkpoints:** masked WAPR, mask-free WAPR, SAPR and WBPS; examples cover localization, detection, tracking, reconstruction and robot simulation. A metric mesh remains required for pose inference.
+
 <a id="awards"></a>
 
 ## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/award.svg?v=color1" width="26" height="26" alt=""/> 2025 challenge certificates
