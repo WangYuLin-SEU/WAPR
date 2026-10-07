@@ -129,13 +129,13 @@ def backup_pose_file(path):
         rows = json.load(stream)
     if any("choice" in row for row in rows):
         if not os.path.isfile(full_path) or not os.path.isfile(metadata_path):
-            raise RuntimeError("Rerun the producer (12–14) to create a verified full estimate / 请重跑 12–14 生成可核验的完整估计")
+            raise RuntimeError("Rerun the producer (13–15) to create a verified full estimate / 请重跑 13–15 生成可核验的完整估计")
         with open(metadata_path, encoding="utf-8") as stream:
             stored = json.load(stream)
         with open(full_path, "rb") as stream:
             full_hash = hashlib.sha256(stream.read()).hexdigest()
         if stored.get("inputs") != input_hashes or stored.get("full_sha256") != full_hash:
-            raise RuntimeError("Saved inputs changed; rerun 12–14 before tracking / 保存输入已改变，请先重跑 12–14")
+            raise RuntimeError("Saved inputs changed; rerun 13–15 before tracking / 保存输入已改变，请先重跑 13–15")
         return full_path
     # A newly produced full estimate replaces the previous run's backup.
     # 新生成的完整估计刷新旧备份，不能保留上一轮结果。
@@ -625,9 +625,22 @@ if __name__ == "__main__":
     import cv2
     import torch
 
-    # 1. Load networks once. Initialize each stream with the verified predictions from 12–14.
-    # 1. 网络仅载入一次，各序列使用 12–14 已核验的预测结果初始化。
+    # 1. Load networks once. Initialize each stream with the verified predictions from 13–15.
+    # 1. 网络仅载入一次，各序列使用 13–15 已核验的预测结果初始化。
     overview_only = len(sys.argv) >= 2 and sys.argv[1] == "overview"
+    # Saved simulation outputs are prerequisites, not downloadable predictions.
+    # 仿真输出是真实前置结果，不能用下载的预测替代；加载网络前先检查。
+    prerequisite_files = []
+    for folder in (os.path.join(RELEASE_DIR, "outputs", "sim_bridge_tasks", "carrot"),
+                   os.path.join(RELEASE_DIR, "outputs", "sim_bridge_tasks", "eggplant"),
+                   os.path.join(RELEASE_DIR, "outputs", "sim_xarm_cube", "cube")):
+        prerequisite_files.extend(os.path.join(folder, name) for name in ("rows.json", "jobs.json", "jobs_poses.json", "mesh.ply"))
+    if not overview_only:
+        tracking_folder = os.path.join(RELEASE_DIR, "outputs", "sim_known_mesh_place", "tracking")
+        prerequisite_files.extend(os.path.join(tracking_folder, name) for name in ("rows.json", "sequence_poses.json", "meshes/bottle.ply", "meshes/box.ply"))
+    missing_inputs = [path for path in prerequisite_files if not os.path.isfile(path)]
+    if missing_inputs:
+        raise FileNotFoundError("Run examples 13–15 to produce saved inputs / 请先运行示例 13–15 生成前置结果:\n" + "\n".join(missing_inputs))
     estimator = WAPREstimator(device=DEVICE)
     # The pose crops stay on the OpenGL runtime inside the estimator.
     # The tracked region is a full-frame depth, the same CUDA raster path the

@@ -12,6 +12,52 @@ import sys
 from pathlib import Path
 
 
+def _kaolin_requirement(torch):
+    """Select the official CUDA wheel for the actual interpreter and Torch pair.
+
+    按实际解释器、Torch 与 CUDA 组合选择 NVIDIA 官方 Kaolin wheel。
+    """
+    from importlib.metadata import PackageNotFoundError, version
+    try:
+        if version("kaolin") == "0.18.0":
+            return "kaolin==0.18.0"
+    except PackageNotFoundError:
+        pass
+    import urllib.parse
+    import urllib.request
+    from packaging.tags import sys_tags
+    from packaging.utils import parse_wheel_filename
+    torch_version = torch.__version__.split("+", 1)[0]
+    cuda_tag = "cu" + torch.version.cuda.replace(".", "")
+    index_url = "https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-" + torch_version + "_" + cuda_tag + ".html"
+    page = None
+    for direct in (False, True):
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({})) if direct else urllib.request.build_opener()
+        try:
+            with opener.open(index_url, timeout=20) as response:
+                page = response.read().decode("utf-8")
+            break
+        except OSError:
+            continue
+    if page is None:
+        raise RuntimeError("Official Kaolin index unavailable for this Torch/CUDA pair / 当前 Torch/CUDA 组合的官方 Kaolin 索引不可用")
+    compatible_tags = set(sys_tags())
+    candidates = []
+    for href in re.findall(r'href=[\"\']([^\"\']+)[\"\']', page):
+        url = urllib.parse.urljoin(index_url, href)
+        filename = urllib.parse.unquote(urllib.parse.urlsplit(url).path.rsplit("/", 1)[-1])
+        if not filename.endswith(".whl"):
+            continue
+        name, wheel_version, _, tags = parse_wheel_filename(filename)
+        if str(name) == "kaolin" and str(wheel_version) == "0.18.0" and tags & compatible_tags:
+            candidates.append(url)
+    if len(candidates) != 1:
+        raise RuntimeError("Expected one matching official Kaolin wheel / 需要唯一匹配的官方 Kaolin wheel")
+    print("WAPR_KAOLIN_PAIR", {"torch": torch_version, "cuda": torch.version.cuda,
+                              "python": sys.version.split()[0], "kaolin": "0.18.0"}, flush=True)
+    return "kaolin @ " + candidates[0]
+
+
 def reconstruction_weights_status(checkpoint_directory=None):
     """Check local files before authentication or network access.
 
@@ -92,28 +138,31 @@ def prepare_reconstruction(allow_replacement=None, check_only=False, checkpoint_
         return {"status": "blocked", "reason": "SAM3D native path requires Linux / SAM3D 原生路径需要 Linux"}
     if sys.version_info[:2] < (3, 9):
         return {"status": "blocked", "reason": "The selected MoGe source declares Python >=3.9 / 所选 MoGe 源码声明 Python >=3.9"}
+    if sys.version_info[:2] >= (3, 12):
+        return {"status": "blocked", "reason": "SAM3D's Open3D 0.18.0 recipe has no Python 3.12+ wheel; use a separately prepared compatible interpreter / SAM3D 的 Open3D 0.18.0 方案没有 Python 3.12+ wheel；请准备兼容的独立解释器"}
     import torch
     if not torch.cuda.is_available():
         return {"status": "blocked", "reason": "Existing Torch needs CUDA / 已有 Torch 需要可用 CUDA"}
     from torch.utils import _pytree
     if not callable(getattr(_pytree, "tree_map_only", None)) or not callable(getattr(torch.nn.functional, "scaled_dot_product_attention", None)):
         return {"status": "blocked", "reason": "Existing Torch lacks SAM3D pytree/SDPA APIs; Torch is retained / 已有 Torch 缺少 SAM3D pytree/SDPA API；保留 Torch"}
-    weights = ensure_reconstruction_weights(checkpoint_directory, check_only=check_only)
-    if weights["status"] not in ("ready", "download_required"):
-        return weights
     memory_gb = torch.cuda.get_device_properties(0).total_memory / 1024 ** 3
-    result = {"status": "native_build_required", "weights": weights, "gpu_memory_gb": memory_gb,
+    result = {"status": "native_build_required", "gpu_memory_gb": memory_gb,
               "note": "Official setup recommends 32GB; smaller GPUs require actual inference validation / 官方建议 32GB；较小显存需实际推理验证"}
-    if check_only:
-        return result
     from wapr.installation import install_requirements
     from wapr.resources import resource_root
     from wapr.source_setup import SAM3D_REVISION, _checkout, prepare_source
     # Only imports reached by the mesh/vertex-color inference path are prepared.
     # 只准备网格/顶点颜色推理路径实际使用的依赖，不安装音频、训练和 UI 工具。
-    requirements = ["torchvision", "omegaconf", "hydra-core", "iopath", "xatlas", "open3d",
+    # Preserve the upstream Open3D recipe; do not silently install a different ABI.
+    # 保持上游 Open3D 方案，不静默安装不同 ABI；cp312 没有该版本 wheel。
+    # The pinned upstream inference code still imports pkg_resources.
+    # 固定的上游推理源码仍导入 pkg_resources；独立前缀保留提供它的 setuptools。
+    requirements = ["torchvision", "omegaconf", "hydra-core", "iopath", "xatlas", "open3d==0.18.0",
                     "loguru", "tqdm", "safetensors", "optree", "astor", "easydict", "scipy",
-                    "pyvista", "pymeshfix", "igraph", "lightning==2.3.3", "einops", "timm"]
+                    "pyvista", "pymeshfix", "igraph", "lightning==2.3.3", "einops", "timm",
+                    "setuptools<81", "wheel", "ninja", "opencv-python-headless", "plyfile"]
+    requirements.append(_kaolin_requirement(torch))
     # Sparse kernels do not link the Torch extension ABI. The CUDA 11/12 runtime
     # families are candidates, not a claim that all compiler/GPU pairs work.
     # 稀疏内核不链接 Torch 扩展 ABI；CUDA 11/12 发行是待实测候选，不承诺所有组合可用。
@@ -128,7 +177,23 @@ def prepare_reconstruction(allow_replacement=None, check_only=False, checkpoint_
     else:
         result.update(status="blocked", reason="No verified spconv candidate for this CUDA family / 此 CUDA 家族暂无已核验 spconv 候选")
         return result
+    if cuda_major == 11 or (cuda_major == 12 and cuda_minor < 4):
+        # The older cumm wheels crash in tensorview.from_numpy with NumPy 2;
+        # the CUDA 12.1 CPU/CUDA probes pass with NumPy 1.26.4.
+        # 较旧 cumm wheel 在 NumPy 2 的 from_numpy 原生边界崩溃；
+        # CUDA 12.1 的 CPU/CUDA 实测在 NumPy 1.26.4 下通过。
+        # Keep SciPy and the single cv2 provider compatible with that NumPy ABI.
+        # SciPy 与唯一的 cv2 发行也须兼容该 NumPy ABI；更换仍进入确认计划。
+        requirements.extend(["numpy>=1.26.4,<2", "scipy<1.18", "opencv-python-headless<4.12"])
     plan = install_requirements(requirements, check_only=True)
+    # Dependency inspection must work before gated weights have been supplied.
+    # 用户尚未提供受控权重时也能检查依赖；检查模式不下载权重或安装库。
+    result["dependency_plan"] = plan
+    if check_only:
+        result["weights"] = reconstruction_weights_status(checkpoint_directory)
+        if plan["status"] not in ("ready", "plan_ready", "approval_required"):
+            result["status"] = plan["status"]
+        return result
     # OpenCV distributions share cv2 files; pip metadata does not flag this collision.
     # OpenCV 多种发行共用 cv2 文件，pip 元数据无法识别此类覆盖风险。
     from importlib.metadata import PackageNotFoundError, version
@@ -148,6 +213,10 @@ def prepare_reconstruction(allow_replacement=None, check_only=False, checkpoint_
         result.update(status="blocked", dependency_plan=plan,
                       reason="Reconstruction requires changing the protected Torch stack; retain this environment / 重建需要更换受保护 Torch 软件栈；保留当前环境")
         return result
+    weights = ensure_reconstruction_weights(checkpoint_directory, check_only=False)
+    result["weights"] = weights
+    if weights["status"] not in ("ready", "download_required"):
+        return weights
     dependencies = install_requirements(requirements, allow_replacement=allow_replacement)
     if dependencies["status"] not in ("ready", "installed"):
         return dependencies
@@ -211,6 +280,13 @@ def reconstruct(rgb, mask, checkpoint_directory=None, allow_replacement=None):
 
     在单张 RGB/mask 上执行已有未编译的顶点颜色网格方案；不改变推理步数。
     """
+    import torch
+    from packaging.version import Version
+    old_torch = Version(torch.__version__.split("+", 1)[0]) != Version("2.5.1") or torch.version.cuda not in ("11.8", "12.1", "12.4")
+    if sys.version_info[:2] >= (3, 12) or sys.version_info[:2] < (3, 9) or old_torch:
+        from wapr.sam3d_isolated import reconstruct as reconstruct_isolated
+        return reconstruct_isolated(rgb, mask, checkpoint_directory=checkpoint_directory,
+                                    allow_replacement=allow_replacement)
     prepared = prepare_reconstruction(allow_replacement=allow_replacement,
                                       checkpoint_directory=checkpoint_directory)
     if prepared["status"] != "ready":
@@ -239,6 +315,9 @@ def reconstruct(rgb, mask, checkpoint_directory=None, allow_replacement=None):
         保留模型参数与预训练选择，只将 DINOv2 源码定位到已准备的检出。
         """
         if repo_or_dir == "facebookresearch/dinov2":
+            if model == "dinov2_vitl14_reg" and kwargs.get("pretrained", True):
+                from wapr.source_setup import prepare_sam_dino_weights
+                prepare_sam_dino_weights()
             return original_hub_load(prepared["dinov2_source"], model, *args, source="local", **kwargs)
         return original_hub_load(repo_or_dir, model, *args, source=source, **kwargs)
 

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: LGPL-2.1-only
 """Prepare an installed WAPR source wheel in the existing Python environment.
 
-在当前 Python 环境准备 WAPR 源码 wheel；不创建环境，更换已有包须用户明确同意。
+核心使用当前 Python；SAM 在需要时准备兼容独立前缀，更换已有包须用户明确同意。
 Run / 运行: python -m wapr.bootstrap
 """
 import ctypes.util
@@ -67,15 +67,39 @@ def prepare_feature(feature, allow_replacement=None, check_only=False):
         prepare_runtime(allow_replacement=allow_replacement)
         return {"feature": "core", "status": "ready"}
     if feature == "sam3d":
+        import torch
+        supported_pair = (torch.__version__.split("+", 1)[0] == "2.5.1"
+                          and torch.version.cuda in ("11.8", "12.1", "12.4"))
+        if sys.version_info[:2] >= (3, 12) or sys.version_info[:2] < (3, 9) or not supported_pair:
+            # Keep the pose interpreter; prepare SAM3D in the compatible interpreter.
+            # 保留位姿解释器；仅在兼容的独立解释器准备 SAM3D。
+            from wapr.sam3d_isolated import prepare_reconstruction_environment
+            return prepare_reconstruction_environment(allow_replacement=allow_replacement,
+                                                       check_only=check_only)
         from wapr.reconstruction_setup import prepare_reconstruction
         return prepare_reconstruction(allow_replacement=allow_replacement, check_only=check_only)
+    if feature == "sam2":
+        import torch
+        from packaging.version import Version
+        if Version(torch.__version__.split("+", 1)[0]) < Version("2.5.1") or sys.version_info[:2] < (3, 10):
+            # Older pose environments use an independent SAM2 worker.
+            # 较旧的位姿环境使用独立 SAM2 工作进程。
+            from wapr.sam2_isolated import prepare_environment
+            return prepare_environment(allow_replacement=allow_replacement, check_only=check_only)
+    if feature == "roma":
+        from wapr.sam3d_isolated import SAM3D_ENV_ROOT
+        if os.path.realpath(sys.prefix) != os.path.realpath(SAM3D_ENV_ROOT):
+            # RoMa's headless OpenCV dependency conflicts with the robot distribution.
+            # RoMa 的无界面 OpenCV 依赖与机器人发行冲突，神经匹配独立运行。
+            from wapr.roma_isolated import prepare_environment
+            return prepare_environment(allow_replacement=allow_replacement, check_only=check_only)
     if feature == "compatible":
         # Resolve first; replacing an existing package still requires approval.
         # 先逐项解析；更换已有包仍须明确同意，无法准备的功能单独报告。
         results = []
         for name in ("dinov2", "det2d", "robot", "sam2", "roma", "qwen", "sam3d", "unipose9d"):
             plan = prepare_feature(name, allow_replacement=False, check_only=True)
-            if not check_only and plan.get("status") in ("ready", "installable", "dependencies_present", "approval_required", "needs_source"):
+            if not check_only and plan.get("status") in ("ready", "installable", "dependencies_present", "approval_required", "needs_source", "needs_interpreter", "native_build_required"):
                 try:
                     plan = prepare_feature(name, allow_replacement=allow_replacement)
                 except (RuntimeError, OSError, subprocess.SubprocessError) as error:
@@ -105,6 +129,18 @@ def prepare_feature(feature, allow_replacement=None, check_only=False):
     if check_only:
         if result.get("status") == "ready" and result.get("install"):
             result["status"] = "installable"
+        if feature == "roma" and source is not None and result.get("status") == "ready":
+            # Check the actual inference API without installing dependencies or weights.
+            # 不安装依赖或权重；检查现有推理源码的真实 API。
+            if source not in sys.path:
+                sys.path.insert(0, source)
+            import importlib
+            try:
+                module = importlib.import_module("romatch")
+                if not callable(getattr(module, "roma_outdoor", None)):
+                    raise RuntimeError("RoMa API missing / RoMa API 缺失: roma_outdoor")
+            except (ImportError, RuntimeError, OSError) as error:
+                result.update(status="blocked", reason=str(error))
         return result
     if result.get("status") not in ("ready", "installed"):
         return result
@@ -134,6 +170,11 @@ def prepare_feature(feature, allow_replacement=None, check_only=False):
             for name in ("estimate_pose", "load_pose_model", "set_seed"):
                 if not callable(getattr(module, name, None)):
                     raise RuntimeError("UniPose9D API missing / UniPose9D API 缺失: " + name)
+        elif feature == "roma":
+            import importlib
+            module = importlib.import_module("romatch")
+            if not callable(getattr(module, "roma_outdoor", None)):
+                raise RuntimeError("RoMa API missing / RoMa API 缺失: roma_outdoor")
     # This marker means installation finished, not that model inference was tested.
     # 此标记只表示安装阶段完成，不表示模型推理已经验证。
     _prepared_optional.add(feature)
@@ -255,6 +296,42 @@ def native_build_options():
                                 "cmake_architecture": architecture,
                                 "pybind11": metadata.version("pybind11")}, flush=True)
     return ["-DCMAKE_CUDA_COMPILER=" + nvcc, "-DCMAKE_CUDA_ARCHITECTURES=" + architecture]
+
+
+def export_examples(destination):
+    """Export bundled recipes without overwriting user edits; return their root.
+
+    导出包内示例并保留用户修改，返回示例目录；目标目录就是 examples 根目录。
+    """
+    source = Path(__file__).resolve().parent / "runtime_examples"
+    target = Path(destination).expanduser().resolve()
+    if not source.is_dir():
+        raise RuntimeError("Wheel has no bundled examples / wheel 未包含示例源码")
+    target.mkdir(parents=True, exist_ok=True)
+    copied, preserved = [], []
+    for path in sorted(source.rglob("*")):
+        if not path.is_file() or "__pycache__" in path.parts:
+            continue
+        if path.suffix not in (".py", ".md", ".json") and path.name != "LICENSE":
+            continue
+        relative = path.relative_to(source)
+        output = target / relative
+        content = path.read_bytes()
+        output.parent.mkdir(parents=True, exist_ok=True)
+        # Exclusive creation preserves edits even if another exporter wins the race.
+        # 排他创建保证并发导出时也不会覆盖用户修改。
+        try:
+            with output.open("xb") as stream:
+                stream.write(content)
+            copied.append(str(relative))
+        except FileExistsError:
+            if not output.is_file() or output.read_bytes() != content:
+                preserved.append(str(relative))
+                print("WAPR_EXAMPLE_PRESERVED", str(output),
+                      "Existing content differs / 已有内容不同，保留原文件", flush=True)
+    print("WAPR_EXAMPLES_EXPORTED", {"destination": str(target),
+                                     "copied": len(copied), "preserved": preserved}, flush=True)
+    return target
 
 
 def fetch_example():

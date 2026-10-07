@@ -30,6 +30,56 @@ DIST_DIR = os.path.join(SCRIPT_DIR, "dist")
 # 下面的本地检查只覆盖当前机器。
 CUDA_ARCHITECTURES = "75;80;86;89;90;100;120"
 
+# Reviewed recipe sources and their small runtime configurations only.
+# 仅收录审核后的示例源码及运行必需的小配置，不根据扩展名扫描整个目录。
+EXAMPLE_FILES = (
+    "01_one_rgb_detect_segment.py", "02_one_category_one_instance.py",
+    "03_published_boxes_to_pose.py", "04_6d_localization.py", "05_bop_6d_detection.py",
+    "06_custom_scene.py", "07_write_bop_pose_csv.py", "08_ycbineoat_one_instance.py",
+    "08_ycbineoat_init_clicks.json", "09_taco_many_instances.py", "09_taco_init_clicks.json",
+    "09_taco_many_instances/prepare_sample.py", "10_robi_zigzag.py",
+    "11_reconstruct_object.py", "11_reconstruct_object/axis_match_scale.py",
+    "11_reconstruct_object/cross_scene_mustard.py", "11_reconstruct_object/language_prompt.py",
+    "11_reconstruct_object/pose_frame_align.py", "11_reconstruct_object/roma_shape.py",
+    "11_reconstruct_object/selected_points.json", "11_reconstruct_object/step01_point_mask.py",
+    "11_reconstruct_object/step02_bake_mesh.py", "11_reconstruct_object/step03_box_lengths.py",
+    "11_reconstruct_object/step04_dino_pose.py", "11_reconstruct_object/fast_sam3d/LICENSE",
+    "11_reconstruct_object/fast_sam3d/__init__.py", "11_reconstruct_object/fast_sam3d/acceleration.py",
+    "11_reconstruct_object/fast_sam3d/session.py", "12_cross_scene_pose.py",
+    "13_known_mesh_place.py", "14_bridge_tasks.py", "15_xarm_cube.py",
+    "16_follow_saved.py", "16_follow_saved/region_tracking.py", "17_virtual_grasp.py",
+)
+
+
+def stage_examples(stage_dir):
+    """Copy the explicit reviewed example manifest, preserving its import layout.
+
+    按明确审核清单复制示例，保留相对导入布局。
+    """
+    examples_root = os.path.join(RELEASE_DIR, "examples")
+    destination_root = os.path.join(stage_dir, "wapr", "runtime_examples")
+    if os.path.exists(destination_root):
+        shutil.rmtree(destination_root)
+    for relative in EXAMPLE_FILES:
+        source = os.path.join(examples_root, relative)
+        if not os.path.isfile(source) or os.path.islink(source):
+            raise RuntimeError("Reviewed example missing or linked / 审核示例缺失或为链接: " + relative)
+        destination = os.path.join(destination_root, relative)
+        os.makedirs(os.path.dirname(destination), exist_ok=True)
+        shutil.copy2(source, destination)
+
+
+def check_example_members(members):
+    """Require exactly the reviewed recipe files in the distribution.
+
+    确认发行包中的示例文件与审核清单完全一致。
+    """
+    expected = {"wapr/runtime_examples/" + relative for relative in EXAMPLE_FILES}
+    actual = {name for name in members if name.startswith("wapr/runtime_examples/")}
+    if actual != expected:
+        raise RuntimeError("Example manifest mismatch / 示例清单不一致: "
+                           + str({"missing": sorted(expected - actual), "unexpected": sorted(actual - expected)}))
+
 
 def source_ignore(directory, names):
     """Exclude generated files while copying first-party package sources.
@@ -38,7 +88,7 @@ def source_ignore(directory, names):
     """
     ignored = set()
     for name in names:
-        if name in {"__pycache__", "build", ".pytest_cache", ".git", "reports", "benchmarks", "samples", "datasets", "third_party", "outputs", "cache", ".cache"} or name.endswith((".pyc", ".so", ".pth", ".pt", ".engine", ".onnx", ".o", ".a", ".whl")):
+        if name in {"__pycache__", "build", ".pytest_cache", ".git", ".cursor", ".codex", ".agents", "reports", "benchmarks", "samples", "datasets", "third_party", "outputs", "cache", ".cache"} or name.endswith((".pyc", ".so", ".pth", ".pt", ".ckpt", ".safetensors", ".engine", ".onnx", ".o", ".a", ".whl")):
             ignored.add(name)
         if name == "paths.json":
             ignored.add(name)
@@ -97,6 +147,7 @@ def main():
             os.path.join(stage_dir, "wapr"),
             ignore=source_ignore,
         )
+        stage_examples(stage_dir)
         # The detector catalog is copied with wapr/ and included as package data.
         # 检测器校验清单随 wapr/ 一起复制，并作为包数据收录。
 
@@ -127,6 +178,7 @@ def main():
 
     with zipfile.ZipFile(wheel_path) as archive:
         members = archive.namelist()
+        check_example_members(members)
         native_members = [name for name in members if name.startswith("wapr/ogl_native/_gpu_render") and name.endswith(".so")]
         shader_members = [name for name in members if name.startswith("wapr/ogl_native/shaders/")]
         detector_catalog = "wapr/det2d_assets.json" in members
@@ -181,6 +233,7 @@ def build_source_wheel():
         for name in ("LICENSE", "AUTHORS.md", "WEIGHTS_LICENSE.txt", "THIRD_PARTY_NOTICES.txt"):
             shutil.copy2(os.path.join(RELEASE_DIR, name), stage_dir)
         shutil.copytree(os.path.join(RELEASE_DIR, "wapr"), os.path.join(stage_dir, "wapr"), ignore=source_ignore)
+        stage_examples(stage_dir)
         output_dir = os.path.join(temporary_dir, "dist")
         subprocess.check_call([sys.executable, "-m", "pip", "wheel", "--no-deps", "--no-build-isolation",
                                "--wheel-dir", output_dir, stage_dir])
@@ -191,13 +244,14 @@ def build_source_wheel():
         shutil.copy2(os.path.join(output_dir, wheels[0]), wheel_path)
     with zipfile.ZipFile(wheel_path) as archive:
         members = archive.namelist()
+        check_example_members(members)
         required = ["wapr/bootstrap.py", "wapr/ogl_native/CMakeLists.txt",
                     "wapr/ogl_native/python/gpu_render_pybind.cpp",
                     "wapr/ogl_native/cuda/pack_outputs.cu"]
         if any(name not in members for name in required):
             raise RuntimeError("Native source or setup entry missing / 缺少本地源码或安装入口")
-        prohibited = {"reports", "benchmarks", "samples", "third_party", "outputs", "__pycache__", "tools", "pages"}
-        if any(prohibited.intersection(name.split("/")) or name.endswith((".so", ".pth", ".engine", ".onnx", ".pyc")) for name in members):
+        prohibited = {"reports", "benchmarks", "samples", "third_party", "outputs", "__pycache__", "tools", "pages", ".cursor", ".codex", ".agents"}
+        if any(prohibited.intersection(name.split("/")) or name.endswith((".so", ".pth", ".pt", ".ckpt", ".safetensors", ".engine", ".onnx", ".pyc")) for name in members):
             raise RuntimeError("Non-runtime content in wheel / wheel 含非运行内容")
         for name in ("LICENSE", "AUTHORS.md", "WEIGHTS_LICENSE.txt", "THIRD_PARTY_NOTICES.txt"):
             if not any(member.endswith(".dist-info/licenses/" + name) for member in members):

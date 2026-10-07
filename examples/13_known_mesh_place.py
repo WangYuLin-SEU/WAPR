@@ -197,6 +197,10 @@ def make_env():
     # ManiSkill 桌子、一只 Panda、黄色瓶子、红色盒子，以及手上的相机。
 
 """
+    # Prepare simulation dependencies only when creating the environment.
+    # 仅在创建仿真环境时准备机器人可选依赖。
+    from wapr.bootstrap import ensure_optional
+    ensure_optional("robot")
     import gymnasium as gym
     import sapien
     import torch
@@ -1058,11 +1062,11 @@ def side_grasp_from_world(bottle_world):
 
 def planned_place(grasp, bottle_world, place_center):
     """
-    # Place as if the bottle stayed exactly on the commanded grasp, then stood up.
+    # Stand the cylinder upright by the smallest axis correction, preserving its held end.
 
     ---
 
-    # 假设瓶子一直待在指令的抓取上，再把它立起来放到目标。
+    # 用最小轴向修正立起圆柱，保持当前夹持端；对称位姿轴负号不触发翻腕。
 
 """
     import sapien
@@ -1070,11 +1074,22 @@ def planned_place(grasp, bottle_world, place_center):
     grasp_matrix = grasp.to_transformation_matrix()
     relative = np.linalg.inv(bottle_world) @ grasp_matrix
     upright = np.eye(4, dtype=np.float64)
-    upright[:3, :3] = bottle_world[:3, :3]
-    column = int(np.argmax(np.abs(upright[2])))
-    if float(upright[2, column]) < 0.0:
-        upright[:3, column] *= -1.0
-        upright[:3, (column + 1) % 3] *= -1.0
+    # A cylinder's +Z and -Z predictions represent the same physical axial line.
+    # 圆柱的 +Z 与 -Z 预测表示同一条物理轴线；目标端符号跟随当前轴，不强制 +Z。
+    cylinder_axis = np.asarray(bottle_world[:3, 2], dtype=np.float64)
+    axis_length = float(np.linalg.norm(cylinder_axis))
+    assert axis_length > 0.0, "Cylinder axis is invalid / 圆柱轴无效"
+    cylinder_axis = cylinder_axis / axis_length
+    standing_axis = np.array([0.0, 0.0, 1.0 if cylinder_axis[2] >= 0.0 else -1.0])
+    cross_axis = np.cross(cylinder_axis, standing_axis)
+    cosine = float(np.clip(np.dot(cylinder_axis, standing_axis), -1.0, 1.0))
+    cross_matrix = np.array([[0.0, -cross_axis[2], cross_axis[1]],
+                             [cross_axis[2], 0.0, -cross_axis[0]],
+                             [-cross_axis[1], cross_axis[0], 0.0]])
+    # The chosen sign gives cosine >= 0, so Rodrigues has no antiparallel singularity.
+    # 同向端选择保证 cosine >= 0，Rodrigues 公式不存在反平行奇点，也不引入经验阈值。
+    axis_correction = np.eye(3) + cross_matrix + (cross_matrix @ cross_matrix) / (1.0 + cosine)
+    upright[:3, :3] = axis_correction @ bottle_world[:3, :3]
     upright[:3, 3] = place_center
     return sapien.Pose(upright @ relative)
 
@@ -1185,6 +1200,11 @@ def move_arm(planner, pose):
     if result == -1:
         result = planner.move_to_pose_with_RRTConnect(pose)
     if result == -1:
+        # Keep the failed target and actual joint state visible; do not relax IK limits.
+        # 显式记录失败目标与实际关节状态，不放宽 IK 门槛或修改目标掩盖失败。
+        print("PLAN_FAILED", {"target_pose_world": pose.to_transformation_matrix().tolist(),
+                              "base_pose_world": planner.base_pose.to_transformation_matrix().tolist(),
+                              "qpos": planner.robot.get_qpos().detach().cpu().numpy().tolist()}, flush=True)
         raise RuntimeError("plan failed")
     return result
 
@@ -2866,8 +2886,6 @@ def recompose_tracking():
 
 
 if __name__ == "__main__":
-    import imageio.v2 as imageio
-
     # These workers isolate WAPR's OpenGL renderer from SAPIEN's Vulkan context.
     # These functions above batch every object of one RGB-D in one estimator call.
     # 子进程隔离 WAPR 的 OpenGL 渲染器与 SAPIEN 的 Vulkan 上下文。
@@ -2884,6 +2902,11 @@ if __name__ == "__main__":
     if len(sys.argv) >= 2 and sys.argv[1] == "compose":
         recompose_tracking()
         sys.exit(0)
+    # Prepare optional simulation libraries before their first direct import.
+    # 首次直接导入仿真库前准备可选依赖；估计与重绘子入口不触发安装。
+    from wapr.bootstrap import ensure_optional
+    ensure_optional("robot")
+    import imageio.v2 as imageio
     import sapien
     from mani_skill.examples.motionplanning.panda.motionplanner import PandaArmMotionPlanningSolver
     # 1. Prepare known CADs in meters and observe the bottle and box before moving.

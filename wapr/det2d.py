@@ -301,6 +301,169 @@ def dino_artifact_names(dino):
 
 
 def _download_file(url, dest):
+    """Serialize writers of one resource across processes and retain Range retries.
+
+    跨进程串行写入同一资源，避免首次调用及预下载共同破坏续传文件。
+    """
+    from filelock import FileLock
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    existed_before_lock = os.path.isfile(dest)
+    with FileLock(dest + '.lock', timeout=1800):
+        if not existed_before_lock and os.path.isfile(dest):
+            # Another caller completed the atomic placement; the caller still validates its hash.
+            # 其他调用者已完成原子放置；上层仍须校验预期摘要。
+            print('DET2D_DOWNLOAD_SHARED_COMPLETE', {'path': dest}, flush=True)
+            return
+        _download_file_body(url, dest)
+
+
+def _download_parallel_ranges(url, partial, total, etag, direct):
+    """Download one large HTTP entity with four workers and bounded ranges.
+
+    使用四个线程及有界分片下载同一大文件，核验范围、字节数与强 ETag。
+    """
+    import concurrent.futures
+    import threading
+    worker_count = 4
+    minimum_bytes = 256 * 1024 * 1024
+    segment_bytes = 16 * 1024 * 1024
+    if total is None or total < minimum_bytes:
+        return False
+    if not etag or etag.startswith('W/') or not (etag.startswith('"') and etag.endswith('"')):
+        print('DET2D_RANGE_SERIAL', {'reason': 'no_strong_entity_validator', 'total': total}, flush=True)
+        return False
+    metadata_path = partial + '.entity.json'
+    metadata = None
+    try:
+        with open(metadata_path, encoding='utf-8') as stream:
+            metadata = json.load(stream)
+    except (OSError, ValueError):
+        pass
+    offset = os.path.getsize(partial) if os.path.isfile(partial) else 0
+    reuse_prefix = offset > 0 and metadata == {'etag': etag, 'total': total}
+    start = offset if reuse_prefix else 0
+    if start >= total:
+        return False
+    # A legacy prefix without entity provenance is retained until complete new ranges validate.
+    # 旧前缀没有实体凭据时保留原件，重新并行核验完整实体，不把未知字节混入新文件。
+    # Bound straggler tails and retain completed validated pieces across failed attempts.
+    # 限制慢连接尾段长度；失败重试时保留已完整校验的分片。
+    ranges = [(index, max(start, index * segment_bytes), min(total - 1, (index + 1) * segment_bytes - 1))
+              for index in range(start // segment_bytes, (total + segment_bytes - 1) // segment_bytes)]
+    pieces = [partial + '.range%d' % index for index, _, _ in ranges]
+    assembled = partial + '.assembled'
+    stop = threading.Event()
+    progress_lock = threading.Lock()
+    progress = {'bytes': start, 'time': time.monotonic()}
+    completed = set()
+    committed = False
+    url_fingerprint = hashlib.sha256(url.encode('utf-8')).hexdigest()
+
+    def download_range(item):
+        index, first, last = item
+        piece = partial + '.range%d' % index
+        piece_metadata = piece + '.json'
+        identity = {'etag': etag, 'total': total, 'first': first, 'last': last, 'url': url_fingerprint}
+        cached = None
+        try:
+            with open(piece_metadata, encoding='utf-8') as stream:
+                cached = json.load(stream)
+        except (OSError, ValueError):
+            pass
+        if isinstance(cached, dict) and cached.get('identity') == identity and os.path.isfile(piece):
+            if os.path.getsize(piece) == last - first + 1 and sha256(piece) == cached.get('sha256'):
+                with progress_lock:
+                    completed.add(piece)
+                    progress['bytes'] += last - first + 1
+                print('DET2D_RANGE_REUSE', {'first': first, 'last': last}, flush=True)
+                return
+        if stop.is_set():
+            raise RuntimeError('Range batch interrupted / 分片批次中断')
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({})) if direct else urllib.request.build_opener()
+        request = urllib.request.Request(url, headers={'User-Agent': 'WAPR-det2d', 'Accept-Encoding': 'identity',
+                                                     'Range': 'bytes=%d-%d' % (first, last), 'If-Match': etag})
+        received = 0
+        digest = hashlib.sha256()
+        with opener.open(request, timeout=120) as response:
+            content_range = response.headers.get('Content-Range') or ''
+            match = re.fullmatch(r'bytes (\d+)-(\d+)/(\d+)', content_range.strip())
+            if getattr(response, 'status', 200) != 206 or match is None or tuple(map(int, match.groups())) != (first, last, total):
+                raise RuntimeError('Server ignored or changed Range / 服务端忽略或改变下载范围')
+            if response.headers.get('ETag') != etag:
+                raise RuntimeError('HTTP entity changed / HTTP 下载实体改变')
+            declared = response.headers.get('Content-Length')
+            if declared is not None and int(declared) != last - first + 1:
+                raise RuntimeError('Range byte count differs / 分片声明字节数不符')
+            with open(piece, 'wb') as stream:
+                while not stop.is_set():
+                    block = response.read(1024 * 1024)
+                    if not block:
+                        break
+                    if received + len(block) > last - first + 1:
+                        raise RuntimeError('Range body exceeds bounds / 分片主体越界')
+                    stream.write(block)
+                    digest.update(block)
+                    received += len(block)
+                    with progress_lock:
+                        progress['bytes'] += len(block)
+                        if time.monotonic() - progress['time'] >= 10:
+                            print('DET2D_RANGE_PROGRESS', {'bytes': progress['bytes'], 'total': total}, flush=True)
+                            progress['time'] = time.monotonic()
+        if received != last - first + 1:
+            raise RuntimeError('Truncated HTTP range / HTTP 分片截断')
+        with open(piece_metadata + '.pending', 'w', encoding='utf-8') as stream:
+            json.dump({'identity': identity, 'sha256': digest.hexdigest()}, stream)
+        os.replace(piece_metadata + '.pending', piece_metadata)
+        with progress_lock:
+            completed.add(piece)
+
+    try:
+        print('DET2D_RANGE_PARALLEL', {'workers': min(worker_count, len(ranges)), 'pieces': len(ranges), 'segment_bytes': segment_bytes, 'total': total,
+                                     'verified_prefix_bytes': start, 'legacy_prefix_retained': offset if not reuse_prefix else 0}, flush=True)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=worker_count) as executor:
+            futures = [executor.submit(download_range, item) for item in ranges]
+            try:
+                for future in concurrent.futures.as_completed(futures):
+                    future.result()
+            except Exception:
+                stop.set()
+                raise
+        with open(assembled, 'wb') as output:
+            if reuse_prefix:
+                with open(partial, 'rb') as prefix:
+                    shutil.copyfileobj(prefix, output)
+            for piece in pieces:
+                with open(piece, 'rb') as stream:
+                    shutil.copyfileobj(stream, output)
+        if os.path.getsize(assembled) != total:
+            raise RuntimeError('Assembled download length differs / 合并下载长度不符')
+        # Commit is the last fallible operation; no fallback may append after success.
+        # 原子提交是最后一个可能失败的操作，成功后不得回退再追加旧响应。
+        os.replace(assembled, partial)
+        committed = True
+        return True
+    except Exception as error:
+        detail = str(error)[:160] if isinstance(error, RuntimeError) else ''
+        print('DET2D_RANGE_FALLBACK', {'reason': type(error).__name__, 'detail': detail,
+                                     'retained_complete_pieces': len(completed)}, flush=True)
+        return False
+    finally:
+        removable = [assembled, metadata_path + '.pending']
+        for piece in pieces:
+            removable.append(piece + '.json.pending')
+            if committed or piece not in completed:
+                removable.extend((piece, piece + '.json'))
+        for path in removable:
+            try:
+                if os.path.isfile(path):
+                    os.remove(path)
+            except OSError:
+                # Cleanup must not turn a committed entity into a retry that appends old bytes.
+                # 清理失败不得把已提交的实体变成追加旧字节的重试。
+                print('DET2D_RANGE_CLEANUP_RETAINED', {'temporary_file': os.path.basename(path)}, flush=True)
+
+
+def _download_file_body(url, dest):
     """
     # Download url into dest.
 
@@ -324,21 +487,44 @@ def _download_file(url, dest):
 
 """
     os.makedirs(os.path.dirname(dest), exist_ok=True)
-    partial = dest + '.part'
-    print('DET2D_DOWNLOAD', {'url': url, 'path': dest}, flush=True)
+    original_partial = dest + '.part'
+    partial = original_partial
+    from wapr.download_route import public_url
+    print('DET2D_DOWNLOAD', {'url': public_url(url), 'path': dest}, flush=True)
     expected_total = None
     for attempt in range(6):
         direct = attempt > 0
         # Retry the same official URL without a failing regional proxy.
         # 地区代理失败时直连同一官方地址，不替换下载资源。
         opener = urllib.request.build_opener(urllib.request.ProxyHandler({})) if direct else urllib.request.build_opener()
+        replacement_partial = original_partial + '.new-entity'
+        partial = replacement_partial if os.path.isfile(replacement_partial) else original_partial
         offset = os.path.getsize(partial) if os.path.isfile(partial) else 0
+        resume_entity = None
+        if offset:
+            try:
+                with open(partial + '.entity.json', encoding='utf-8') as metadata:
+                    resume_entity = json.load(metadata)
+                validator = resume_entity['etag']
+                if not isinstance(validator, str) or validator.startswith('W/') or not (validator.startswith('"') and validator.endswith('"')):
+                    resume_entity = None
+            except (OSError, ValueError, KeyError, TypeError):
+                resume_entity = None
+        if offset and resume_entity is None:
+            # Unknown legacy bytes stay untouched; request an entire new entity in a separate file.
+            # 未知来源旧前缀保持原状；在独立文件中请求完整新实体，绝不能串行追加混用。
+            print('DET2D_DOWNLOAD_UNKNOWN_PREFIX_RETAINED', {'bytes': offset, 'restart_full_entity': True}, flush=True)
+            partial = replacement_partial
+            offset = 0
         headers = {'User-Agent': 'WAPR-det2d', 'Accept-Encoding': 'identity'}
         if offset:
             headers['Range'] = 'bytes=%d-' % offset
+            headers['If-Range'] = resume_entity['etag']
         request = urllib.request.Request(url, headers=headers)
         try:
             with opener.open(request, timeout=120) as response:
+                if 'html' in (response.headers.get('Content-Type') or '').lower():
+                    raise RuntimeError('Download returned an HTML page / 下载返回网页而非资源')
                 content_length = response.headers.get('Content-Length')
                 expected_bytes = int(content_length) if content_length is not None else None
                 content_range = response.headers.get('Content-Range')
@@ -350,6 +536,8 @@ def _download_file(url, dest):
                     if match is None:
                         raise RuntimeError('Incomplete HTTP range / HTTP 只返回部分文件: ' + str(content_range))
                     start, end, total = map(int, match.groups())
+                    if resume_entity is not None and (response.headers.get('ETag') != resume_entity['etag'] or total != resume_entity['total']):
+                        raise RuntimeError('Resume HTTP entity changed / 续传 HTTP 实体改变')
                     if start != offset or end < start or end >= total or (expected_total is not None and total != expected_total):
                         raise RuntimeError('Invalid HTTP range / HTTP 续传范围不匹配: ' + str(content_range))
                     if expected_bytes is not None and expected_bytes != end - start + 1:
@@ -365,15 +553,30 @@ def _download_file(url, dest):
                     offset = 0
                     expected_total = expected_bytes
                 downloaded_bytes = 0
-                with open(partial, 'ab' if append else 'wb') as stream:
-                    while True:
-                        chunk = response.read(1024 * 1024)
-                        if not chunk:
-                            break
-                        if expected_bytes is not None and downloaded_bytes + len(chunk) > expected_bytes:
-                            raise RuntimeError('HTTP body exceeds declared length / HTTP 主体超过声明长度')
-                        stream.write(chunk)
-                        downloaded_bytes += len(chunk)
+                progress_time = time.monotonic()
+                etag = response.headers.get('ETag')
+                parallel_complete = _download_parallel_ranges(url, partial, expected_total, etag, direct)
+                if parallel_complete:
+                    downloaded_bytes = expected_bytes
+                else:
+                    with open(partial, 'ab' if append else 'wb') as stream:
+                        if offset == 0 and etag and not etag.startswith('W/') and expected_total is not None:
+                            # Record provenance only when this response owns every prefix byte.
+                            # 仅在当前响应负责全部前缀字节时记录实体凭据，不伪造旧缓存的来源。
+                            with open(partial + '.entity.json', 'w', encoding='utf-8') as metadata:
+                                json.dump({'etag': etag, 'total': expected_total}, metadata)
+                        while True:
+                            chunk = response.read(1024 * 1024)
+                            if not chunk:
+                                break
+                            if expected_bytes is not None and downloaded_bytes + len(chunk) > expected_bytes:
+                                raise RuntimeError('HTTP body exceeds declared length / HTTP 主体超过声明长度')
+                            stream.write(chunk)
+                            downloaded_bytes += len(chunk)
+                            if time.monotonic() - progress_time >= 10:
+                                print('DET2D_DOWNLOAD_PROGRESS', {'bytes': offset + downloaded_bytes,
+                                                                 'total': expected_total}, flush=True)
+                                progress_time = time.monotonic()
                 # Keep the final path untouched when a connection ends prematurely.
                 # 连接提前结束时保留最终路径原状，并保留 .part 供续传。
                 if expected_bytes is not None and downloaded_bytes != expected_bytes:
@@ -396,6 +599,24 @@ def _download_file(url, dest):
                     expected_total = None
                     raise
             os.replace(partial, dest)
+            if partial != original_partial:
+                # Full replacement passed byte/format checks before releasing the preserved prefix.
+                # 完整替换通过字节与格式检查后，才释放保留的未知旧前缀。
+                for legacy_path in (original_partial, original_partial + '.entity.json'):
+                    try:
+                        if os.path.isfile(legacy_path):
+                            os.remove(legacy_path)
+                    except OSError:
+                        print('DET2D_RANGE_CLEANUP_RETAINED', {'temporary_file': os.path.basename(legacy_path)}, flush=True)
+            # Remove only this downloader's temporary artifacts after successful publication.
+            # 发布成功后只清理当前下载器的临时文件；清理失败不触发重新下载。
+            temporary_prefix = os.path.basename(partial) + '.range'
+            for name in os.listdir(os.path.dirname(partial)):
+                if name == os.path.basename(partial) + '.entity.json' or re.fullmatch(re.escape(temporary_prefix) + r'\d+(?:\.json(?:\.pending)?)?', name):
+                    try:
+                        os.remove(os.path.join(os.path.dirname(partial), name))
+                    except OSError:
+                        print('DET2D_RANGE_CLEANUP_RETAINED', {'temporary_file': name}, flush=True)
             return
         except Exception:
             # Retain verified response bytes for bounded retries and the next invocation.
@@ -404,6 +625,22 @@ def _download_file(url, dest):
             print('DET2D_DOWNLOAD_RETRY', {'attempt': attempt + 1, 'bytes': retained_bytes, 'total': expected_total}, flush=True)
             if attempt == 5:
                 raise
+            # The public Hugging Face host often stalls. The same path on the
+            # public mirror is the same file; no token is sent.
+            # 官方 Hugging Face 常卡住。公开镜像上的同一路径是同一文件，不发送令牌。
+            if '://huggingface.co/' in url and '://hf-mirror.com/' not in url:
+                url = url.replace('://huggingface.co/', '://hf-mirror.com/', 1)
+                expected_total = None
+                print('DET2D_DOWNLOAD_MIRROR', {'url': public_url(url)}, flush=True)
+            # GitHub archive redirects can fail while its official codeload works.
+            # GitHub 归档重定向可能失败；切换同一官方版本的 codeload 地址。
+            archive_match = re.fullmatch(r'https://github.com/([^/]+)/([^/]+)/archive/(.+)\.zip', url)
+            if archive_match:
+                owner, repository, revision = archive_match.groups()
+                url = 'https://codeload.github.com/%s/%s/zip/%s' % (owner, repository, revision)
+                if os.path.isfile(partial):
+                    os.remove(partial)
+                expected_total = None
             print('DET2D_DOWNLOAD_RETRY_DIRECT', flush=True)
 
 
@@ -445,7 +682,58 @@ def _place_file(weights_dir, relative, url, expected_sha):
 
 """
     dest = os.path.join(weights_dir, relative)
+    if relative == 'dinov2_vitl14_pretrain.pth' and not os.path.isfile(dest):
+        # Reuse only the audited identical upstream checkpoint; custom files remain untouched.
+        # 仅复用已核验的同一上游权重；保留用户已有的自定义文件。
+        from filelock import FileLock
+        fingerprint = 'd5383ea8f4877b2472eb973e0fd72d557c7da5d3611bd527ceeb1d7162cbf428'
+        torch_home = os.environ.get('TORCH_HOME', os.path.join(resource_root(), 'torchhub'))
+        candidates = [os.path.join(torch_home, 'hub', 'checkpoints', relative)]
+        # An explicit cache root must not silently read another user's/default cache.
+        # 显式缓存根不能静默读取其他用户或默认缓存；未指定时仍可复用默认 Hub。
+        if not os.environ.get('TORCH_HOME'):
+            candidates.append(os.path.join(os.path.expanduser('~'), '.cache', 'torch', 'hub', 'checkpoints', relative))
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        with FileLock(dest + '.lock', timeout=1800):
+            for candidate in candidates:
+                if os.path.isfile(dest):
+                    break
+                if not os.path.isfile(candidate) or os.path.getsize(candidate) != 1217586395:
+                    continue
+                if sha256(candidate) != fingerprint:
+                    continue
+                temporary = dest + '.reuse.tmp'
+                try:
+                    if os.path.lexists(temporary):
+                        os.remove(temporary)
+                    try:
+                        os.link(candidate, temporary)
+                    except OSError:
+                        shutil.copyfile(candidate, temporary)
+                    os.replace(temporary, dest)
+                    print('DET2D_VERIFIED_HUB_REUSE', {'path': dest}, flush=True)
+                finally:
+                    if os.path.lexists(temporary):
+                        os.remove(temporary)
+                break
     if not os.path.isfile(dest):
+        grounding_sha = '46270f7a822e6906b655b729c90613e48929d0f2bb8b9b76fd10a856f3ac6ab7'
+        grounding_url = 'https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha2/groundingdino_swinb_cogcoor.pth'
+        if relative == 'groundingdino_swinb_cogcoor.pth' and expected_sha == grounding_sha and url == grounding_url:
+            # The author's Hub copy has the identical Git LFS SHA256 and byte count.
+            # 作者 Hub 副本的 Git LFS SHA256 与字节数完全一致；下载后仍核验完整摘要。
+            from wapr.download_route import probe_prefix, public_url
+            candidates = [url,
+                          'https://huggingface.co/ShilongLiu/GroundingDINO/resolve/main/' + relative,
+                          'https://hf-mirror.com/ShilongLiu/GroundingDINO/resolve/main/' + relative]
+            measured = []
+            for candidate in candidates:
+                sample = probe_prefix(candidate, expected_total=938057991)
+                if sample is not None and sample['bytes'] > 0:
+                    measured.append((sample['seconds'] / sample['bytes'], candidate))
+            if measured:
+                url = min(measured)[1]
+                print('DET2D_IDENTICAL_CHECKPOINT_ROUTE', {'url': public_url(url), 'sha256': grounding_sha}, flush=True)
         _download_file(url, dest)
     if expected_sha is not None and sha256(dest) != expected_sha:
         raise RuntimeError('Detection weight hash mismatch: ' + relative)
@@ -1207,7 +1495,13 @@ class NativeDino:
         if not os.path.isfile(os.path.join(dino_repo, 'hubconf.py')):
             raise FileNotFoundError('Missing local DINOv2 source: ' + dino_repo)
         with torch.cuda.device(self.device):
-            self.model = torch.hub.load(dino_repo, self.spec['hub'], source='local', pretrained=False)
+            # Load the catalog backbone directly, preserving an already imported UniPose namespace.
+            # 直接载入目录中指定的骨干，保留 UniPose 已导入的命名空间。
+            if dino_repo not in sys.path:
+                sys.path.insert(0, dino_repo)
+            from dinov2.hub import backbones
+            print('DINO_BACKBONE_SOURCE', backbones.__file__, flush=True)
+            self.model = getattr(backbones, self.spec['hub'])(pretrained=False)
             self.model.load_state_dict(_load_tensor_file(self.weight_path, map_location='cpu'), strict=True)
             self.model = self.model.eval().to(self.device)
         if int(self.model.patch_size) != 14:
@@ -1466,8 +1760,19 @@ def build_dino_engine(weights_dir=default_weights_dir, device='cuda:0', dino_rep
     engine_name, manifest_name, onnx_name = dino_artifact_names(dino)
     onnx_path = os.path.join(weights_dir, onnx_name)
     engine_path = os.path.join(weights_dir, engine_name)
-    torch.onnx.export(wrapper, example, onnx_path, input_names=['crops'], output_names=['cls', 'gem', 'patches'],
-                      opset_version=17, dynamo=False, dynamic_axes={name: {0: 'batch'} for name in ['crops', 'cls', 'gem', 'patches']})
+    # PyTorch 2.5+ defaults to the dynamo exporter. This engine path keeps the legacy exporter.
+    # Older Torch has no dynamo argument, so the keyword is omitted there.
+    # PyTorch 2.5 起默认使用 dynamo 导出器。这条引擎路径保持旧导出器。
+    # 更早的 Torch 没有 dynamo 参数，因此不传这个关键字。
+    export_arguments = {
+        'input_names': ['crops'],
+        'output_names': ['cls', 'gem', 'patches'],
+        'opset_version': 17,
+        'dynamic_axes': {name: {0: 'batch'} for name in ['crops', 'cls', 'gem', 'patches']},
+    }
+    if 'dynamo' in inspect.signature(torch.onnx.export).parameters:
+        export_arguments['dynamo'] = False
+    torch.onnx.export(wrapper, example, onnx_path, **export_arguments)
     logger = trt.Logger(trt.Logger.WARNING)
     with torch.cuda.device(encoder.device):
         builder = trt.Builder(logger)
@@ -2600,7 +2905,7 @@ def encode_render_templates(renders, cache_path="", weights_dir=default_weights_
         - renders: obj_id to (rgb, masks). rgb is uint8 (42, H, W, 3). masks is bool (42, H, W).
         - weights_dir: the DINOv2 weight directory. The default is default_weights_dir.
         - device: the CUDA device. The default is cuda:0. Encoding uses NativeDino.
-        - dino: vits14, vitb14, or vitl14. The default is vitl14. vitl14 with a cache path also checks verify_assets.
+        - dino: vits14, vitb14, or vitl14. The default is vitl14. Cache identity checks only the selected encoder weight.
 
     ## Returns
 
@@ -2629,7 +2934,7 @@ def encode_render_templates(renders, cache_path="", weights_dir=default_weights_
         - masks 是 bool (42, H, W)。
         - weights_dir: DINOv2 权重目录。默认是 default_weights_dir。
         - device: CUDA 设备。默认是 cuda:0。编码使用 NativeDino。
-        - dino: vits14、vitb14 或 vitl14。默认是 vitl14。vitl14 且设置了缓存路径时，还会检查 verify_assets。
+        - dino: vits14、vitb14 或 vitl14。默认是 vitl14。缓存标识只检查所选编码器权重。
 
     ## 返回
 
@@ -2653,7 +2958,9 @@ def encode_render_templates(renders, cache_path="", weights_dir=default_weights_
         render_hashes[str(obj_id)] = hashlib.sha256(np.ascontiguousarray(rgb).tobytes() + np.ascontiguousarray(masks).tobytes()).hexdigest()
     prepare_dino_weight(weights_dir, dino=dino)
     weight_hash = sha256(os.path.join(weights_dir, DINO_CHOICES[str(dino)]['file']))
-    assets_identity = verify_assets(weights_dir) if str(dino) == 'vitl14' else weight_hash
+    # Template encoding uses DINO only; detector weights are prepared by the detector entry.
+    # 模板编码只使用 DINO；检测器入口另行准备检测器权重。
+    assets_identity = weight_hash
     recipe = 'native AMP; uint8;224 black square margin1.1;rot4;patch valid>.5'
     if os.path.isfile(cache_path) and os.path.isfile(cache_path + '.json'):
         with open(cache_path + '.json') as stream:
@@ -2758,6 +3065,7 @@ def onboard_meshes(meshes_m, cache_path="", weights_dir=default_weights_dir, dev
     mesh_manifest = ""
     if write_cache:
         cache_path = os.path.abspath(os.fspath(cache_path))
+        encoder_weight_hash = sha256(os.path.join(weights_dir, DINO_CHOICES[str(dino)]['file']))
         # GLB includes mesh geometry, colors, UVs and textures; cache reuse is explicit.
         # GLB包含几何、颜色、UV和纹理；只有要求写缓存时才做这份检查。
         identity = {'meshes_glb_sha256': {str(obj_id): hashlib.sha256(mesh.export(file_type='glb')).hexdigest()
@@ -2766,8 +3074,8 @@ def onboard_meshes(meshes_m, cache_path="", weights_dir=default_weights_dir, dev
                     'shader_sha256': {name: sha256(os.path.join(_native_dir(), 'shaders', name))
                                       for name in sorted(os.listdir(_native_dir() / 'shaders'))
                                       if os.path.isfile(_native_dir() / 'shaders' / name)},
-                    'weight_sha256': sha256(os.path.join(weights_dir, DINO_CHOICES[str(dino)]['file'])),
-                    'assets_identity': verify_assets(weights_dir) if str(dino) == 'vitl14' else str(dino),
+                    'weight_sha256': encoder_weight_hash,
+                    'assets_identity': encoder_weight_hash,
                     'lighting': [float(pose_recipe.w_ambient), float(pose_recipe.w_diffuse), list(pose_recipe.light_dir)],
                     'torch': torch.__version__, 'mesh_units': 'm', 'views': template_views,
                     'recipe': 'centered;diameter1.5;focal224;uint8;native AMP;rot4'}

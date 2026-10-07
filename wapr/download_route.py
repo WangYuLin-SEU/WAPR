@@ -114,7 +114,9 @@ def probe_prefix(url, expected_total=None, opener=None, limit=PROBE_BYTES):
             total = int(length) if length is not None else None
         if expected_total is not None and total != expected_total:
             return None
-        body = response.read(limit + 1)
+        # A server may ignore Range and send the full file; sample only its prefix.
+        # 服务端可能忽略 Range 返回整份文件；测速只读前缀，避免误判及全量传输。
+        body = response.read(limit if status == 200 else limit + 1)
         if body.lstrip().lower().startswith(b"<html") or body.lstrip().startswith(b"<!doctype"):
             return None
         if len(body) > limit:
@@ -146,6 +148,34 @@ def _write_cache(record):
     with open(temporary, "w", encoding="utf-8") as stream:
         json.dump(record, stream)
     os.replace(temporary, path)
+
+
+def _metadata_index(route):
+    """Avoid downloading whole wheels just to resolve dependency metadata.
+
+    自动镜像缺少 PEP 658 元数据时，用官方索引解析；文件下载仍独立测速。
+    An explicit user index is authoritative and is never changed.
+    用户显式指定的索引始终保留，不自动替换。
+    """
+    index = route["index"]
+    if route.get("reason") == "user" or route.get("name") == "official":
+        return index
+    page_url = index.rstrip("/") + "/safetensors/"
+    try:
+        with urllib.request.urlopen(page_url, timeout=PROBE_TIMEOUT_S) as response:
+            page = response.read(2 * 1024 * 1024).decode("utf-8", errors="replace")
+        if "data-core-metadata=" in page or "data-dist-info-metadata=" in page:
+            return index
+        official = "https://pypi.org/simple"
+        with urllib.request.urlopen(official + "/safetensors/", timeout=PROBE_TIMEOUT_S) as response:
+            official_page = response.read(2 * 1024 * 1024).decode("utf-8", errors="replace")
+        if "data-core-metadata=" in official_page or "data-dist-info-metadata=" in official_page:
+            print("WAPR_DOWNLOAD_ROUTE", {"kind": "pypi_metadata", "reason": "mirror_has_no_metadata",
+                                          "index": official}, flush=True)
+            return official
+    except (OSError, ValueError):
+        pass
+    return index
 
 
 def choose_pypi_route(force=False):

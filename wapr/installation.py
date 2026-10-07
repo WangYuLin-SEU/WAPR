@@ -8,6 +8,7 @@ import os
 import re
 import subprocess
 import sys
+import sysconfig
 import tempfile
 import glob
 
@@ -76,6 +77,13 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
     返回状态及解析得到的安装、更换计划。
     """
     requirements = list(requirements)
+    # Build backends locate their console tools in this interpreter's scripts directory.
+    # 构建后端需要当前解释器的命令工具目录；只调整子进程 PATH，不切换基础环境。
+    subprocess_environment = os.environ.copy()
+    subprocess_environment["PATH"] = sysconfig.get_path("scripts") + os.pathsep + subprocess_environment.get("PATH", "")
+    # Pinned local source projects build against this interpreter's existing Torch.
+    # 固定的本地源码项目使用当前解释器已有 Torch 编译，不另下载隔离构建 Torch。
+    build_args = ["--no-build-isolation"] if any(os.path.isdir(value) for value in requirements) else []
     result = {"status": "ready", "requirements": requirements, "install": [], "replace": []}
     if not requirements:
         return result
@@ -106,7 +114,7 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
             result["status"] = "declined"
             return result
         completed = subprocess.run([sys.executable, "-m", "pip", "install", "--no-deps", "pip==" + planning_pip],
-                                   text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                   env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if completed.returncode != 0:
             result.update(status="failed", exit_code=completed.returncode,
                           reason=re.sub(r"(?:https?|git\+https?)://\S+", "[download URL omitted / 下载地址已隐藏]", completed.stdout))
@@ -128,47 +136,45 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
         report_path = os.path.join(temporary_dir, "report.json")
         with open(constraint_path, "w", encoding="utf-8") as stream:
             stream.write("\n".join(name + "==" + version for name, version in sorted(installed.items())) + "\n")
-        from wapr.download_route import choose_pypi_route
+        from wapr.download_route import choose_pypi_route, _metadata_index
         pypi_route = choose_pypi_route()
         # One index for this resolution. A measured mirror is not mixed with another index.
         # 这一次解析只用一个索引。测得的镜像不与另一个索引混用。
-        index_args = []
-        if pypi_route.get("reason") == "measured" and pypi_route.get("name") != "official":
-            index_args = ["--index-url", pypi_route["index"]]
+        index_args = ["--index-url", _metadata_index(pypi_route)]
         command = [sys.executable, "-m", "pip", "install", "--dry-run", "--report", report_path,
-                   "--timeout", "120", "--retries", "5"] + index_args
+                   "--timeout", "120", "--retries", "5"] + index_args + build_args
         constrained = subprocess.run(command + ["-c", constraint_path] + requirements,
-                                     text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                     env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         use_constraints = constrained.returncode == 0
         resolution = constrained
         if not use_constraints:
             with open(constraint_path, "w", encoding="utf-8") as stream:
                 stream.write("\n".join(protected) + "\n")
             resolution = subprocess.run(command + ["-c", constraint_path] + requirements,
-                                        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                        env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             use_constraints = resolution.returncode == 0
         if not use_constraints:
             resolution = subprocess.run(command + requirements, text=True,
-                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if resolution.returncode != 0 and index_args:
+                                        env=subprocess_environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if resolution.returncode != 0 and pypi_route.get("reason") == "measured" and pypi_route.get("name") != "official":
             print("WAPR_DOWNLOAD_ROUTE", {"kind": "pypi", "reason": "index_failed_use_official"}, flush=True)
             with open(constraint_path, "w", encoding="utf-8") as stream:
                 stream.write("\n".join(name + "==" + version for name, version in sorted(installed.items())) + "\n")
             command = [sys.executable, "-m", "pip", "install", "--dry-run", "--report", report_path,
-                       "--timeout", "120", "--retries", "5"]
+                       "--timeout", "120", "--retries", "5", "--index-url", "https://pypi.org/simple"] + build_args
             constrained = subprocess.run(command + ["-c", constraint_path] + requirements,
-                                         text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                         env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             use_constraints = constrained.returncode == 0
             resolution = constrained
             if not use_constraints:
                 with open(constraint_path, "w", encoding="utf-8") as stream:
                     stream.write("\n".join(protected) + "\n")
                 resolution = subprocess.run(command + ["-c", constraint_path] + requirements,
-                                            text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                            env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 use_constraints = resolution.returncode == 0
             if not use_constraints:
                 resolution = subprocess.run(command + requirements, text=True,
-                                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                            env=subprocess_environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 use_constraints = resolution.returncode == 0
         if resolution.returncode != 0:
             reason = re.sub(r"(?:https?|git\+https?)://\S+", "[download URL omitted / 下载地址已隐藏]", resolution.stdout)
@@ -253,7 +259,7 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
             # 卸载可用 cv2 之前先准备恢复文件；下载失败不会改变环境。
             staged = subprocess.run([sys.executable, "-m", "pip", "download", "--no-deps", "--only-binary=:all:",
                                      "--dest", staged_directory] + requested_wheels,
-                                    text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                    env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             if staged.returncode != 0:
                 result.update(status="failed", exit_code=staged.returncode,
                               reason="OpenCV replacement/rollback download failed; existing provider retained / OpenCV 替换或恢复包下载失败，保留已有发行")
@@ -274,10 +280,10 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
                         restore_wheels.append(matches[0])
                         remove_names.append(name)
             removed = subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y"] + remove_names,
-                                     text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                     env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             if removed.returncode != 0:
                 restored = subprocess.run([sys.executable, "-m", "pip", "install", "--no-deps", "--force-reinstall"] + restore_wheels,
-                                          text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                          env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 result.update(status="failed", exit_code=removed.returncode, restore_exit_code=restored.returncode,
                               reason="OpenCV uninstall failed; attempted restoration / OpenCV 卸载失败，已尝试恢复")
                 return result
@@ -286,8 +292,8 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
         install_command = [sys.executable, "-m", "pip", "install", "--no-deps", "--timeout", "120", "--retries", "5"]
         if use_constraints:
             install_command += ["-c", constraint_path]
-        completed = subprocess.run(install_command + targets, text=True,
-                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        completed = subprocess.run(install_command + build_args + targets, text=True,
+                                   env=subprocess_environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         result["status"] = "installed" if completed.returncode == 0 else "failed"
         result["exit_code"] = completed.returncode
         # Replacing loaded binary modules does not replace their in-memory libraries.
@@ -307,9 +313,9 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
         if completed.returncode != 0:
             if restore_wheels:
                 subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y"] + switched_names,
-                               text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                               env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 restored = subprocess.run([sys.executable, "-m", "pip", "install", "--no-deps", "--force-reinstall"] + restore_wheels,
-                                          text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                          env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 result["restore_exit_code"] = restored.returncode
             result["reason"] = re.sub(r"(?:https?|git\+https?)://\S+", "[download URL omitted / 下载地址已隐藏]", completed.stdout)
         return result
@@ -352,8 +358,25 @@ def prepare_optional(feature, allow_replacement=None, check_only=False, source_r
         from wapr.reconstruction_setup import prepare_reconstruction
         return prepare_reconstruction(allow_replacement=allow_replacement, check_only=check_only)
     elif feature == "roma":
-        requirements = ["romatch"]
-        notes.append("Python/Torch requirements depend on the romatch release; use its resolved metadata / Python 与 Torch 要求取决于 romatch 发行版本，以实际解析声明为准")
+        # The pinned matcher inference imports these modules, not its training stack.
+        # 固定匹配器的推理导入这些模块，不安装其训练栈及冲突的第二种 OpenCV。
+        requirements = ["torch>=2.5.1", "torchvision", "numpy", "Pillow", "einops", "loguru"]
+        providers = []
+        for provider in ("opencv-python", "opencv-python-headless", "opencv-contrib-python", "opencv-contrib-python-headless"):
+            try:
+                metadata.version(provider)
+                providers.append(provider)
+            except metadata.PackageNotFoundError:
+                pass
+        if len(providers) > 1:
+            return {"status": "blocked", "feature": feature, "requirements": requirements,
+                    "install": [], "replace": [], "notes": notes,
+                    "reason": "Multiple cv2 providers already overlap; retain and review the environment / 已有多个 cv2 发行重叠，保留环境并检查"}
+        requirements.append(providers[0] if providers else "opencv-python-headless")
+        notes.append("Use pinned RoMa inference source with its audited import dependencies; training-only albumentations/poselib are excluded / 使用固定 RoMa 推理源码及审核后的导入依赖；不安装仅训练所需的 albumentations/poselib")
+        if source_requirement is None:
+            return {"status": "needs_source", "feature": feature, "requirements": requirements,
+                    "install": [], "replace": [], "notes": notes}
     elif feature == "unipose9d":
         requirements = ["torchvision", "PyYAML", "scikit-learn"]
         notes.append("Use pinned UniPose9D inference source with supplied RGB-D and mask; no segmentation or depth model is installed here / 使用固定 UniPose9D 推理源码及已有 RGB-D、掩码；此处不安装分割或深度模型")
@@ -371,8 +394,20 @@ def prepare_optional(feature, allow_replacement=None, check_only=False, source_r
         requirements = ["transformers>=4.49,<5", "accelerate", "qwen-vl-utils", "Pillow"]
         notes.append("Qwen2.5-VL support and model access must be checked after installation / 安装后仍需检查 Qwen2.5-VL 支持与模型访问")
     elif feature == "robot":
-        requirements = ["mani-skill", "sapien", "mplib;platform_system=='Linux'", "gymnasium", "transforms3d", "imageio", "imageio-ffmpeg"]
+        # Gymnasium 1.4.0 nests Generic[_T_co] inside Mapping. Python 3.10
+        # raises TypeError while creating Dict. 1.3.0 still imports there.
+        # ManiSkill 3.0.1 accepts gymnasium>=0.29.1. Python 3.11+ keeps 1.4.0.
+        # Gymnasium 1.4.0 把 Generic[_T_co] 嵌进 Mapping。Python 3.10 创建 Dict 时抛出 TypeError。
+        # 1.3.0 在该版本可以导入。ManiSkill 3.0.1 接受 gymnasium>=0.29.1。Python 3.11 及以上保持 1.4.0。
+        GYMNASIUM_VERSION_ON_PYTHON310 = "1.3.0"
+        if sys.version_info[:2] == (3, 10):
+            gymnasium_requirement = "gymnasium==" + GYMNASIUM_VERSION_ON_PYTHON310
+        else:
+            gymnasium_requirement = "gymnasium"
+        requirements = ["mani-skill", "sapien", "mplib;platform_system=='Linux'", gymnasium_requirement, "transforms3d", "imageio", "imageio-ffmpeg"]
         notes.append("ManiSkill v3.0.1 declares Python >=3.9 and Linux mplib==0.1.1; resolved releases supply their own dependency metadata / ManiSkill v3.0.1 声明 Python >=3.9、Linux mplib==0.1.1；以实际发行依赖声明解析")
+        if sys.version_info[:2] == (3, 10):
+            notes.append("Python 3.10 pins Gymnasium 1.3.0; 1.4.0 fails while creating Dict / Python 3.10 固定 Gymnasium 1.3.0；1.4.0 在创建 Dict 时失败")
         notes.append("Simulation additionally needs a working Vulkan driver; physical robots have separate SDKs / 仿真另需可用 Vulkan 驱动；真实机器人 SDK 独立准备")
     else:
         raise ValueError("Unknown optional feature / 未知可选功能: " + str(feature))
@@ -389,13 +424,52 @@ def prepare_optional(feature, allow_replacement=None, check_only=False, source_r
                 "install": [], "replace": [], "notes": notes, "source_metadata_verified": False,
                 "pending_source_dependencies": ["pytorch3d", "spconv", "utils3d", "MoGe"],
                 "reason": "SAM3D inference-only native dependencies and checkpoint access are not yet verified / SAM3D 仅推理原生依赖及权重访问尚未验证"}
-    if feature in ("sam2", "roma"):
+    if feature == "sam2":
+        if source_requirement and os.path.isdir(source_requirement):
+            # Reuse a healthy installation only when its recorded local source matches.
+            # 只有依赖、真实导入与已记录本地源码均吻合，才复用已安装的源码包。
+            from urllib.parse import unquote, urlsplit
+            distribution_name = "SAM-2" if feature == "sam2" else "romatch"
+            try:
+                distribution = metadata.distribution(distribution_name)
+                origin = json.loads(distribution.read_text("direct_url.json") or "{}")
+                source_url = urlsplit(origin.get("url", ""))
+                matching_source = source_url.scheme == "file" and os.path.realpath(unquote(source_url.path)) == os.path.realpath(source_requirement)
+                healthy = matching_source and _installed_requirements_healthy(requirements)
+                if healthy and feature == "sam2":
+                    builder = importlib.import_module("sam2.build_sam")
+                    predictor = importlib.import_module("sam2.sam2_image_predictor")
+                    healthy = callable(getattr(builder, "build_sam2", None)) and callable(getattr(predictor, "SAM2ImagePredictor", None))
+                if healthy:
+                    return {"status": "ready", "feature": feature, "requirements": requirements,
+                            "install": [], "replace": [], "notes": notes, "existing_source_api": True}
+            except Exception:
+                pass
         if source_requirement is None:
             return {"status": "needs_source", "feature": feature, "requirements": [],
                     "install": [], "replace": [], "notes": notes,
                     "reason": "Resolve the selected source metadata before installing / 安装前需要解析所选源码的实际依赖声明"}
         requirements = [source_requirement]
     print("WAPR_OPTIONAL / 可选功能", feature, notes, flush=True)
+    if feature == "robot" and sys.platform == "linux":
+        # mplib 0.1.1 segfaulted in ArticulatedModel with NumPy 2 on nodes 01/02.
+        # The same actual planning/inference recipe passed after the NumPy 1 stack.
+        # mplib 0.1.1 在 01/02 的 NumPy 2 环境构造 ArticulatedModel 时段错误；
+        # 更换为 NumPy 1 软件栈后，同一真实规划与推理配方通过。
+        try:
+            mplib_version = metadata.version("mplib")
+        except metadata.PackageNotFoundError:
+            preview = install_requirements(requirements, check_only=True)
+            if preview["status"] not in ("ready", "approval_required"):
+                preview.update(feature=feature, notes=notes)
+                return preview
+            mplib_version = next((entry["target"] for entry in preview["install"]
+                                  if entry["name"] == "mplib"), None)
+        if mplib_version == "0.1.1":
+            # SciPy 1.18 and OpenCV 4.12+ require NumPy 2; resolve all three together.
+            # SciPy 1.18 与 OpenCV 4.12 及以上要求 NumPy 2，三者必须一起解析。
+            requirements.extend(["numpy<2", "scipy<1.18", "opencv-python<4.12"])
+            notes.append("mplib 0.1.1 uses the validated NumPy 1 / SciPy <1.18 / OpenCV <4.12 candidate; existing replacements still require approval / mplib 0.1.1 使用实测 NumPy 1、SciPy <1.18、OpenCV <4.12 候选组合；替换已有库仍需同意")
     result = install_requirements(requirements, allow_replacement=allow_replacement, check_only=check_only)
     result.update(feature=feature, notes=notes)
     # A dry-run cannot import packages that its plan has not installed yet.

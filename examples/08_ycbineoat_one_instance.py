@@ -13,8 +13,8 @@
 # 运行：python examples/08_ycbineoat_one_instance.py
 # Page: docs/pose.html#track
 # 页面：docs/pose.html#track
-# The sequence is unpacked by you. python -m wapr.download_assets does not fetch it.
-# 序列需自行解压。python -m wapr.download_assets 不会获取该序列。
+# The default fetches its original sequence on first use, not during installation.
+# 默认在首次使用时获取原始序列，不在安装时下载。
 # This file does not track a second instance.
 # 本文件不跟踪第二个实例。
 import hashlib
@@ -265,11 +265,29 @@ if __name__ == "__main__":
     # stride 为 1 时逐帧。更大的 stride 会跳帧。
     # Detect frame 0 from RGB and the known mesh; later frames propagate that predicted region.
     # 第 0 帧由 RGB 和已知网格检测掩码；后续帧传播这块预测区域。
-    seq_dir = ""
-    mesh_path = ""
+    # Author-approved default; downloaded BOP CAD is converted from mm to meters.
+    # 作者确认的默认序列；下载的 BOP CAD 从毫米换为米。
+    from wapr.source_setup import prepare_ycbineoat
+    from wapr.resources import samples_dir
+    default_seq_dir = os.path.join(samples_dir(), "YCBInEOAT", "mustard_easy_00_02")
+    seq_dir = default_seq_dir
+    default_models_dir = os.path.join(samples_dir(), "bop", "ycbv", "models")
+    mesh_path = os.path.join(default_models_dir, "obj_000005.ply")
+    # The default diameter is read from BOP below; set meters for a custom mesh.
+    # 默认直径从下方 BOP 元数据读取；自定义网格时在此填米单位的直径。
     diameter_m = 0.0
     stride = 1
     device = "cuda:0"
+    # Fetch the default resources only when the recipe still selects them.
+    # 仅在配方仍选择默认资源时下载，用户自选数据不会触发默认序列下载。
+    if seq_dir == default_seq_dir:
+        seq_dir = prepare_ycbineoat("mustard_easy_00_02")
+    if mesh_path == os.path.join(default_models_dir, "obj_000005.ply"):
+        check_and_fetch_pack("ycbv")
+        if diameter_m == 0.0:
+            with open(os.path.join(default_models_dir, "models_info.json")) as stream:
+                default_model_info = json.load(stream)["5"]
+            diameter_m = float(default_model_info["diameter"]) / 1000.0
     if not seq_dir or not mesh_path or float(diameter_m) <= 0.0:
         raise SystemExit(
             "Set seq_dir, mesh_path, and diameter_m in examples/08_ycbineoat_one_instance.py.\n"
@@ -289,6 +307,8 @@ if __name__ == "__main__":
         raise FileNotFoundError(seq_dir)
     K = np.loadtxt(os.path.join(seq_dir, "cam_K.txt"), dtype=np.float32).reshape(3, 3)
     raw = trimesh.load(mesh_path, force="mesh", process=False)
+    if mesh_path == os.path.join(default_models_dir, "obj_000005.ply"):
+        raw.apply_scale(0.001)
     vertices = np.asarray(raw.vertices, dtype=np.float64).copy()
     mesh = prepare_mesh(raw)
     center = center_from_mesh(mesh)

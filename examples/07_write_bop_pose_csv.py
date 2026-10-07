@@ -45,6 +45,7 @@ from wapr.bop import load_bop_rgbd, load_mesh_m, load_detections, model_ids, tar
 from wapr.estimator import mask_from_bbox
 from wapr.det2d import WAPRDet2D, onboard_meshes
 from wapr.download_assets import check_and_fetch_pack
+from wapr.resources import samples_dir
 from wapr.frame import estimate_frame_many_categories_many_instances
 from wapr.suppression import greedy_mask_nms_across_categories
 
@@ -61,7 +62,9 @@ if __name__ == "__main__":
     # template_path 为空时，这次运行的库留在显存。
     # 只有下次要直接加载文件时，才填路径，例如 outputs/cache/det2d/<dataset>.pt。
     bop_path = ""
-    dataset = ""
+    # The author-approved default is the small LM-O excerpt, not the full test set.
+    # 作者确认默认使用 LM-O 小样，不下载完整测试集。
+    dataset = "lmo"
     detector = "det2d"
     template_path = ""
     det_backend = "trt"
@@ -70,13 +73,36 @@ if __name__ == "__main__":
     device = "cuda:0"
     score_thr = 0.0
     iou_thresh = 0.5
-    # An empty bop_path fetches that dataset's one frame. It does not fetch the full test set.
-    # bop_path 为空时只取该数据集的一帧，不下载完整测试集。
+    # An empty bop_path fetches the published excerpt, never the full test set.
+    # bop_path 为空时只取公开教程小样，不下载完整测试集。
     if not dataset:
         raise SystemExit("set dataset")
-    if not bop_path:
+    use_sample_frames = not bop_path
+    if use_sample_frames:
         check_and_fetch_pack(dataset)
-        bop_path = str(ROOT / "samples" / "bop")
+        bop_path = os.path.join(samples_dir(), "bop")
+    if detector == "det2d":
+        if use_sample_frames:
+            # Tutorial excerpts contain paired images, not the full benchmark target list.
+            # 教程小样只含配对图像，不伪造完整基准测试的目标列表。
+            frames = []
+            test_root = Path(bop_path) / dataset / "test"
+            for scene_directory in sorted(test_root.iterdir()):
+                if not scene_directory.is_dir() or not scene_directory.name.isdigit():
+                    continue
+                with open(scene_directory / "scene_camera.json", encoding="utf-8") as stream:
+                    camera_records = json.load(stream)
+                for image_id in sorted(map(int, camera_records)):
+                    image_name = f"{image_id:06d}"
+                    rgb_exists = any((scene_directory / "rgb" / (image_name + extension)).is_file()
+                                     for extension in (".png", ".jpg", ".jpeg"))
+                    if rgb_exists and (scene_directory / "depth" / (image_name + ".png")).is_file():
+                        frames.append((int(scene_directory.name), image_id))
+            if not frames:
+                raise RuntimeError("No paired tutorial frames / 未找到教程 RGB-D 配对帧")
+            print("BOP_TUTORIAL_EXCERPT", {"frames": frames, "full_benchmark": False}, flush=True)
+        else:
+            frames = target_frames(bop_path, dataset)
     # Select one reproducible BOP export route; each writes rows to the same CSV format.
     # 选择一条可复现的 BOP 导出路径；两条路径均写出相同格式的 CSV 行。
     if detector == "det2d":
@@ -92,7 +118,6 @@ if __name__ == "__main__":
             meshes = {obj_id: load_mesh_m(bop_path, dataset, obj_id) for obj_id in found}
             template = onboard_meshes({obj_id: pair[0] for obj_id, pair in meshes.items()}, "", device=device)
             obj_ids = [int(obj_id) for obj_id in template["obj_ids"].tolist()]
-        frames = target_frames(bop_path, dataset)
         print("bop_test", {"detector": "det2d", "dataset": dataset,
             "template": template_path if template_path else "gpu", "frames": len(frames),
             "objects": obj_ids, "n_view": recipe.n_view, "n_inplane": recipe.n_inplane,

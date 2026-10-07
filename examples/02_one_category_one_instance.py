@@ -35,6 +35,7 @@ sys.path.insert(0, str(ROOT))
 from wapr import WAPREstimator
 from wapr import recipe
 from wapr.download_assets import check_and_fetch_pack
+from wapr.resources import samples_dir
 from wapr.view import visualize_6d_pose
 
 
@@ -56,7 +57,9 @@ if __name__ == "__main__":
     # sample_dir 是 SEU-WYL/WAPR 里的 LM-O 一帧。meta.json 记录 K 和 diameter_m。
     # bbox_xywh is pixels, y down, and may stay empty.
     # bbox_xywh 是像素，y 向下，可保持为空。
-    sample_dir = ROOT / "samples" / "pose_lmo"
+    # Download helpers and this reader share the installed wheel's resource cache.
+    # 下载入口与本读取流程共用已安装 wheel 的资源缓存。
+    sample_dir = Path(samples_dir()) / "pose_lmo"
     meta_path = sample_dir / "meta.json"
     if not meta_path.is_file():
         raise SystemExit("missing %s. Run: python -m wapr.download_assets" % meta_path)

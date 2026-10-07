@@ -30,6 +30,7 @@ from wapr import recipe
 from wapr.det2d import WAPRDet2D, onboard_meshes
 from wapr.bop import load_bop_rgbd, load_mesh_m, model_ids
 from wapr.download_assets import check_and_fetch_pack
+from wapr.resources import samples_dir
 from wapr.frame import estimate_frame_many_categories_many_instances
 from wapr.view import visualize_6d_pose, visualize_2d_detection
 
@@ -66,7 +67,7 @@ if __name__ == "__main__":
     # 这个示例包的 models/ 是 LM-O 的八个网格，编号 1、5、6、8、9、10、11、12。
     if not bop_path:
         check_and_fetch_pack(dataset)
-        bop_path = os.path.join(release_dir, "samples", "bop")
+        bop_path = os.path.join(samples_dir(), "bop")
     # Build or reuse a bank for all available CAD classes; no instance count is supplied.
     # 为可用的全部 CAD 类别建立或复用模板库；不预设实例数量。
     # Views and features stay on the GPU unless template_path names a file.

@@ -29,6 +29,8 @@ release_dir = os.path.dirname(script_dir)
 # Prefer this source checkout's public package. / 优先使用当前源码中的公开包。
 sys.path.insert(0, release_dir)
 from wapr import WAPREstimator, recipe
+from wapr.download_assets import check_and_fetch_pack
+from wapr.resources import samples_dir
 from wapr.det2d import default_weights_dir
 from ultralytics import SAM
 from wapr.estimator import center_from_mesh
@@ -41,7 +43,7 @@ from wapr.view import save_pose_view
 
 
 # Prepared excerpt root; all inputs derive from this path. / 小样根目录；输入由此派生。
-data_root = os.path.join(release_dir, "samples", "taco")
+data_root = os.path.join(samples_dir(), "taco")
 output_dir = os.path.join(release_dir, "outputs", "taco_many_instances")
 device = "cuda:0"
 # Raw frame indices, end exclusive. The selected excerpt starts at raw frame 80.
@@ -129,6 +131,7 @@ def mesh_counters(estimator):
 
 
 if __name__ == "__main__":
+    check_and_fetch_pack("taco")
     # Input preparation and decoding precede every GPU timing interval.
     # 输入准备和解码先于所有 GPU 计时区间。
     rgb_path = os.path.join(data_root, "clip", "color.mp4")

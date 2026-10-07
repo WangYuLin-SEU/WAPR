@@ -1731,6 +1731,7 @@ def ensure_ogl():
     if _NATIVE is not None:
         return _NATIVE
     native_dir = _native_dir()
+    build_root = native_dir
     so = _find_so(native_dir)
     build_stamp = native_dir / "build-source.sha256"
     source_digest = None
@@ -1740,16 +1741,25 @@ def ensure_ogl():
         # 安装源码 wheel 时 pip 不清理生成库；源码或编译配置变化后重建生成文件。
         digest = hashlib.sha256(sys.implementation.cache_tag.encode("ascii"))
         digest.update(str(torch.version.cuda).encode("ascii"))
+        digest.update(str(torch.cuda.get_device_capability()).encode("ascii"))
         for source_path in sorted(native_dir.rglob("*")):
             if source_path.is_file() and "build" not in source_path.relative_to(native_dir).parts:
                 if source_path.suffix in (".cpp", ".h", ".hpp", ".cu") or source_path.name == "CMakeLists.txt":
                     digest.update(str(source_path.relative_to(native_dir)).encode("utf-8"))
                     digest.update(source_path.read_bytes())
         source_digest = digest.hexdigest()
+        from wapr.resources import resource_root, source_checkout
+        if not source_checkout:
+            # Source wheels may be installed read-only; build outside site-packages.
+            # 源码 wheel 可能安装在只读目录；在用户缓存编译，不修改 site-packages。
+            build_root = Path(resource_root()) / "native_build" / "ogl" / source_digest
+            build_root.mkdir(parents=True, exist_ok=True)
+            build_stamp = build_root / "build-source.sha256"
+            so = _find_so(build_root)
         if not build_stamp.is_file() or build_stamp.read_text().strip() != source_digest:
             if so is not None:
                 so.unlink()
-            build = native_dir / "build"
+            build = build_root / "build"
             if build.is_dir():
                 shutil.rmtree(build)
             so = None
@@ -1757,18 +1767,19 @@ def ensure_ogl():
         # Derived from the missing library. There is no separate compile switch.
         # 由库文件是否存在决定。没有单独的编译开关。
         print("OGL library missing, compiling now. / 没有 OGL 库，现在编译。", flush=True)
-        build = native_dir / "build"
+        build = build_root / "build"
         from wapr.bootstrap import native_build_options
         compiler_options = native_build_options()
         subprocess.check_call(
             [
                 "cmake", "-S", str(native_dir), "-B", str(build),
                 "-DCMAKE_BUILD_TYPE=Release",
+                "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=%s" % build,
                 "-DPython3_EXECUTABLE=%s" % sys.executable,
             ] + compiler_options
         )
         subprocess.check_call(["cmake", "--build", str(build), "-j", "4"])
-        so = _find_so(native_dir)
+        so = _find_so(build_root)
     if so is None:
         raise RuntimeError("ogl")
     # The init symbol is PyInit__gpu_render, the pybind module name.

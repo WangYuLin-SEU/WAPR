@@ -92,12 +92,19 @@ def match_points(model, src_rgb, dst_rgb, depth, hit, box, pose, K, min_cert=0.2
     """
     from PIL import Image
 
-    warp, certainty = model.match(Image.fromarray(src_rgb), Image.fromarray(dst_rgb), device="cuda")
-    matches, cert = model.sample(warp, certainty, num=6000)
-    kpts_src, kpts_dst = model.to_pixel_coordinates(matches, TILE, TILE, TILE, TILE)
-    src_xy = kpts_src.detach().float().cpu().numpy()
-    dst_xy = kpts_dst.detach().float().cpu().numpy()
-    weight = cert.detach().float().cpu().numpy()
+    if model is None:
+        # Preserve the original matching resolution and sample count across the worker.
+        # 独立进程保持原匹配分辨率和采样数；下方几何过滤保持不变。
+        from wapr.roma_isolated import match_pixels
+        src_xy, dst_xy, weight = match_pixels(src_rgb, dst_rgb, device="cuda",
+                                              coarse_res=560, upsample_res=560, num=6000)
+    else:
+        warp, certainty = model.match(Image.fromarray(src_rgb), Image.fromarray(dst_rgb), device="cuda")
+        matches, cert = model.sample(warp, certainty, num=6000)
+        kpts_src, kpts_dst = model.to_pixel_coordinates(matches, TILE, TILE, TILE, TILE)
+        src_xy = kpts_src.detach().float().cpu().numpy()
+        dst_xy = kpts_dst.detach().float().cpu().numpy()
+        weight = cert.detach().float().cpu().numpy()
     left, top, right, bottom = box
     side = float(right - left)
     R = pose[:3, :3]
@@ -303,4 +310,3 @@ def save_pair(photo, color, hit, path):
     render = gray_render(color, hit)
     pair = np.concatenate([photo, render], axis=1)
     cv2.imwrite(path, cv2.cvtColor(pair, cv2.COLOR_RGB2BGR))
-

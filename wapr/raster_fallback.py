@@ -314,7 +314,16 @@ class NvRuntime:
 
             - device: CUDA 序号，整数。
         """
-        import nvdiffrast.torch as dr
+        try:
+            import nvdiffrast.torch as dr
+        except ModuleNotFoundError as error:
+            if error.name not in ("nvdiffrast", "nvdiffrast.torch"):
+                raise
+            # Only this CUDA raster path prepares its optional native dependency.
+            # 仅实际调用此 CUDA 光栅路径时准备可选本地依赖，不更换渲染算法。
+            from wapr.source_setup import prepare_raster_source
+            prepare_raster_source()
+            import nvdiffrast.torch as dr
 
         self._dr = dr
         self._device = int(device)

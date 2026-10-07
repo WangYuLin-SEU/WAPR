@@ -26,12 +26,16 @@ def load_tracker_dino(device, dino_name="vits14"):
     """Load the requested frozen DINOv2 encoder. / 载入指定型号的冻结 DINOv2 编码器。"""
     spec = DINO_CHOICES[dino_name]
     weight_path = os.path.join(default_weights_dir, spec["file"])
-    if not os.path.isfile(os.path.join(default_dino_repo, "hubconf.py")):
-        raise FileNotFoundError(default_dino_repo)
+    dino_repo = default_dino_repo
+    if not os.path.isfile(os.path.join(dino_repo, "hubconf.py")):
+        # Fetch source only when the tracker is called, using the pinned recipe.
+        # 仅在调用跟踪器时按固定版本获取源码。
+        from wapr.source_setup import prepare_source
+        dino_repo = prepare_source("dinov2")
     if not os.path.isfile(weight_path):
         prepare_dino_weight(default_weights_dir, dino=dino_name)
     print("TRACK_DINO", {"model": dino_name, "weight": weight_path}, flush=True)
-    model = torch.hub.load(default_dino_repo, spec["hub"], source="local", pretrained=False)
+    model = torch.hub.load(dino_repo, spec["hub"], source="local", pretrained=False)
     state = torch.load(weight_path, map_location="cpu", weights_only=True)
     model.load_state_dict(state, strict=True)
     model.eval()

@@ -34,13 +34,14 @@ release_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, release_dir)
 from wapr.det2d import WAPRDet2D, onboard_meshes
 from wapr.download_assets import check_and_fetch_pack
+from wapr.resources import samples_dir
 from wapr.view import visualize_2d_detection
 
-# The default root is the release's LM-O sample. An external root must use the
+# The default root is WAPR's downloaded LM-O sample. An external root must use the
 # same BOP layout: models/ and test/000002/rgb/000001.png.
-# 默认根目录是发布包中的 LM-O 样例。外部根目录也需采用相同的 BOP 布局：
+# 默认根目录是 WAPR 自动下载的 LM-O 样例。外部根目录也需采用相同的 BOP 布局：
 # models/ 和 test/000002/rgb/000001.png。
-sample_root = os.path.join(release_dir, 'samples', 'bop', 'lmo')
+sample_root = os.path.join(samples_dir(), 'bop', 'lmo')
 input_root = os.environ.get('WAPR_DET2D_INPUT_ROOT', sample_root)
 image_path = os.path.join(input_root, 'test', '000002', 'rgb', '000001.png')
 models_dir = os.path.join(input_root, 'models')

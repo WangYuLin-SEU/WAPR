@@ -71,7 +71,10 @@ MIN_MASK_PX = 150
 VIDEO_FPS = 20
 # Use the public font shipped with WAPR on every machine.
 # 所有机器都读取 WAPR 随包分发的公共字体。
-FONT_PATH = os.path.join(RELEASE_DIR, "wapr", "fonts", "wqy-microhei.ttc")
+import wapr
+# The licensed font ships with the wheel, even when examples live elsewhere.
+# 字体及许可随 wheel 分发；示例位于其他目录时仍从已安装包定位。
+FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(wapr.__file__)), "fonts", "wqy-microhei.ttc")
 
 # env_id is a ManiSkill Bridge task. source is the moving mesh.
 # env_id 是 ManiSkill 的 Bridge 任务。source 是被搬走的那份网格。
@@ -143,9 +146,19 @@ def make_env(env_id):
 
     一个 Bridge 任务，WidowX，关节位置控制。
     """
+    # Prepare simulation dependencies only when creating the environment.
+    # 仅在创建仿真环境时准备机器人可选依赖。
+    from wapr.bootstrap import ensure_optional
+    ensure_optional("robot")
     import gymnasium as gym
 
     import mani_skill.envs  # noqa: F401
+
+    # Prepare both the robot and the task before gym starts its own downloader.
+    # 在 gym 启动内置下载器前准备机械臂及任务资源。
+    from wapr.source_setup import prepare_robot_assets
+    prepare_robot_assets("widowx250s")
+    prepare_robot_assets("bridge_v2_real2sim")
 
     install_joint_controller()
     # This task only boots with rgb+segmentation. Greenscreening uses that channel.
@@ -173,8 +186,26 @@ def make_planner(env):
     mplib 规划 ee_gripper_link。底座位姿是 WidowX 的安装位置，不是原点。
     """
     import sapien
+    import xml.etree.ElementTree as ET
+    import trimesh
 
     from mani_skill.examples.motionplanning.panda.motionplanner import PandaArmMotionPlanningSolver
+
+    # mplib's convex=True loader requires derived .convex.stl collision meshes.
+    # mplib 的 convex=True 加载器要求派生 .convex.stl；官方资源只含原始 STL。
+    urdf_path = env.unwrapped.agent.urdf_path
+    urdf_root = ET.parse(urdf_path).getroot()
+    for mesh_node in urdf_root.findall("./link/collision/geometry/mesh"):
+        mesh_file = mesh_node.attrib["filename"]
+        mesh_path = os.path.join(os.path.dirname(urdf_path), mesh_file)
+        convex_path = mesh_path + ".convex.stl"
+        if not os.path.isfile(convex_path):
+            collision_mesh = trimesh.load(mesh_path, force="mesh", process=False)
+            convex_mesh = collision_mesh.convex_hull
+            pending_path = convex_path + ".pending"
+            convex_mesh.export(pending_path, file_type="stl")
+            os.replace(pending_path, convex_path)
+            print("ROBOT_CONVEX_MESH", convex_path, flush=True)
 
     class WidowPlanner(PandaArmMotionPlanningSolver):
         OPEN = 1
@@ -224,6 +255,15 @@ def load_source_mesh(source_name):
     import trimesh
 
     path = os.path.join(BRIDGE_ROOT, "custom", "models", source_name, "collision.obj")
+    if not os.path.isfile(path):
+        # The CAD is read before make_env; fetch its task assets at this first use.
+        # CAD 先于 make_env 读取，首次使用时即准备任务资源，避免空缓存启动失败。
+        from wapr.bootstrap import ensure_optional
+        from wapr.source_setup import prepare_robot_assets
+        ensure_optional("robot")
+        prepare_robot_assets("bridge_v2_real2sim")
+    if not os.path.isfile(path):
+        raise FileNotFoundError("Bridge collision mesh missing / Bridge 碰撞网格缺失: " + path)
     mesh = trimesh.load(path, force="mesh", process=False)
     return mesh
 

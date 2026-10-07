@@ -14,6 +14,8 @@
 # Full BOP test sets are not in this repo and are not downloaded here.
 # 完整 BOP 测试集不在这个仓库里，此处亦不下载。
 import os
+import hashlib
+import json
 import shutil
 import socket
 import sys
@@ -123,6 +125,54 @@ pack_names = ("wapr_sapr_wbps",) + sample_names
 # Empty downloads every pack above. A tuple downloads those names only.
 # 空元组下载上面的每一个示例包。若写入名称，则仅下载所列数据包。
 only = ()
+
+
+def _fetch_example_sample(name):
+    """Fetch only requested tutorial files, verifying their pinned SHA256.
+
+    仅获取明确请求的教程文件，并核验固定 SHA256；不下载完整数据集。
+    """
+    catalog_path = Path(__file__).with_name("example_assets.json")
+    catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+    if name not in catalog:
+        raise KeyError(name)
+    spec = catalog[name]
+    destination_root = SAMPLES_DIR / spec["folder"]
+    from huggingface_hub import hf_hub_download
+    from wapr.download_route import hub_endpoints
+    endpoints = None
+    for relative, identity in spec["files"].items():
+        destination = destination_root / relative
+        if destination.is_file() and destination.stat().st_size == identity["bytes"]:
+            digest = hashlib.sha256(destination.read_bytes()).hexdigest()
+            if digest == identity["sha256"]:
+                continue
+        local = ASSETS_DIR / "hf" / "samples" / spec["folder"] / relative
+        source = None
+        if local.is_file() and local.stat().st_size == identity["bytes"] and hashlib.sha256(local.read_bytes()).hexdigest() == identity["sha256"]:
+            source = local
+        else:
+            if endpoints is None:
+                endpoints = hub_endpoints(hub_official, hub_mirror)
+            errors = []
+            for endpoint in endpoints:
+                try:
+                    downloaded = Path(hf_hub_download(repo_id, "samples/" + spec["folder"] + "/" + relative,
+                                                     endpoint=endpoint, token=False))
+                    if downloaded.stat().st_size != identity["bytes"] or hashlib.sha256(downloaded.read_bytes()).hexdigest() != identity["sha256"]:
+                        raise RuntimeError("Tutorial file checksum mismatch / 教程文件校验失败")
+                    source = downloaded
+                    break
+                except Exception as error:
+                    errors.append(type(error).__name__)
+            if source is None:
+                raise RuntimeError("Tutorial sample unavailable / 教程小样暂不可获取: %s; %s; original source / 原始来源: %s" % (name, errors, spec["source"]))
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        pending = destination.with_name(destination.name + ".pending")
+        shutil.copy2(source, pending)
+        os.replace(pending, destination)
+    print("WAPR_SAMPLE_READY", name, str(destination_root), flush=True)
+    return str(destination_root)
 
 
 def _place_weight_license():
@@ -462,8 +512,14 @@ def _fetch_snapshot(staging_dir, names):
             last_error = exc
             print("WAPR_HUB", {"endpoint": endpoint, "error": type(exc).__name__}, flush=True)
             continue
-        except repo_missing:
-            raise
+        except repo_missing as exc:
+            # A mirror's missing/stale listing does not establish an upstream 404.
+            # 镜像缺失或未同步不能证明官方仓库不存在，仍尝试后续站点。
+            if endpoint == official:
+                raise
+            last_error = exc
+            print("WAPR_HUB", {"endpoint": endpoint, "error": type(exc).__name__}, flush=True)
+            continue
         except Exception as exc:
             last_error = exc
             print("WAPR_HUB", {"endpoint": endpoint, "error": type(exc).__name__}, flush=True)
@@ -596,6 +652,11 @@ def check_and_fetch_pack(name):
         - 返回 None。
 
 """
+    # Optional sequences never join the default core download list.
+    # 可选序列不加入默认核心下载清单，只在对应示例请求时获取。
+    if name in ("taco", "robi"):
+        _fetch_example_sample(name)
+        return
     if pack_ready(name):
         if name == "wapr_sapr_wbps":
             _place_weight_license()

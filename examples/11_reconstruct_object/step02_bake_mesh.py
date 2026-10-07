@@ -47,7 +47,8 @@ if SAM3D_ROOT not in sys.path:
     sys.path.insert(0, SAM3D_ROOT)
 
 
-DATA_ROOT = os.environ.get("RECON_DATA_ROOT", os.path.join(RELEASE_DIR, "datasets", "YCBInEOAT"))
+from wapr.resources import samples_dir
+DATA_ROOT = os.environ.get("RECON_DATA_ROOT", os.path.join(samples_dir(), "YCBInEOAT"))
 DATA_ROOT = os.path.abspath(os.path.join(RELEASE_DIR, DATA_ROOT))
 PAGE = os.path.join(RELEASE_DIR, "pages", "demo", "reconstruct")
 OUT_DIR = os.path.join(RELEASE_DIR, "outputs", "reconstruction_stages", "short_texture")

@@ -63,12 +63,26 @@ def run_rounds(mesh, pose, k, rgb, mask, device, output_dir, max_rounds,
 
     每轮重新建立对应关系；失败或退化的更新保留上一轮网格。
     """
-    from romatch import roma_outdoor
+    # Resolve optional matching dependencies only for this refinement call.
+    # 仅在调用此修正步骤时检查并准备可选匹配依赖。
+    from wapr.bootstrap import ensure_optional
+    ensure_optional("roma")
     from wapr.ogl import runtime_for
+    from wapr.sam3d_isolated import SAM3D_ENV_ROOT
+    import sys
 
     runtime = runtime_for(device)
-    model = roma_outdoor(device=device, coarse_res=560, upsample_res=560,
-                         symmetric=False, use_custom_corr=False)
+    if os.path.realpath(sys.prefix) == os.path.realpath(SAM3D_ENV_ROOT):
+        from romatch import roma_outdoor
+        from wapr.roma_isolated import _matching_weights
+        weights, dinov2_weights = _matching_weights(device)
+        model = roma_outdoor(device=device, coarse_res=560, upsample_res=560,
+                             symmetric=False, use_custom_corr=False,
+                             weights=weights, dinov2_weights=dinov2_weights)
+    else:
+        # The shared worker owns RoMa/headless; robot OpenCV stays in the base environment.
+        # 共享工作进程承载 RoMa/headless；基础环境保留机器人的 OpenCV。
+        model = None
     box = match.square_box(mask, pad=pad_px)
     photo = cv2.resize(rgb[box[1]:box[3], box[0]:box[2]],
                        (match.TILE, match.TILE), interpolation=cv2.INTER_AREA)

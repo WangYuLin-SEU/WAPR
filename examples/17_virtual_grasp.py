@@ -124,16 +124,20 @@ def draw_segments(canvas, segments, extrinsic, camera_k, color):
 if __name__ == "__main__":
     import cv2
     import trimesh
-    # This case visualizes grasps from saved WAPR poses; physical execution is in 12–14.
-    # 本例基于保存的 WAPR 位姿绘制虚拟抓取，实际机械臂执行流程在 12–14 中。
+    # This case visualizes grasps from saved WAPR poses; physical execution is in 13–15.
+    # 本例基于保存的 WAPR 位姿绘制虚拟抓取，实际机械臂执行流程在 13–15 中。
     root = os.path.join(RELEASE_DIR, "outputs")
     for folder, closing_mode, stem in (
         (os.path.join(root, "sim_bridge_tasks", "carrot"), "thin", "carrot"),
         (os.path.join(root, "sim_bridge_tasks", "eggplant"), "thin", "eggplant"),
         (os.path.join(root, "sim_xarm_cube", "cube"), "world_y", "xarm_cube"),
     ):
-        # 1. Load the saved camera frame and estimated object-to-camera pose from 13/14.
-        # 1. 读取 13/14 保存的相机帧与估计的物体到相机位姿。
+        # 1. Load the saved camera frame and estimated object-to-camera pose from 14/15.
+        # 1. 读取 14/15 保存的相机帧与估计的物体到相机位姿。
+        missing_inputs = [os.path.join(folder, name) for name in ("rows.json", "jobs_poses.json", "mesh.ply")
+                          if not os.path.isfile(os.path.join(folder, name))]
+        if missing_inputs:
+            raise FileNotFoundError("Run examples 14/15 to produce saved inputs / 请先运行示例 14/15 生成前置结果:\n" + "\n".join(missing_inputs))
         with open(os.path.join(folder, "rows.json"), "r", encoding="utf-8") as stream:
             rows = json.load(stream)
         poses = bridge.load_poses(folder)

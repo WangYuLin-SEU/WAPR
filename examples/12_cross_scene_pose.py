@@ -44,22 +44,26 @@ from wapr.estimator import (  # noqa: E402
 )
 from wapr.ogl import depth2xyzmap_batch, make_crop_pair  # noqa: E402
 
-# Use the mustard bundle produced by 11; this entry never creates a new mesh.
-# 使用示例 11 输出的芥末瓶预测包；此入口不重新建模。
-OBJECT_NAME = "mustard"
-MESH_STEM = os.path.join(RELEASE_DIR, "outputs", "reconstruct_object", OBJECT_NAME, "prediction", "mesh")
+# Author-approved default follows example 11's cracker reconstruction.
+# 作者确认的默认值沿用示例 11 的饼干盒重建结果，此入口不重新建模。
+OBJECT_NAME = "cracker"
+from wapr.resources import resource_root
+# Consume example 11's writable output without writing into the installed package.
+# 读取示例 11 的可写输出，不向安装包目录写文件。
+MESH_STEM = os.path.join(resource_root(), "outputs", "reconstruct_object", OBJECT_NAME, "prediction", "mesh")
 # External BOP data; the camera file supplies K and millimeter depth scale.
 # 外部 BOP 数据；相机文件提供内参及毫米深度缩放。
-BOP_ROOT = os.path.join(RELEASE_DIR, "datasets", "bop")
+from wapr.resources import samples_dir
+BOP_ROOT = os.path.join(samples_dir(), "bop")
 SCENE_ID = 50
 IM_ID = 1130
 SCENE_DIR = os.path.join(BOP_ROOT, "ycbv", "test", "%06d" % SCENE_ID)
 FRAME_RGB = os.path.join(SCENE_DIR, "rgb", "%06d.png" % IM_ID)
 FRAME_DEPTH = os.path.join(SCENE_DIR, "depth", "%06d.png" % IM_ID)
 FRAME_CAMERA = os.path.join(SCENE_DIR, "scene_camera.json")
-OBJ_ID = 5
+OBJ_ID = 2
 DEVICE = "cuda:0"
-OUT_DIR = os.path.join(RELEASE_DIR, "outputs", "cross_scene_pose", OBJECT_NAME)
+OUT_DIR = os.path.join(resource_root(), "outputs", "cross_scene_pose", OBJECT_NAME)
 # Optional evaluation mask is loaded only after the prediction is saved.
 # 可选评测掩码只在预测结果保存后读取。
 REFERENCE_MASK_PATH = None
@@ -68,6 +72,9 @@ REFERENCE_MASK_PATH = None
 WITHIN_MIN = 0.0
 
 if __name__ == "__main__":
+    if BOP_ROOT == os.path.join(samples_dir(), "bop"):
+        from wapr.download_assets import check_and_fetch_pack
+        check_and_fetch_pack("ycbv")
     # 1. Reuse the independent reconstruction from Scene A, including its texture.
     # 1. 读取 A 场景独立重建出的米制网格与贴图，不读取 B 场景的参考 CAD 或位姿。
     provenance_path = os.path.join(os.path.dirname(MESH_STEM), "provenance.json")
@@ -102,8 +109,13 @@ if __name__ == "__main__":
 
     # 3. Render Scene A's mesh into a CAD template bank. Reuse an unchanged bank.
     # 3. 为 A 场景的重建网格生成 CAD 模板库；网格、贴图和类别编号不变时复用缓存。
-    bank_path = os.path.join(OUT_DIR, "templates.pt")
-    bank_meta_path = os.path.join(OUT_DIR, "templates_source.json")
+    # A changed encoder implementation selects another cache without overwriting earlier banks.
+    # 编码实现变化时使用另一份缓存；保留此前的模板库，不覆盖已有用户文件。
+    import wapr.det2d as detector_module
+    with open(detector_module.__file__, "rb") as stream:
+        encoder_source_hash = hashlib.sha256(stream.read()).hexdigest()
+    bank_path = os.path.join(OUT_DIR, "templates_" + encoder_source_hash + ".pt")
+    bank_meta_path = bank_path + ".source.json"
     with open(MESH_STEM + ".json", encoding="utf-8") as stream:
         layout = json.load(stream)
     mesh_files = [MESH_STEM + ".bin", MESH_STEM + ".json"]

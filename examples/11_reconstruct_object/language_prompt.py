@@ -37,6 +37,7 @@ if RELEASE_DIR not in sys.path:
 
 from step01_point_mask import (  # noqa: E402
     SAM2_CHECKPOINT,
+    WEIGHTS_DIR,
     SAM2_CONFIG,
     SAM2_ROOT,
     project_silhouette,
@@ -45,9 +46,10 @@ from step01_point_mask import (  # noqa: E402
 
 # Local Qwen2.5-VL-3B snapshot. Children of this root are the weight files.
 # 本地千问 2.5-VL-3B。权重文件都在这个根下面。
+from wapr.resources import weights_dir
 QWEN_ROOT = os.environ.get(
     "QWEN_VL_ROOT",
-    os.path.join(RELEASE_DIR, "assets", "weights", "Qwen2.5-VL-3B-Instruct"),
+    os.path.join(weights_dir(), "Qwen2.5-VL-3B-Instruct"),
 )
 QWEN_ROOT = os.path.abspath(os.path.join(RELEASE_DIR, QWEN_ROOT))
 # The bundled, unmodified font includes Chinese glyphs; its license is beside it.
@@ -58,11 +60,11 @@ DEVICE = "cuda:0"
 
 def qwen_snapshot(root):
     """
-    # Return the directory that holds config.json for the local Qwen snapshot.
+    # Return a complete local Qwen snapshot, including every verified weight shard.
 
     ## Args
 
-        - root: a filesystem path. It is not None. A config.json in root is used. Otherwise the first snapshots child that has config.json is used.
+        - root: a filesystem path. Use its complete snapshot, or the first complete snapshots child.
 
     ## Returns
 
@@ -72,11 +74,11 @@ def qwen_snapshot(root):
 
     ---
 
-    # 返回本地千问快照里放着 config.json 的目录。
+    # 返回完整本地千问快照目录，包括已核验的全部权重分片。
 
     ## 参数
 
-        - root: 文件系统路径。不是 None。root 里有 config.json 就用 root。否则用 snapshots 下第一个含 config.json 的子目录。
+        - root: 文件系统路径。使用 root 的完整快照，或 snapshots 下第一个完整子快照。
 
     ## 返回
 
@@ -85,13 +87,14 @@ def qwen_snapshot(root):
         - 找不到快照时抛出 RuntimeError。
 
 """
-    if os.path.isfile(os.path.join(root, "config.json")):
+    from wapr.source_setup import _qwen_weights_ready
+    if _qwen_weights_ready(root):
         return root
     snap_root = os.path.join(root, "snapshots")
     names = sorted(os.listdir(snap_root)) if os.path.isdir(snap_root) else []
     for name in names:
         path = os.path.join(snap_root, name)
-        if os.path.isfile(os.path.join(path, "config.json")):
+        if _qwen_weights_ready(path):
             return path
     raise RuntimeError("qwen snapshot")
 
@@ -200,12 +203,25 @@ def qwen_box(rgb, sentence):
 """
     import torch
     from PIL import Image
+    # Qwen dependencies are optional until language localization is requested.
+    # 仅在调用语言定位时准备 Qwen 可选依赖。
+    from wapr.bootstrap import ensure_optional
+    ensure_optional("qwen")
     from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration
 
-    snapshot = qwen_snapshot(QWEN_ROOT)
+    try:
+        snapshot = qwen_snapshot(QWEN_ROOT)
+    except RuntimeError:
+        default_root = os.path.join(weights_dir(), "Qwen2.5-VL-3B-Instruct")
+        if QWEN_ROOT != default_root or os.environ.get("QWEN_VL_ROOT"):
+            raise RuntimeError("Custom Qwen snapshot missing / 自定义 Qwen 快照缺失: " + QWEN_ROOT)
+        # The public snapshot is optional until language localization is called.
+        # 仅在调用语言定位时下载公开快照，不使用维护者凭据。
+        from wapr.source_setup import prepare_qwen_weights
+        snapshot = prepare_qwen_weights()
     image = Image.fromarray(rgb)
     model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-        snapshot, dtype=torch.bfloat16, device_map=DEVICE,
+        snapshot, torch_dtype=torch.bfloat16, device_map=DEVICE,
     )
     processor = AutoProcessor.from_pretrained(snapshot)
     height, width = rgb.shape[:2]
@@ -285,6 +301,16 @@ def mask_from_box(rgb, box):
 """
     import torch
 
+    from wapr.sam3d_isolated import SAM3D_ENV_ROOT
+    if os.path.realpath(sys.prefix) != os.path.realpath(SAM3D_ENV_ROOT):
+        # The original large SAM2 box recipe runs without replacing pose Torch.
+        # 原 large SAM2 框分割配方独立运行，不替换位姿 Torch。
+        from wapr.sam2_isolated import predict_mask
+        isolated_checkpoint = SAM2_CHECKPOINT
+        if isolated_checkpoint == os.path.join(WEIGHTS_DIR, "sam2.1_hiera_large.pt") and not os.path.isfile(isolated_checkpoint):
+            isolated_checkpoint = None
+        return predict_mask(rgb, box_xyxy=box, device=DEVICE,
+                            checkpoint=isolated_checkpoint, config=SAM2_CONFIG)
     if SAM2_ROOT not in sys.path:
         sys.path.insert(0, SAM2_ROOT)
     from sam2.build_sam import build_sam2

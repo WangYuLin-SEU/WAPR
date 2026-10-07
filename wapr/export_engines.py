@@ -129,7 +129,12 @@ def onnx_export_options():
     # Query the exporter registry before adding missing standard-operator mappings.
     # 先查导出注册表，仅补缺失算子的标准 ONNX 表达；不修改网络或 PyTorch forward。
     try:
-        from torch.onnx._internal import registration
+        try:
+            from torch.onnx._internal import registration
+        except ImportError:
+            # Recent PyTorch moved the same legacy registry into its TorchScript exporter.
+            # 新版 PyTorch 将同一追踪导出注册表移至 TorchScript 导出器目录。
+            from torch.onnx._internal.torchscript_exporter import registration
         unflatten_supported = registration.registry.is_registered_op("aten::unflatten", options["opset_version"])
         attention_supported = registration.registry.is_registered_op("aten::scaled_dot_product_attention", options["opset_version"])
     except ImportError:

@@ -450,17 +450,21 @@ class Sam3dSession:
             当 `self.compile_model` 为真时，会先把 `pipeline._warmup` 换成 `_compile_warmup`，再调用 `pipeline._compile()`。
 
 """
+        if self.pipeline is not None:
+            return self
+        # Prepare optional dependencies at model loading, using the selected checkout.
+        # 加载模型时才准备可选依赖，并优先使用用户选择的源码目录。
+        if SAM3D_ROOT not in sys.path:
+            sys.path.insert(0, SAM3D_ROOT)
+        from wapr.bootstrap import ensure_optional
+        ensure_optional("sam3d")
         import torch
         from hydra.utils import instantiate
         from omegaconf import OmegaConf
 
-        if self.pipeline is not None:
-            return self
         os.environ["LIDRA_SKIP_INIT"] = "true"
         os.environ.setdefault("CUDA_VISIBLE_DEVICES", self.device.split(":")[-1])
         sam3d_utils3d_names()
-        if SAM3D_ROOT not in sys.path:
-            sys.path.insert(0, SAM3D_ROOT)
         sam3d_gaussian_backend()
         sam3d_local_dino()
         config = OmegaConf.load(SAM3D_CONFIG)

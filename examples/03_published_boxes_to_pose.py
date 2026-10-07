@@ -38,6 +38,7 @@ from wapr import recipe
 from wapr.estimator import mask_from_bbox
 from wapr.bop import keep_top_per_class, load_bop_rgbd, load_mesh_m, load_detections
 from wapr.download_assets import check_and_fetch_pack
+from wapr.resources import samples_dir
 from wapr.view import visualize_6d_pose
 
 
@@ -122,7 +123,7 @@ if __name__ == "__main__":
     recipe.visualize = True
     if not bop_path:
         check_and_fetch_pack(dataset)
-        bop_path = os.path.join(release_dir, "samples", "bop")
+        bop_path = os.path.join(samples_dir(), "bop")
     if use_full_published_json:
         det_json = fetch_bop_det(det_method)
     else:

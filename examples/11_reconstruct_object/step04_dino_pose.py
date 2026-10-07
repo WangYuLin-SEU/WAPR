@@ -242,8 +242,31 @@ def dino_model():
 
 """
     if getattr(dino_model, "net", None) is None:
-        net = torch.hub.load(DINO_REPO, "dinov2_vitl14", source="local", pretrained=False)
-        state = torch.load(DINO_WEIGHT, map_location="cpu", weights_only=True)
+        dino_repo = DINO_REPO
+        dino_weight = DINO_WEIGHT
+        # Preserve provided resources; fetch the same ViT-L/14 only if absent.
+        # 保留已有资源；缺失时才获取相同 ViT-L/14 源码与权重。
+        from wapr.bootstrap import ensure_optional
+        ensure_optional("dinov2")
+        if not os.path.isfile(os.path.join(dino_repo, "hubconf.py")):
+            if dino_repo != os.path.join(RELEASE_DIR, "third_party", "dinov2"):
+                raise FileNotFoundError(dino_repo)
+            from wapr.source_setup import prepare_source
+            dino_repo = prepare_source("dinov2")
+        if not os.path.isfile(dino_weight):
+            if dino_weight != os.path.join(RELEASE_DIR, "assets", "weights", "det2d", "dinov2_vitl14_pretrain.pth"):
+                raise FileNotFoundError(dino_weight)
+            from wapr.det2d import default_weights_dir, prepare_dino_weight
+            prepare_dino_weight(default_weights_dir, dino="vitl14")
+            dino_weight = os.path.join(default_weights_dir, "dinov2_vitl14_pretrain.pth")
+        # UniPose may already own this package namespace; use the original backbone entry only.
+        # UniPose 可能已载入此包命名空间；只调用原始骨干入口，不导入无关的新版 cell 模型。
+        if dino_repo not in sys.path:
+            sys.path.insert(0, dino_repo)
+        from dinov2.hub import backbones
+        print("DINO_BACKBONE_SOURCE", backbones.__file__, flush=True)
+        net = backbones.dinov2_vitl14(pretrained=False)
+        state = torch.load(dino_weight, map_location="cpu", weights_only=True)
         net.load_state_dict(state, strict=True)
         dino_model.net = net.eval().to(DEVICE)
     return dino_model.net

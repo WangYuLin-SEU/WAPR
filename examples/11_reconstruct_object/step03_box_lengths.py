@@ -64,7 +64,8 @@ from step01_point_mask import (  # noqa: E402
 )
 
 
-DATA_ROOT = os.environ.get("RECON_DATA_ROOT", os.path.join(RELEASE_DIR, "datasets", "YCBInEOAT"))
+from wapr.resources import samples_dir
+DATA_ROOT = os.environ.get("RECON_DATA_ROOT", os.path.join(samples_dir(), "YCBInEOAT"))
 DATA_ROOT = os.path.abspath(os.path.join(RELEASE_DIR, DATA_ROOT))
 PAGE = os.path.join(RELEASE_DIR, "pages", "demo", "reconstruct")
 MESH_DIR = os.path.join(RELEASE_DIR, "outputs", "reconstruction_stages", "short_texture")
@@ -589,11 +590,33 @@ def run_boxes(rows):
 """
     import torch
     from pathlib import Path
+    # Keep UNIPOSE_INFER precedence; prepare optional dependencies on first use.
+    # 保留 UNIPOSE_INFER 的源码优先级，仅在首次使用时准备可选依赖。
+    from wapr.bootstrap import ensure_optional
+    ensure_optional("unipose9d")
     from unipose9d_inference import estimate_pose, load_pose_model, set_seed
 
     set_seed(0)
     device = torch.device(DEVICE)
-    model, cfg = load_pose_model(Path(UNIPOSE_CKPT), Path(UNIPOSE_CFG), device)
+    checkpoint = UNIPOSE_CKPT
+    configuration = UNIPOSE_CFG
+    checkpoint_missing = not os.path.isfile(checkpoint)
+    if not checkpoint_missing and checkpoint == os.path.join(UNIPOSE_ROOT, "checkpoints", "last.ckpt"):
+        # Source snapshots contain an LFS pointer, not the model tensor file.
+        # 源码快照可能只含 LFS 指针；保留该指针，从包内资源入口获取实际张量文件。
+        with open(checkpoint, "rb") as stream:
+            checkpoint_missing = stream.read(128).startswith(b"version https://git-lfs.github.com/spec/v1\n")
+    if checkpoint_missing:
+        if checkpoint != os.path.join(UNIPOSE_ROOT, "checkpoints", "last.ckpt"):
+            raise FileNotFoundError("Custom UniPose checkpoint missing / 自定义 UniPose 权重缺失: " + checkpoint)
+        # Prepare the pinned public weights only at this model-load boundary.
+        # 仅在模型加载处准备固定公开权重；已有用户文件优先。
+        from wapr.source_setup import prepare_unipose_weights
+        prepared_weights = prepare_unipose_weights()
+        checkpoint = prepared_weights["checkpoint"]
+        if configuration == os.path.join(UNIPOSE_ROOT, "checkpoints", "config.yaml"):
+            configuration = prepared_weights["config"]
+    model, cfg = load_pose_model(Path(checkpoint), Path(configuration), device)
     image_size = int(cfg.get("image_size", 448))
     for row in rows:
         result = estimate_pose(

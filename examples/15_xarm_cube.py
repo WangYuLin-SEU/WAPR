@@ -54,9 +54,18 @@ def make_env():
 
     PickCube，手臂是 xArm6，关节位置控制。
     """
+    # Prepare simulation dependencies only when creating the environment.
+    # 仅在创建仿真环境时准备机器人可选依赖。
+    from wapr.bootstrap import ensure_optional
+    ensure_optional("robot")
     import gymnasium as gym
 
     import mani_skill.envs  # noqa: F401
+
+    # Repair interrupted asset downloads before constructing the robot.
+    # 构造机械臂前补齐被中断的资源下载。
+    from wapr.source_setup import prepare_robot_assets
+    prepare_robot_assets("xarm6")
 
     env = gym.make(
         "PickCube-v1",

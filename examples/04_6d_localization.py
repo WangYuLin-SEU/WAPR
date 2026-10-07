@@ -31,6 +31,7 @@ from wapr import recipe
 from wapr.det2d import WAPRDet2D, onboard_meshes
 from wapr.bop import load_bop_rgbd, load_mesh_m
 from wapr.download_assets import check_and_fetch_pack
+from wapr.resources import samples_dir
 from wapr.frame import estimate_frame_many_categories_many_instances
 from wapr.view import visualize_6d_pose, visualize_2d_detection
 
@@ -74,7 +75,7 @@ if __name__ == "__main__":
     }
     if not bop_path:
         check_and_fetch_pack(dataset)
-        bop_path = os.path.join(release_dir, "samples", "bop")
+        bop_path = os.path.join(samples_dir(), "bop")
     # The known category list defines the CAD bank; instance counts are applied later.
     # 已知类别列表决定 CAD 模板库的内容；实例数量在后续定位阶段约束。
     mesh_only = {}

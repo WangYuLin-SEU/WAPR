@@ -12,7 +12,7 @@ For an existing Linux Python/PyTorch/CUDA environment, build a source-only wheel
 
 ```bash
 WAPR_WHEEL_SOURCE_ONLY=1 python wheel_build/build_wheel.py
-python -m pip install --no-deps wheel_build/dist/wapr-0.0.1-py3-none-any.whl
+python -m pip install --no-deps wheel_build/dist/wapr-0.0.3-py3-none-any.whl
 python -m wapr.bootstrap
 ```
 
@@ -23,6 +23,43 @@ Run these installation commands with the target's existing Python. The package e
 Weights and samples are fetched by `wapr.download_assets`; `wapr.bootstrap.fetch_example()` fetches a public GitHub usage example. The package does not change the inference backend: select `wapr.recipe.backend = "torch"` explicitly for PyTorch, or keep `"trt"` and export engines on the target GPU with `python -m wapr.export_engines`.
 
 权重和样本由 `wapr.download_assets` 下载；`wapr.bootstrap.fetch_example()` 下载 GitHub 公开用法示例。包不改变推理后端：PyTorch 推理显式设置 `wapr.recipe.backend = "torch"`；或保留 `"trt"`，在目标显卡执行 `python -m wapr.export_engines` 导出引擎。
+
+The wheel also contains reviewed first-party example recipes. Export them into a new writable directory with `wapr.bootstrap.export_examples(destination)`; existing user files are preserved. Examples 11 and 12 share reconstructed meshes under the resource cache, rather than writing into the installed package. Set an absolute `WAPR_CACHE_DIR` when large model downloads should use a data volume.
+
+wheel 同时包含已审核的第一方示例配方。用 `wapr.bootstrap.export_examples(destination)` 导出到新的可写目录；已有用户文件会保留。示例 11、12 在资源缓存中共用重建网格，不向安装包目录写结果。大模型需要放在数据盘时，可设置绝对路径 `WAPR_CACHE_DIR`。
+
+Optional SAM preparation keeps the base Torch stack and uses an independent compatible interpreter when required. `WAPR_SAM3D_ENV` can select an existing prefix. Gated SAM3D checkpoints require the user's own Hugging Face access and token, or locally supplied files; no maintainer credentials or private download service is included. Automatic download routes respect user-selected indexes and mirrors, measure available routes, and retain file checksums. Their speed depends on the target network.
+
+可选 SAM 准备保留基础 Torch，必要时使用兼容的独立解释器。`WAPR_SAM3D_ENV` 可选用已有环境前缀。受控 SAM3D 权重需要用户自己的 Hugging Face 权限和 token，或用户已下载的本地文件；包内没有维护者凭据或私有下载服务。自动下载尊重用户指定的索引和镜像，对可用路线测速并继续核验文件；速度取决于目标网络。
+
+## Tested existing environments / 已实测的已有环境
+
+These Linux x86-64 environments retain their original base Torch and CUDA builds. Core pose inference, optional detection, and robot examples were run on an Ada GPU (SM 8.9). The table records tested combinations, not every version between them, and does not establish Windows/macOS or other GPU support. Successful tracking execution does not guarantee target recovery on every frame.
+
+这些 Linux x86-64 环境保留原有基础 Torch 与 CUDA 构建。已在 Ada 显卡（SM 8.9）实际运行核心位姿推理、可选检测与机器人示例。表格记录实测组合，不代表中间所有版本或 Windows/macOS、其他显卡均支持；跟踪流程运行完成也不保证每帧恢复目标。
+
+| Python | Existing PyTorch / 已有 PyTorch | Core pose / 核心位姿 | Detection / 检测 | Robot examples / 机器人示例 |
+|---|---|---|---|---|
+| 3.12.3 | 2.8.0+cu128 | Passed / 通过 | Passed / 通过 | Passed / 通过 |
+| 3.12.3 | 2.12.1+cu130 | Passed / 通过 | Passed / 通过 | Passed / 通过 |
+| 3.12.3 | 2.5.1+cu124 | Passed / 通过 | Passed / 通过 | Passed / 通过 |
+| 3.12.3 | 2.3.0+cu121 | Passed / 通过 | Passed / 通过 | Passed / 通过 |
+| 3.10.8 | 2.1.2+cu118 | Passed / 通过 | Passed / 通过 | Passed / 通过 |
+| 3.10.8 | 2.1.2+cu121 | Passed / 通过 | Passed / 通过 | Passed / 通过 |
+
+Full reconstruction and cross-scene inference also passed in all six combinations: original SAM3D generation, 100 views, 1024-pixel texture baking with 2500 optimization steps, UniPose9D, RoMa matching and WAPR scale/pose refinement. The following independent Python 3.11 / PyTorch 2.5.1 environments preserve the base installation:
+
+六组环境也均通过完整重建及跨场景推理：原始 SAM3D 生成、100 视图、1024 像素纹理与 2500 步优化、UniPose9D、RoMa 匹配及 WAPR 尺度与位姿修正。以下独立 Python 3.11 / PyTorch 2.5.1 环境保留基础安装：
+
+| Base Torch CUDA / 基础 Torch CUDA | Independent Torch CUDA / 独立 Torch CUDA | Full reconstruction and cross-scene pose / 完整重建与跨场景位姿 |
+|---|---|---|
+| cu128, cu130, cu124 | cu124 | Passed / 通过 |
+| cu121 | cu121 | Passed / 通过 |
+| cu118 | cu118 | Passed / 通过 |
+
+The tested GPUs reported approximately 31.47 GiB of CUDA memory. This does not establish the full reconstruction budget on 16 GiB devices. Robot results cover simulation and planning, not physical robot hardware. Native wheels are reusable only for matching Python ABI, Torch/CUDA and GPU compilation targets. Gated checkpoints were validated using user-supplied local files; each user must obtain their own access. Tutorial sample redistribution is separate from runtime compatibility.
+
+实测 GPU 报告约 31.47 GiB CUDA 显存，不代表 16 GiB 设备能运行同样完整重建预算。机器人验证覆盖仿真与规划，不包含实体硬件。原生 wheel 仅在 Python ABI、Torch/CUDA 与显卡编译目标匹配时复用。受控权重通过用户提供的本地文件验证；每位用户需自行取得访问权限。教程小样的再分发与运行兼容性是两项独立条件。
 
 ## Precompiled wheel / 预编译 wheel
 
@@ -54,7 +91,7 @@ For a precompiled wheel, keep the existing GPU environment and prepare missing l
 预编译 wheel 也保留已有 GPU 环境，通过包内入口准备缺失库：
 
 ```bash
-python -m pip install --no-deps wheel_build/dist/wapr-0.0.1-cp310-cp310-linux_x86_64.whl
+python -m pip install --no-deps wheel_build/dist/wapr-0.0.3-cp310-cp310-linux_x86_64.whl
 python -m wapr.bootstrap
 ```
 
@@ -101,7 +138,7 @@ For example, in an environment whose base dependencies are already prepared:
 例如，在基础依赖已准备好的环境中：
 
 ```bash
-python -m pip install 'wheel_build/dist/wapr-0.0.1-py3-none-any.whl[det2d]'
+python -m pip install 'wheel_build/dist/wapr-0.0.3-py3-none-any.whl[det2d]'
 python -m wapr.bootstrap --feature det2d
 ```
 
@@ -119,9 +156,9 @@ For source setup, `requirements.txt` contains pose/export/build dependencies and
 
 ## Release / 发行
 
-The initial release version is **0.0.1**. Optional feature compatibility depends on the target environment; installation or import alone does not establish inference compatibility. The matching release tag is `v0.0.1`.
+The current release version is **0.0.3**. Optional feature compatibility depends on the target environment; installation or import alone does not establish inference compatibility. The matching release tag is `v0.0.3`.
 
-首次发行版本为 **0.0.1**。可选功能的兼容性取决于目标环境；安装或导入成功不代表实际推理已验证。对应发行标签为 `v0.0.1`。
+当前发行版本为 **0.0.3**。可选功能的兼容性取决于目标环境；安装或导入成功不代表实际推理已验证。对应发行标签为 `v0.0.3`。
 
 `.github/workflows/release.yml` runs for a published, non-prerelease GitHub Release, or a maintainer retry from main that verifies the same published Release tag. The `build-wheel` job uses a controlled self-hosted Linux CUDA runner labeled `wapr-cuda-12-8`. It executes the existing builder with `WAPR_WHEEL_SOURCE_ONLY=1`, producing a `py3-none-any` wheel containing WAPR Python code and renderer sources. PyTorch, model weights, engines and complete third-party repositories are not bundled. The job checks metadata, licenses, checksum and README rendering, then installs the wheel outside the source checkout in a separate environment that reuses the controlled runner's existing GPU dependencies, and verifies CUDA, TensorRT and the target-built renderer. This checks installation into an existing GPU environment; it does not claim a clean dependency installation. Only the verified wheel and checksum reach the publishing job.
 
@@ -135,12 +172,12 @@ Before creating a formal GitHub Release:
 
 创建正式 GitHub Release 前：
 
-1. Build version **0.0.1** and use its matching `v0.0.1` tag.
+1. Build version **0.0.3** and use its matching `v0.0.3` tag.
 2. Configure the controlled CUDA runner with Python 3.10, CUDA development tools, EGL/OpenGL and an NVIDIA GPU for the package checks.
 3. Create **WAPR → Settings → Environments → pypi**, configure a required reviewer and protect release-tag creation.
 4. Configure PyPI Pending Trusted Publisher with the following values. The publishing job uses OIDC with `id-token: write`; no token, password or sdist is required.
 
-1. 构建 **0.0.1** 版本，使用一致的 `v0.0.1` 标签。
+1. 构建 **0.0.3** 版本，使用一致的 `v0.0.3` 标签。
 2. 配置受控 CUDA runner，准备 Python 3.10、CUDA 开发工具、EGL/OpenGL 和用于包校验的 NVIDIA GPU。
 3. 在 **WAPR → Settings → Environments → pypi** 创建环境，设置审核人并限制正式标签创建权限。
 4. 按下表配置 PyPI Pending Trusted Publisher。发布 job 使用 OIDC 与 `id-token: write`，不需要长期 token、密码或 sdist。

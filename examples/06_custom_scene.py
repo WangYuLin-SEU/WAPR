@@ -28,6 +28,7 @@ from wapr import WAPREstimator
 from wapr import recipe
 from wapr.det2d import WAPRDet2D, onboard_meshes
 from wapr.download_assets import check_and_fetch_pack
+from wapr.resources import samples_dir
 from wapr.frame import estimate_frame_many_categories_many_instances
 from wapr.scene_files import load_scene
 from wapr.view import save_pose_view, visualize_2d_detection
@@ -71,7 +72,7 @@ if __name__ == "__main__":
     # 从公开 LM-O 样例生成默认目录，网格继续引用原文件，不重复复制。
     if scene_dir == os.path.join(release_dir, "samples", "own_lmo") and not os.path.exists(scene_dir):
         check_and_fetch_pack("lmo")
-        bop_dir = os.path.join(release_dir, "samples", "bop", "lmo")
+        bop_dir = os.path.join(samples_dir(), "bop", "lmo")
         frame_dir = os.path.join(bop_dir, "test", "000002")
         with open(os.path.join(frame_dir, "scene_camera.json"), "r") as stream:
             camera = json.load(stream)["307"]
@@ -90,7 +91,7 @@ if __name__ == "__main__":
         for obj_id, name in model_names.items():
             custom_objects["objects"].append({
                 "id": obj_id, "name": name,
-                "file": "../bop/lmo/models/obj_%06d.ply" % obj_id,
+                "file": os.path.relpath(os.path.join(bop_dir, "models", "obj_%06d.ply" % obj_id), scene_dir),
                 "diameter_mm": model_info[str(obj_id)]["diameter"],
             })
         os.makedirs(scene_dir)

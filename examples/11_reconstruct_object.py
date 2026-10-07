@@ -16,12 +16,12 @@
 #   mask, mesh, isotropic scale, visible dimensions, DINOv2 pose, RoMa shape, output.
 # 阶段顺序：掩码、网格、各向同性尺度、可观测尺寸、DINOv2 位姿、RoMa 形状更新、输出。
 # Step modules keep the functions, in examples/11_reconstruct_object/.
-# This entry imports stage functions directly, without starting subprocesses.
-# 阶段函数位于 examples/11_reconstruct_object/；入口脚本直接调用，不启动子进程。
+# This entry imports stage functions; incompatible SAM stacks use an isolated worker.
+# 入口导入阶段函数；基础环境不兼容 SAM 时，仅该阶段使用独立工作进程。
 # Language prompts and observation-only RoMa are stages in this same entry.
 # 语言提示与仅用观测的 RoMa 均为本入口的内部阶段。
-# Predicted meshes go under outputs/reconstruct_object/<object>/prediction/.
-# 预测模型写入 outputs/reconstruct_object/<object>/prediction/。
+# Predicted meshes go under the resource cache's outputs/reconstruct_object/<object>/prediction/.
+# 预测模型写入资源缓存中的 outputs/reconstruct_object/<object>/prediction/。
 # Page assets are not rewritten. / 不改写页面现成资源。
 import hashlib
 import json
@@ -38,6 +38,8 @@ if CASE_DIR not in sys.path:
     sys.path.insert(0, CASE_DIR)
 if RELEASE_DIR not in sys.path:
     sys.path.insert(0, RELEASE_DIR)
+
+from wapr.resources import resource_root
 
 from step01_point_mask import (  # noqa: E402
     DATA_ROOT,
@@ -92,7 +94,9 @@ TOTAL_SCALE_BOUNDS = (0.70, 1.30)
 MATCH_PAD_PX = 36
 MIN_CERT = 0.25
 device = "cuda:0"
-OUT_DIR = os.path.join(RELEASE_DIR, "outputs", "reconstruct_object")
+# Installed recipes share writable reconstruction outputs with example 12.
+# 已安装配方与示例 12 共用可写的重建输出目录。
+OUT_DIR = os.path.join(resource_root(), "outputs", "reconstruct_object")
 POINTS_PATH = os.path.join(CASE_DIR, "selected_points.json")
 with open(POINTS_PATH, "r", encoding="utf-8") as stream:
     saved_points = json.load(stream)
@@ -178,6 +182,14 @@ def build_mesh(rgb, mask, name):
 
 """
     import torch
+
+    # Use the same native compatibility boundary as the package bootstrap.
+    # 与包内准备入口使用相同原生兼容边界；不在旧位姿 Torch 中导入 SAM 烘焙模块。
+    supported_pair = (torch.__version__.split("+", 1)[0] == "2.5.1"
+                      and torch.version.cuda in ("11.8", "12.1", "12.4"))
+    if sys.version_info[:2] >= (3, 12) or sys.version_info[:2] < (3, 9) or not supported_pair:
+        from wapr.sam3d_isolated import reconstruct_example
+        return reconstruct_example(rgb, mask, CASE_DIR, device, SIZE_PATH, name)
 
     if SIZE_PATH == "outline":
         mesh = reconstruct_mesh(rgb, mask)
@@ -336,6 +348,15 @@ if __name__ == "__main__":
     import cv2
     import torch
     from wapr.estimator import WAPREstimator
+
+    # Fetch the selected built-in sequence; preserve custom frame paths.
+    # 获取选中的内置序列；保留用户自定义帧路径。
+    from wapr.resources import samples_dir
+    if DATA_ROOT == os.path.join(samples_dir(), "YCBInEOAT"):
+        sequence = os.path.basename(os.path.dirname(FRAME_K))
+        if sequence in ("cracker_box_reorient", "mustard_easy_00_02", "sugar_box1"):
+            from wapr.source_setup import prepare_ycbineoat
+            prepare_ycbineoat(sequence)
 
     # Select one recorded object and obtain its source RGB-D frame and mask.
     # 选择一个已记录物体，读取其源帧 RGB-D 与目标掩码。

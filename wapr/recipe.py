@@ -158,7 +158,7 @@ def resolve_visualize_path(filename):
 
     ## Args
 
-        - filename: the file name, such as pose.jpg. It is used when visualize_path is a directory. A visualize_path that already ends in .jpg, .jpeg, or .png is the file itself. A relative path starts at the release root.
+        - filename: the file name, such as pose.jpg. It is used when visualize_path is a directory. A visualize_path that already ends in .jpg, .jpeg, or .png is the file itself. A relative path starts at the source release or installed package's user cache.
 
     ## Returns
 
@@ -174,7 +174,7 @@ def resolve_visualize_path(filename):
 
     ## 参数
 
-        - filename: 文件名，例如 pose.jpg。当 visualize_path 是目录时使用。若 visualize_path 以 .jpg、.jpeg 或 .png 结尾，则将其作为完整输出文件路径。相对路径以 release 根目录为基准。
+        - filename: 文件名，例如 pose.jpg。当 visualize_path 是目录时使用。若 visualize_path 以 .jpg、.jpeg 或 .png 结尾，则将其作为完整输出文件路径。相对路径以源码 release 根目录或已安装包的用户缓存为基准。
 
     ## 返回
 
@@ -186,5 +186,8 @@ def resolve_visualize_path(filename):
     else:
         path = raw / filename
     if not path.is_absolute():
-        path = _ROOT / path
+        # Installed wheels write user-cache outputs, never read-only site-packages.
+        # 已安装 wheel 的输出写入用户缓存，不写可能只读的 site-packages。
+        from wapr.resources import resource_root
+        path = Path(resource_root()) / path
     return path
