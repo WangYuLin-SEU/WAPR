@@ -1,0 +1,50 @@
+/*
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+*/
+
+.robi-comparison { margin: 18px 0 0; }
+.robi-comparison img { display: block; width: 100%; height: auto; border-radius: 8px; }
+.robi-comparison figcaption { margin-top: 10px; font-size: 14px; line-height: 1.6; }
+.robi-interactive { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.robi-interactive > p { grid-column: 1 / -1; }
+.robi-card { min-width: 0; padding: 6px; border: 1px solid #dce3eb; border-radius: 10px; background: #fafbfd; }
+.robi-card-heading { display: flex; align-items: center; gap: 8px; padding: 4px 4px 0; margin-bottom: 8px; }
+.robi-card-heading h3 { margin: 0; font-size: 19px; }
+.robi-card-heading > span { color: #536171; font-size: 14px; }
+.robi-reset { margin-left: auto; border: 1px solid #cbd5e1; border-radius: 6px; padding: 5px 10px; background: white; color: #35445a; cursor: pointer; }
+.robi-card-frame { position: relative; overflow: hidden; border-radius: 8px; }
+.robi-card-frame canvas { display: block; width: 100%; height: auto; }
+.robi-instance-info { position: absolute; top: 10px; left: 10px; max-width: calc(100% - 20px); padding: 10px 12px; border-left: 4px solid #77baff; border-radius: 6px; background: rgba(15, 27, 42, .94); color: white; pointer-events: none; font-size: 13px; line-height: 1.6; }
+.robi-instance-info[hidden] { display: none; }
+.robi-instance-info.is-failed { border-left-color: #ff7777; }
+.robi-instance-info.at-right { left: auto; right: 10px; }
+.robi-instance-info.at-bottom { top: auto; bottom: 10px; }
+.robi-instance-info strong, .robi-instance-info span { display: block; }
+.robi-card .robi-card-legend { margin: 12px 0 8px; font-size: 12px; color: #536171; }
+.robi-instance-buttons { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+.robi-instance-buttons button { min-width: 0; min-height: 34px; padding: 5px 0; border: 2px solid transparent; border-radius: 6px; color: white; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.robi-instance-buttons .is-passed { background: #245db3; }
+.robi-instance-buttons .is-failed { background: #c62828; }
+.robi-instance-buttons button[aria-pressed="true"] { border-color: white; box-shadow: 0 0 0 2px #172c42; }
+.robi-instance-buttons button:focus-visible, .robi-reset:focus-visible { outline: 3px solid #172c42; outline-offset: 2px; }
+.robi-card .robi-instance-readout { margin: 10px 0 0; min-height: 42px; font-size: 13px; line-height: 1.6; color: #536171; }
+.robi-instance-readout.is-passed { color: #245db3; }
+.robi-instance-readout.is-failed { color: #c62828; }
+@media (max-width: 760px) {
+  .robi-interactive { grid-template-columns: 1fr; gap: 10px; }
+  .robi-card { padding: 4px; }
+  .robi-instance-buttons { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+}
+
+.robi-case-switch { display: flex; flex-wrap: wrap; gap: 8px; }
+.robi-case-switch button { padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: white; color: #35445a; font: inherit; cursor: pointer; }
+.robi-case-switch button[aria-pressed="true"] { background: #172c42; color: white; }
+.robi-case-switch button:focus-visible { outline: 3px solid #245db3; outline-offset: 2px; }
+.robi-card-heading { flex-wrap: wrap; }
+.robi-card-heading h3 { border: 0; padding: 0; font-size: 19px; }
+.robi-interactive noscript { grid-column: 1 / -1; }

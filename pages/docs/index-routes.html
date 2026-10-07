@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+
+
+<!--
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Choose a route for your scene — WAPR docs</title>
+<script>
+    (function () {
+      var lang = "en";
+      try { lang = localStorage.getItem("wapr-lang") === "zh" ? "zh" : "en"; } catch (e) {}
+      document.documentElement.setAttribute("data-lang", lang);
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+      var pages = {
+        download: "download.html",
+        install: "install.html",
+        pose: "pose.html",
+        det2d: "det2d.html",
+        bop: "bop.html",
+        "third-party": "download-detectors.html"
+      };
+      var id = (location.hash || "").replace("#", "");
+      if (pages[id]) location.replace(pages[id]);
+    })();
+  </script>
+<link href="../assets/project.css?v=bar14" rel="stylesheet"/>
+<link href="docs.css?v=62" rel="stylesheet"/>
+<link href="../favicon.ico?v=11" rel="icon" type="image/x-icon"/>
+<link href="../assets/wapr-icon-32.png?v=11" rel="icon" sizes="32x32" type="image/png"/>
+<link href="../assets/wapr-icon-180.png?v=11" rel="apple-touch-icon" sizes="180x180"/>
+<link href="../assets/table-layout.css?v=1" rel="stylesheet"/><script src="section-routes.js?v=59"></script><link href="index-modules.html" rel="prev"/><link href="index-performance.html" rel="next"/><link rel="stylesheet" href="../assets/github-docs.css?v=3"/>
+<script src="../assets/site-runtime.js?v=1"></script>
+</head>
+<body class="project docs" data-title-en="Choose a route for your scene — WAPR docs" data-title-zh="根据场景选择入口 — WAPR 文档">
+<div aria-hidden="true" class="mast-spacer"></div>
+<header class="mast">
+<a class="mast-hero-link" href="../index.html"><img alt="WAPR, wide-angle pose refinement" class="mast-hero" height="724" src="../assets/wapr-banner-1440.webp" srcset="../assets/wapr-banner-768.webp 768w, ../assets/wapr-banner-1440.webp 1440w, ../assets/wapr-banner-2172.webp 2172w" sizes="(max-width: 800px) 100vw, 1200px" fetchpriority="high" width="2172"/></a>
+<div aria-hidden="true" class="mast-scrim"></div>
+<div class="docs-top">
+<a class="docs-home" href="../index.html">WAPR</a>
+<nav aria-label="Site" class="docs-jump">
+<a href="../index.html"><span class="en">Home</span><span class="zh">主页</span></a>
+<a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"><span class="en">Paper</span><span class="zh">论文</span></a>
+<a href="https://github.com/WangYuLin-SEU/WAPR"><span class="en">Code</span><span class="zh">代码</span></a>
+</nav>
+<div class="lang-switch" role="group">
+<button data-set-lang="en" type="button">EN</button>
+<button data-set-lang="zh" type="button">中文</button>
+</div>
+</div>
+</header><script src="../assets/banner.js?v=18"></script>
+<div class="docs-shell">
+<nav aria-label="Documentation / 教程目录" class="docs-nav"><a href="index.html"><span class="en">Overview</span><span class="zh">概览</span></a><a class="sub" href="index-modules.html"><span class="en">How the modules work together</span><span class="zh">模块如何衔接</span></a><a aria-current="page" class="sub" href="index-routes.html"><span class="en">Choose a route for your scene</span><span class="zh">根据场景选择入口</span></a><a class="sub" href="index-performance.html"><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></a><a class="sub" href="index-examples.html"><span class="en">Example overview</span><span class="zh">示例总览</span></a><a href="install.html"><span class="en">Installation</span><span class="zh">安装</span></a><a class="sub" href="install-guide.html"><span class="en">Installation guide</span><span class="zh">安装引导</span></a><a class="sub" href="install-core.html"><span class="en">Detection and pose setup</span><span class="zh">检测与位姿环境</span></a><a class="sub" href="install-extensions.html"><span class="en">Extension setup</span><span class="zh">扩展环境</span></a><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a><a class="sub" href="data-resources.html"><span class="en">Datasets and model resources</span><span class="zh">数据集与模型资源</span></a><a class="sub" href="data-bop-folder.html"><span class="en">Read the BOP sample</span><span class="zh">读取 BOP 示例数据</span></a><a class="sub" href="data-frame.html"><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></a><a class="sub" href="data-bop.html"><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></a><a class="sub" href="data-sixd-loc.html"><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></a><a class="sub" href="data-own.html"><span class="en">Custom data</span><span class="zh">自定义数据</span></a><a href="det2d.html"><span class="en">2D detection and segmentation</span><span class="zh">2D 检测与分割</span></a><a class="sub" href="det2d-templates.html"><span class="en">CAD templates and feature encoding</span><span class="zh">CAD 模板与特征编码</span></a><a class="sub" href="det2d-call.html"><span class="en">Detector usage and evaluation</span><span class="zh">检测器使用与评估</span></a><a href="pose.html"><span class="en">6D pose tasks and interfaces</span><span class="zh">6D 位姿任务与接口</span></a><a class="sub" href="pose-one.html"><span class="en">One category, one instance</span><span class="zh">单类别、单实例</span></a><a class="sub" href="pose-loc.html"><span class="en">6D pose localization and detection</span><span class="zh">6D 位姿定位与检测</span></a><a class="sub" href="pose-track.html"><span class="en">6D pose tracking</span><span class="zh">6D 位姿跟踪</span></a><a class="sub" href="pose-backend-scaling.html"><span class="en">Inference and renderer scaling</span><span class="zh">推理与渲染后端性能</span></a><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a><a class="sub" href="applications-robi.html"><span class="en">ROBI detection experiments</span><span class="zh">ROBI 检测实验</span></a><a class="sub" href="applications-ycbineoat.html"><span class="en">YCBInEOAT single-object pose tracking</span><span class="zh">YCBInEOAT 单物体位姿跟踪</span></a><a class="sub" href="applications-taco.html"><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></a><a class="sub" href="applications-reconstruct.html"><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></a><a class="sub" href="applications-robot.html"><span class="en">Robot simulation</span><span class="zh">机器人仿真</span></a><a href="credits.html"><span class="en">Acknowledgments and references</span><span class="zh">致谢与参考资料</span></a></nav>
+<main class="docs-main"><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="top"><a href="index-modules.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">How the modules work together</span><span class="zh">模块如何衔接</span></strong></a><a href="index-performance.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></strong></a></nav><nav aria-label="Breadcrumb / 章节路径" class="docs-breadcrumb"><a href="index.html"><span class="en">Overview</span><span class="zh">概览</span></a></nav><h1 id="routes"><img class="sec-icon" src="../assets/readme/icons/citation.svg" width="24" height="24" alt="" aria-hidden="true"/> <span class="en">Choose a route for your scene</span><span class="zh">根据场景选择入口</span></h1>
+<p class="en"><strong>Region supplied:</strong> estimate pose from each instance's mesh and mask or box. <strong>Region to find:</strong> detect regions first, then estimate pose; supplied categories and counts define localization, while unknown counts use detection. For video, initialize by either route, then update the known tracks together. Category means a CAD identity; instance means a particular object in the scene.</p>
+<p class="zh"><strong>已有物体区域：</strong>根据每个实例的网格与 mask 或包围盒估计位姿。<strong>需要寻找物体区域：</strong>先检测区域，再估计位姿；指定类别与数量时按定位任务使用，数量未知时按检测任务使用。视频先通过其中一条路径初始化，再批量更新已建立的轨迹。类别是 CAD 型号，实例是场景中的具体物体。</p>
+<div class="docs-table-wrap"><table class="overview-routes">
+<thead><tr><th><span class="en">Categories and instances</span><span class="zh">类别与实例</span></th><th><span class="en">Region supplied</span><span class="zh">已有区域：估计</span></th><th><span class="en">Region to find</span><span class="zh">寻找区域：定位／检测</span></th><th><span class="en">Video update</span><span class="zh">视频：跟踪更新</span></th></tr></thead>
+<tbody>
+<tr><td><span class="en">One category, one instance</span><span class="zh">单类、单实例</span></td><td><a href="pose-one.html"><span class="en">Estimate one supplied region</span><span class="zh">估计一个指定区域</span></a></td><td><a href="pose-loc.html#loc-combinations"><span class="en">Search one category; retain at most one pose</span><span class="zh">搜索一类，最多保留一个位姿</span></a></td><td><a href="pose-track.html#track-batch"><span class="en">Update one track</span><span class="zh">更新一条轨迹</span></a></td></tr>
+<tr><td><span class="en">One category, several instances</span><span class="zh">单类、多实例</span></td><td><span class="en">Batch regions sharing a mesh</span><span class="zh">同一网格、多个区域批量计算</span></td><td><span class="en">Search one category; supply a count or leave it uncapped</span><span class="zh">搜索一类，指定数量或不限制数量</span></td><td><span class="en">Batch distinct track IDs sharing a mesh</span><span class="zh">同类不同轨迹 ID 批量计算</span></td></tr>
+<tr><td><span class="en">Several categories, one instance each</span><span class="zh">多类、每类单实例</span></td><td><span class="en">Batch regions with their respective meshes</span><span class="zh">各区域携带对应网格批量计算</span></td><td><span class="en">Search several categories; retain at most one pose per category</span><span class="zh">搜索多类，每类最多保留一个位姿</span></td><td><span class="en">Batch one track per category</span><span class="zh">每类一条轨迹批量计算</span></td></tr>
+<tr><td><span class="en">Several categories, several instances each</span><span class="zh">多类、每类多实例</span></td><td><span class="en">Batch all supplied instances</span><span class="zh">全部指定实例批量计算</span></td><td><span class="en">Supply per-category counts or leave them uncapped</span><span class="zh">按类别指定数量或不限制数量</span></td><td><span class="en">Batch all tracks, retaining their IDs</span><span class="zh">全部轨迹批量计算，保留各自 ID</span></td></tr>
+</tbody>
+</table></div>
+<p class="en">Use <code>estimate_one_category_one_instance</code> for one supplied region, <code>estimate_many_categories_many_instances</code> for a region batch, <code>estimate_frame_many_categories_many_instances</code> when detection is needed, and <a href="pose-track.html#track-batch"><code>track_many_categories_many_instances</code></a> for known track updates. The “many” entries accept a single category or instance too. Tracking batches WAPR/SAPR and WBPS across instances, with independent score groups; engine limits split a large list into chunks. Track association and lost-object recovery are separate caller responsibilities.</p>
+<p class="zh">一个指定区域使用 <code>estimate_one_category_one_instance</code>；区域批次使用 <code>estimate_many_categories_many_instances</code>；需要检测时使用 <code>estimate_frame_many_categories_many_instances</code>；已有轨迹更新使用 <a href="pose-track.html#track-batch"><code>track_many_categories_many_instances</code></a>。名字含“many”的入口也接受单类或单实例。跟踪的 WAPR/SAPR 与 WBPS 跨实例批量计算，物体评分组相互独立；大批次按引擎容量分块。轨迹关联与丢失恢复由调用方另外处理。</p>
+<p class="en">A one-ID <code>obj_ids</code> list restricts detection to that category but can still return several instances. In BOP <a href="https://bop.felk.cvut.cz/challenges/bop-challenge-2019/">localization</a>, the present identities and counts are supplied; in <a href="https://bop.felk.cvut.cz/challenges/bop-challenge-2024/">detection</a>, they are not. Here “unseen” means absent from pose-model training, with a mesh supplied at inference time; these application examples have a different object-preparation procedure from BOP's official model-free evaluation. Neither a 2D score nor a WBPS score is a calibrated success probability.</p>
+<p class="zh"><code>obj_ids</code> 只给一个 ID，会将检测限定在该类别，但仍可能返回多个实例。BOP 的<a href="https://bop.felk.cvut.cz/challenges/bop-challenge-2019/">定位</a>任务提供当前图像中的物体类别与数量，<a href="https://bop.felk.cvut.cz/challenges/bop-challenge-2024/">检测</a>任务则不提供。这里的“未见”是指位姿模型训练时没有该物体、推理时提供网格；这些应用示例的物体准备方式与 BOP 官方无模型评测不同。2D 分数和 WBPS 分数都不是校准过的成功概率。</p>
+<nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="bottom"><a href="index-modules.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">How the modules work together</span><span class="zh">模块如何衔接</span></strong></a><a href="index-performance.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></strong></a></nav><footer class="site-author">© 2026 <a href="credits.html#authorship">Yulin Wang</a> · <span><span class="en">Code and website author</span><span class="zh">代码与网站作者</span></span></footer></main>
+</div>
+<script src="../assets/lang.js"></script>
+<script src="nav.js?v=34"></script>
+<script src="../assets/table-layout.js?v=1"></script></body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+
+
+<!--
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Robot simulation — WAPR docs</title>
+<script>
+    (function () {
+      var lang = "en";
+      try { lang = localStorage.getItem("wapr-lang") === "zh" ? "zh" : "en"; } catch (e) {}
+      document.documentElement.setAttribute("data-lang", lang);
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    })();
+  </script>
+<link href="../assets/project.css?v=bar14" rel="stylesheet"/>
+<link href="docs.css?v=62" rel="stylesheet"/>
+<link href="../favicon.ico?v=11" rel="icon" type="image/x-icon"/>
+<link href="../assets/wapr-icon-32.png?v=11" rel="icon" sizes="32x32" type="image/png"/>
+<link href="../assets/wapr-icon-180.png?v=11" rel="apple-touch-icon" sizes="180x180"/>
+<link href="../assets/table-layout.css?v=1" rel="stylesheet"/><script src="section-routes.js?v=59"></script><link href="applications-reconstruct.html" rel="prev"/><link href="credits.html" rel="next"/><link rel="stylesheet" href="../assets/github-docs.css?v=3"/>
+<script src="../assets/site-runtime.js?v=1"></script>
+</head>
+<body class="project docs" data-title-en="Robot simulation — WAPR docs" data-title-zh="机器人仿真 — WAPR 文档">
+<div aria-hidden="true" class="mast-spacer"></div>
+<header class="mast">
+<a class="mast-hero-link" href="../index.html"><img alt="WAPR, wide-angle pose refinement" class="mast-hero" height="724" src="../assets/wapr-banner-1440.webp" srcset="../assets/wapr-banner-768.webp 768w, ../assets/wapr-banner-1440.webp 1440w, ../assets/wapr-banner-2172.webp 2172w" sizes="(max-width: 800px) 100vw, 1200px" fetchpriority="high" width="2172"/></a>
+<div aria-hidden="true" class="mast-scrim"></div>
+<div class="docs-top">
+<a class="docs-home" href="../index.html">WAPR</a>
+<nav aria-label="Site" class="docs-jump">
+<a href="../index.html"><span class="en">Home</span><span class="zh">主页</span></a>
+<a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"><span class="en">Paper</span><span class="zh">论文</span></a>
+<a href="https://github.com/WangYuLin-SEU/WAPR"><span class="en">Code</span><span class="zh">代码</span></a>
+</nav>
+<div class="lang-switch" role="group">
+<button data-set-lang="en" type="button">EN</button>
+<button data-set-lang="zh" type="button">中文</button>
+</div>
+</div>
+</header><script src="../assets/banner.js?v=18"></script>
+<div class="docs-shell">
+<nav aria-label="Documentation / 教程目录" class="docs-nav"><a href="index.html"><span class="en">Overview</span><span class="zh">概览</span></a><a class="sub" href="index-modules.html"><span class="en">How the modules work together</span><span class="zh">模块如何衔接</span></a><a class="sub" href="index-routes.html"><span class="en">Choose a route for your scene</span><span class="zh">根据场景选择入口</span></a><a class="sub" href="index-performance.html"><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></a><a class="sub" href="index-examples.html"><span class="en">Example overview</span><span class="zh">示例总览</span></a><a href="install.html"><span class="en">Installation</span><span class="zh">安装</span></a><a class="sub" href="install-guide.html"><span class="en">Installation guide</span><span class="zh">安装引导</span></a><a class="sub" href="install-core.html"><span class="en">Detection and pose setup</span><span class="zh">检测与位姿环境</span></a><a class="sub" href="install-extensions.html"><span class="en">Extension setup</span><span class="zh">扩展环境</span></a><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a><a class="sub" href="data-resources.html"><span class="en">Datasets and model resources</span><span class="zh">数据集与模型资源</span></a><a class="sub" href="data-bop-folder.html"><span class="en">Read the BOP sample</span><span class="zh">读取 BOP 示例数据</span></a><a class="sub" href="data-frame.html"><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></a><a class="sub" href="data-bop.html"><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></a><a class="sub" href="data-sixd-loc.html"><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></a><a class="sub" href="data-own.html"><span class="en">Custom data</span><span class="zh">自定义数据</span></a><a href="det2d.html"><span class="en">2D detection and segmentation</span><span class="zh">2D 检测与分割</span></a><a class="sub" href="det2d-templates.html"><span class="en">CAD templates and feature encoding</span><span class="zh">CAD 模板与特征编码</span></a><a class="sub" href="det2d-call.html"><span class="en">Detector usage and evaluation</span><span class="zh">检测器使用与评估</span></a><a href="pose.html"><span class="en">6D pose tasks and interfaces</span><span class="zh">6D 位姿任务与接口</span></a><a class="sub" href="pose-one.html"><span class="en">One category, one instance</span><span class="zh">单类别、单实例</span></a><a class="sub" href="pose-loc.html"><span class="en">6D pose localization and detection</span><span class="zh">6D 位姿定位与检测</span></a><a class="sub" href="pose-track.html"><span class="en">6D pose tracking</span><span class="zh">6D 位姿跟踪</span></a><a class="sub" href="pose-backend-scaling.html"><span class="en">Inference and renderer scaling</span><span class="zh">推理与渲染后端性能</span></a><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a><a class="sub" href="applications-robi.html"><span class="en">ROBI detection experiments</span><span class="zh">ROBI 检测实验</span></a><a class="sub" href="applications-ycbineoat.html"><span class="en">YCBInEOAT single-object pose tracking</span><span class="zh">YCBInEOAT 单物体位姿跟踪</span></a><a class="sub" href="applications-taco.html"><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></a><a class="sub" href="applications-reconstruct.html"><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></a><a aria-current="page" class="sub" href="applications-robot.html"><span class="en">Robot simulation</span><span class="zh">机器人仿真</span></a><a href="credits.html"><span class="en">Acknowledgments and references</span><span class="zh">致谢与参考资料</span></a></nav>
+<main class="docs-main"><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="top"><a href="applications-reconstruct.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></strong></a><a href="credits.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Acknowledgments and references</span><span class="zh">致谢与参考资料</span></strong></a></nav><nav aria-label="Breadcrumb / 章节路径" class="docs-breadcrumb"><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a></nav><h1 id="robot"><img class="sec-icon" src="../assets/readme/icons/robot.svg" width="24" height="24" alt="" aria-hidden="true"/> <span class="en">Robot simulation</span><span class="zh">机器人仿真</span></h1>
+<p class="en">Examples 13–17 connect known object meshes, RGB-D observations, pose estimation, and simulated manipulation in different ways. Distinguishing the perception input from the pose used for robot control is essential when reading the videos. The <a href="../index.html#pickplace">project page</a> presents selected episodes.</p>
+<p class="zh">示例 13–17 以不同方式连接已知网格、RGB-D 观测、位姿估计与仿真操作。阅读视频时，应区分感知输入与机器人控制实际使用的位姿。<a href="../index.html#pickplace">项目主页</a>展示了部分回合。</p>
+<p class="en">Each numbered script contains its implementation. Read its <code>if __name__ == "__main__":</code> block for the ordered camera, estimation, coordinate conversion, motion, gripper, recording and reporting steps. Shared camera and geometry helpers are defined in the public scripts 12–13. Pose workers use the same scripts in separate processes to keep OpenGL rendering separate from the Vulkan simulator.</p>
+<p class="zh">各编号脚本包含其实现。阅读 <code>if __name__ == "__main__":</code> 可按顺序查看相机采集、位姿估计、坐标转换、运动、夹爪、记录与报告。共用相机和几何函数定义在公开脚本 12–13 中；位姿子进程也使用这些脚本，将 OpenGL 渲染与 Vulkan 仿真隔离。</p>
+<h2 data-inline-section="" id="robot-start"><span class="en">Study path and evidence</span><span class="zh">学习路径与结果边界</span></h2>
+<p class="en">The examples estimate the grasped object's pose from RGB-D and an RGB color mask, with known object geometry, camera calibration and robot kinematics. Example 13 selects poses from image observations, depth and predicted quality, without using the simulator's true object orientation or its projected center. Object truth is retained for evaluation and overlays. Examples 14–15 use a simulator-provided placement goal. These are known-goal manipulation examples, not demonstrations of visual localization of every destination.</p>
+<p class="zh">示例从 RGB-D 和 RGB 颜色掩码估计被抓取物体的位姿，并使用已知物体几何、相机标定及机器人运动学。示例 13 依据观测图像、深度及预测质量筛选位姿，不使用仿真物体的真实朝向或真实中心投影；物体真值保留给评价与叠加显示。示例 14–15 使用仿真提供的放置目标。因此它们演示的是已知目标位置的操作，并未展示所有放置目标的视觉定位。</p>
+<p class="en">Begin with the generated bottle and box in example 13. Its default run performs placement; <code>track</code> records a separate two-camera sequence. Examples 14–15 use existing robot-task assets. Run example 16 on saved frames for tracking, then example 17 for virtual grasp views. All reported videos and distances describe individual simulation episodes.</p>
+<p class="zh">示例 13 使用生成的瓶子与盒子，默认运行执行放置，<code>track</code> 另行记录双相机序列；示例 14–15 使用机器人任务自带资源。保存画面后，用示例 16 进行跟踪，示例 17 绘制虚拟抓取。本页视频和距离均来自单次仿真回合。</p>
+<div class="docs-table-wrap"><table class="robot-route">
+<thead><tr><th><span class="en">Stage</span><span class="zh">阶段</span></th><th><span class="en">Examples and input</span><span class="zh">示例与输入</span></th><th><span class="en">What the result establishes</span><span class="zh">结果说明</span></th></tr></thead>
+<tbody>
+<tr><td class="table-numeric">13</td><td><span class="en">Generated meshes; Panda table and wrist cameras</span><span class="zh">生成网格；Panda 桌面与腕部相机</span></td><td><span class="en">Estimated world poses inform the initial side grasp and target placement.</span><span class="zh">估计出的世界位姿参与初始侧面抓取与目标放置。</span></td></tr>
+<tr><td class="table-numeric">14–15</td><td><span class="en">Bridge<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: BridgeData V2" href="#reference-bridge-data" id="reference-bridge-data-ref-en-table-1" role="doc-noteref">[3]</a></sup> task assets or a ManiSkill<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: mani-skill" href="#license-package-mani-skill" id="license-package-mani-skill-ref-en-table-1" role="doc-noteref">[2]</a></sup> cube</span><span class="zh">Bridge<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: BridgeData V2" href="#reference-bridge-data" id="reference-bridge-data-ref-zh-table-1" role="doc-noteref">[3]</a></sup> 任务资源或 ManiSkill<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: mani-skill" href="#license-package-mani-skill" id="license-package-mani-skill-ref-zh-table-1" role="doc-noteref">[2]</a></sup> 方块</span></td><td><span class="en">The displayed carrot, eggplant, and cube clips grasp from the first-frame estimate and a color mask.</span><span class="zh">展示的胡萝卜、茄子和方块片段用第 0 帧位姿估计及颜色掩码抓取。</span></td></tr>
+<tr><td class="table-numeric">16–17</td><td><span class="en">13 <code>track</code> frames and 14–15 saved frames</span><span class="zh">13 <code>track</code> 与 14–15 保存的画面</span></td><td><span class="en">Temporal pose updates and a virtual grasp drawn on the estimate.</span><span class="zh">逐帧位姿更新，以及在估计位姿上绘制的虚拟抓取。</span></td></tr>
+</tbody>
+</table></div>
+<h2 data-inline-section="" id="robot-recording"><span class="en">Run and record the simulation</span><span class="zh">运行与记录仿真</span></h2>
+<p class="en">During manipulation, MPLib may print <code>screw plan failed</code>. The robot scripts then try RRT-Connect for that motion; only <code>plan failed</code> after both attempts is a fatal planning error. Inspect the final report and object state even when the planner returns without an exception.</p>
+<p class="zh">操作过程中，MPLib 可能打印 <code>screw plan failed</code>。机器人脚本随后会对该段运动尝试 RRT-Connect；两种方法都失败后抛出的 <code>plan failed</code> 才是终止该回合的规划错误。即使规划器没有抛错，也应检查最终报告与物体状态。</p>
+<p class="en">Scripts 14–15 write website videos and posters under <code>pages/demo/robot/</code>; 17 writes virtual-grasp stills there. Back up the website media before running these scripts if you want to keep a copy. Run reports and frame data live under <code>outputs/</code>.</p>
+<p class="zh">脚本 14–15 会写入 <code>pages/demo/robot/</code> 下的网站视频与封面；17 在同一目录写入虚拟抓取图片。若需保留网页素材，请在运行这些脚本前备份。运行报告和帧数据位于 <code>outputs/</code>。</p>
+<p class="en">The first robot case has two entry points. Run the placement before the camera sequence; the latter creates <code>outputs/sim_known_mesh_place/tracking/</code>. It is separate from the default placement report.</p>
+<p class="zh">首个机器人案例有两个入口。先运行放置，再运行相机序列；后者创建 <code>outputs/sim_known_mesh_place/tracking/</code>，与默认放置报告分开。</p>
+<pre><code>python examples/13_known_mesh_place.py
+python examples/13_known_mesh_place.py track</code></pre>
+<p class="en">Example 16 discards three complete region, refinement, scoring and raster updates for each actual batch shape before recording elapsed time. Warmup is logged separately and leaves persistent track state unchanged. The application clips below show individual episodes and their error statistics; they do not measure warmed latency of the current batched path. A clip without recorded warmup must not be used to infer steady-state speed.</p>
+<p class="zh">示例 16 在记录耗时前，按实际批形状丢弃三次完整的目标掩码跟踪、修正、评分与光栅更新。预热单独记录，不推进持久跟踪状态。下面应用视频展示各自的单次回合与误差统计，不能用于衡量当前批量计算路径预热后的调用耗时；缺少预热记录的片段不能用于推断稳态速度。</p>
+<span id="robot-follow-region-policy"></span><h2 data-inline-section="" id="robot-bottle"><span class="en">Yellow bottle</span><span class="zh">黄色瓶子</span></h2>
+<p class="en"><code>examples/13_known_mesh_place.py</code> builds a yellow cylinder and a red box on a Panda table. Each camera makes a full pose estimate on its first frame; later frames track from that estimate. <code>table_camera</code> is fixed. <code>hand_camera</code> is mounted on <code>panda_hand</code>. A third camera only draws the room. It does not estimate a pose. The outline is the mesh silhouette. Red is the estimate. Green is ground truth. Cyan dashes are the pose camera's view, drawn on the third-person picture. Blue lines are the side grasp on that panel's estimated bottle, redrawn every frame. The table camera is drawn out to 0.90 m. The wrist camera is drawn out to 0.45 m.</p>
+<p class="zh"><code>examples/13_known_mesh_place.py</code> 在 Panda 的桌子上放一只黄色圆柱和一个红色盒子。每台相机都在首帧完整估计位姿，后续帧在该结果基础上跟踪。<code>table_camera</code> 是固定的。<code>hand_camera</code> 装在 <code>panda_hand</code> 上。第三个相机只画房间，不估计位姿。轮廓是网格的剪影。红色是估计，绿色是真值。青色虚线是位姿相机的视野，画在第三人称上。蓝色实线表示侧面抓取姿态，逐帧叠加在对应相机估计出的瓶子位姿上。桌上相机画到 0.90 米。腕部相机画到 0.45 米。</p>
+<details class="doc-detail" open="">
+<summary><span class="en">Camera geometry, tracking, and placement measurements</span><span class="zh">相机几何、跟踪与放置测量</span></summary>
+<p class="en">Depth is the simulator camera's position buffer, in meters. The first-frame path calls <code>estimate_many_categories_many_instances</code> with each known mesh and its mask. Later frames use the published <code>examples/16_follow_saved/region_tracking.py</code> for DINOv2<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: DINOv2" href="#license-dinov2" id="license-dinov2-ref-en" role="doc-noteref">[1]</a></sup> regions and <code>wapr/tracking.py</code> for batched pose updates. Depth updates translation; WBPS batches independent six-hypothesis groups across all objects. The mask on the first frame is the object's color in that camera. The world pose is the camera pose times the object-to-camera pose. The wrist camera starts looking straight down at the top of the box, so the box reads as a flat card. The clip begins once that camera has tilted 30° from straight down and a side of the box is visible. Across 268 recorded frames the table camera's median center error is 1.3 mm and the axis error is 0.2°. While the fingers are closed the wrist median is 1.1 mm and 0.4°. After the retreat the wrist sees the cap, and that track stays about 100 mm off. The same frames on the table camera stay near 1.0 mm.</p>
+<p class="zh">深度来自仿真相机的位置缓冲，单位米。首帧调用 <code>estimate_many_categories_many_instances</code>，输入各已知网格及其 mask。后续帧用公开的 <code>examples/16_follow_saved/region_tracking.py</code> 跟踪 DINOv2<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: DINOv2" href="#license-dinov2" id="license-dinov2-ref-zh" role="doc-noteref">[1]</a></sup> 目标掩码，并用 <code>wapr/tracking.py</code> 批量更新位姿。深度更新平移；WBPS 跨全部物体批量计算，各实例保留独立的六候选组。第一帧的 mask 是这个相机里物体的颜色。世界位姿是相机位姿乘上物体到相机的位姿。腕部相机一开始正俯视盒子顶面，盒子在图像中近似为一个平面。视频从这台相机偏离正下方 30°、盒子露出侧面的那一帧开始。录下来的 268 帧里，桌上相机的中位中心误差是 1.3 mm，轴误差是 0.2°。手指合上时，腕部的中位数是 1.1 mm、0.4°。退出之后腕部看见的是瓶盖，这次跟踪停在大约 100 mm。同一批帧上的桌上相机停在 1.0 mm 附近。</p>
+<p class="en">The known-mesh placement experiment estimates the bottle and box centers on the table within 1.3 and 0.9 mm. Its planned placement ends 4.3 mm from the target, while the placement using the measured hand-to-object offset ends 8.8 mm away. The second measurement therefore does not improve this particular episode. The figure shows the two pose views and both final placements; these single-run distances should not be read as a control benchmark.</p>
+<p class="zh">已知网格放置实验中，桌面上的瓶子与盒子中心估计误差分别为 1.3 和 0.9 mm。按计划抓取的放置结果距目标 4.3 mm；使用测得的手爪到物体偏移后，落点距目标 8.8 mm。因此，第二次测量在这一回合并未改善落点。下图同时展示两路位姿视图和两次放置终态；这些单次运行距离不能视作控制基准。</p>
+</details>
+<figure>
+<img alt="Table and wrist pose views followed by planned and measured-grasp placements" decoding="async" loading="lazy" src="figures/guide_robot_bottle_flow.png"/>
+<figcaption><span class="en">Known-mesh bottle episode. Red contours show estimated pose and green contours show simulator truth. The wrist panel is a close view at grasp time; most of the bottle is outside that camera's field of view.</span><span class="zh">已知网格瓶子的一个仿真回合。红色轮廓表示估计位姿，绿色轮廓表示仿真真值。腕部画面拍摄于抓取时，距离很近，瓶身大部分处于该相机视野之外。</span></figcaption>
+</figure>
+<figure class="docs-shot wide bottle-clip">
+<video preload="none" class="en" controls="" data-autoplay="1" height="1184" loop="" muted="" playsinline="" poster="../demo/robot/bottle_cameras_en.jpg?v=5" width="1280">
+<source data-src="../demo/robot/bottle_cameras_en.mp4?v=5" type="video/mp4"/>
+</video>
+<video preload="none" class="zh" controls="" data-autoplay="1" height="1184" loop="" muted="" playsinline="" poster="../demo/robot/bottle_cameras.jpg?v=5" width="1280">
+<source data-src="../demo/robot/bottle_cameras.mp4?v=5" type="video/mp4"/>
+</video>
+<figcaption><span class="en">Top left is the table camera. Top right is the wrist camera. Bottom left draws the table camera on the third person. Bottom right draws the wrist camera on the same third person.</span><span class="zh">左上是桌上相机。右上是腕部相机。左下把桌上相机画到第三人称上。右下把腕部相机画到同一张第三人称上。</span></figcaption>
+</figure>
+<h2 data-inline-section="" id="robot-tasks"><span class="en">Bridge and xArm task objects</span><span class="zh">Bridge 与 xArm 任务物体</span></h2>
+<p class="en"><code>examples/14_bridge_tasks.py</code> runs two WidowX250S Bridge<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: BridgeData V2" href="#reference-bridge-data" id="reference-bridge-data-ref-en" role="doc-noteref">[3]</a></sup> tasks: carrot to plate and eggplant to sink basket. <code>examples/15_xarm_cube.py</code> runs xArm6 with a Robotiq gripper and a red cube on the ManiSkill<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: mani-skill" href="#license-package-mani-skill" id="license-package-mani-skill-ref-en" role="doc-noteref">[2]</a></sup> table. The displayed carrot, eggplant, and cube episodes use the largest connected color region as the object mask, estimate frame 0 before arm motion, and grasp from that pose. The plate, basket, and red marker remain placement targets. These color thresholds have not been checked on real camera images. <code>examples/16_follow_saved.py</code> makes a separate tracking pass on saved frames. The displayed clips play at 20 fps.</p>
+<p class="zh"><code>examples/14_bridge_tasks.py</code> 运行两项 WidowX250S Bridge<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: BridgeData V2" href="#reference-bridge-data" id="reference-bridge-data-ref-zh" role="doc-noteref">[3]</a></sup> 任务：胡萝卜放盘子、茄子放水槽篮子。<code>examples/15_xarm_cube.py</code> 则在 ManiSkill<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: mani-skill" href="#license-package-mani-skill" id="license-package-mani-skill-ref-zh" role="doc-noteref">[2]</a></sup> 桌面上使用配备 Robotiq 夹爪的 xArm6 搬运红色方块。展示的胡萝卜、茄子和方块回合把物体颜色中最大的连通区域作为 mask，手臂动之前估计第 0 帧，再按该位姿抓取。盘子、篮子与红色标记仍是放置目标。这些颜色阈值尚未在实机图像上核对。<code>examples/16_follow_saved.py</code> 另行对保存的帧做跟踪。展示的视频按 20 fps 播放。</p>
+<details class="doc-detail" open="">
+<summary><span class="en">Pose measurements and placement outcomes</span><span class="zh">位姿测量与放置结果</span></summary>
+<p class="en">The carrot episode has 66 frames. Its frame-0 estimated center is 3.6 mm from the simulated center and the final horizontal placement is 3.5 mm from the plate target. In 43 frames after the gripper occludes the carrot, the estimate jumps far away; the 2707 mm center-error median over the whole clip reflects that later loss of tracking, not grasp initialization. The eggplant frame-0 estimate has a 0.91 mm center error and a 6.6° mesh Z-axis error. It provides the actual grasp pose. In 30 of 66 frames, the color mask is below the 150-pixel input threshold, so no pose estimate is requested. The remaining 36 frames have a 0.94 mm median center error and a 13° median mesh Z-axis error. The final placement error is 4.0 mm. The cube has 217 frames, a 1.2 mm median center error, and a 1.6 mm placement error. Its mesh Z-axis differs by roughly 90° under a visually ambiguous cube rotation; the gripper closes along world +Y. These are single episodes, not aggregate benchmark results.</p>
+<p class="zh">胡萝卜回合共 66 帧。第 0 帧估计中心距仿真中心 3.6 mm，最终水平落点距盘子目标 3.5 mm。夹爪遮挡胡萝卜后，有 43 帧估计大幅跳离物体；全片 2707 mm 的中心误差中位数反映后期跟踪丢失，不能作为抓取初始化误差。茄子第 0 帧估计的中心误差为 0.91 mm，网格 Z 轴误差为 6.6°，实际抓取使用该估计位姿。66 帧中有 30 帧的颜色掩码小于 150 像素的输入门槛，未请求位姿估计；其余 36 帧的中心误差中位数为 0.94 mm，网格 Z 轴误差中位数为 13°。最终落点误差为 4.0 mm。方块 217 帧的中心误差中位数为 1.2 mm，落点误差 1.6 mm。方块在近对称外观下的网格 Z 轴约相差 90°；夹爪沿世界 +Y 合拢。这些都是单次回合，并非汇总基准。</p>
+</details>
+<p class="en">The overview camera provides both the third-person view and the perception RGB-D. Color masks supply the pose region; simulator segmentation is not the estimator's mask. The actual top grasp is planned from the first-frame estimate. WidowX closes along that pose's thin axis; the cube closes along world +Y. <code>examples/17_virtual_grasp.py</code> draws the same grasp on the estimate. Red contours and cyan marks update on later frames for inspection but do not revise the already planned grasp. Green ground-truth contours and final errors are post-run comparisons.</p>
+<p class="zh">总览相机同时提供第三人称画面和感知 RGB-D。位姿估计区域来自颜色 mask，而不是仿真分割。实际从上方抓取使用第 0 帧位姿估计规划。WidowX 沿该位姿较薄的轴合拢；方块沿世界 +Y 合拢。<code>examples/17_virtual_grasp.py</code> 将相同抓取画在估计位姿上。后续帧的红色轮廓和青色标记供检查估计变化，不会修改已规划的抓取。绿色真值轮廓与最终误差只用于事后对照。</p>
+<pre><code>python examples/14_bridge_tasks.py
+python examples/15_xarm_cube.py
+python examples/16_follow_saved.py
+python examples/17_virtual_grasp.py</code></pre>
+<p class="en">Example 16 updates saved pose files; it does not generate the website videos by itself. To display its tracked poses, compose the bottle video in <code>outputs/</code>, then redraw the Bridge and xArm website clips. Run 17 afterward to update the stills. The last three commands replace existing website media.</p>
+<p class="zh">示例 16 更新保存的位姿文件，但不会自动生成网页视频。要展示跟踪位姿，先在 <code>outputs/</code> 中重新合成瓶子视频，再重绘 Bridge 与 xArm 的网页片段，最后用 17 更新静帧。后三条命令会替换现有网页素材。</p>
+<pre><code>python examples/13_known_mesh_place.py compose
+python examples/14_bridge_tasks.py redraw
+python examples/15_xarm_cube.py redraw
+python examples/17_virtual_grasp.py</code></pre>
+<div class="grasp-board">
+<figure class="docs-shot wide grasp-still">
+<img decoding="async" loading="lazy" alt="Top grasp drawn on the estimated carrot pose" class="en" height="720" src="../demo/robot/carrot_grasp_en.jpg?v=4" width="960"/>
+<img decoding="async" loading="lazy" alt="用估计出的胡萝卜位姿画出的从上往下的抓取" class="zh" height="720" src="../demo/robot/carrot_grasp.jpg?v=4" width="960"/>
+<figcaption><span class="en">Carrot, first frame. Cyan visualizes the scripted grasp on the estimated pose.</span><span class="zh">胡萝卜首帧：青色将脚本中的抓取位置画在估计位姿上。</span></figcaption>
+</figure>
+<figure class="docs-shot wide grasp-still">
+<img decoding="async" loading="lazy" alt="Top grasp drawn on the estimated eggplant pose" class="en" height="720" src="../demo/robot/eggplant_grasp_en.jpg?v=4" width="960"/>
+<img decoding="async" loading="lazy" alt="用估计出的茄子位姿画出的从上往下的抓取" class="zh" height="720" src="../demo/robot/eggplant_grasp.jpg?v=4" width="960"/>
+<figcaption><span class="en">Eggplant, first frame: the pose is estimated from the 167-pixel color mask visible under arm occlusion.</span><span class="zh">茄子首帧：根据机械臂遮挡下可见的 167 像素颜色掩码估计位姿。</span></figcaption>
+</figure>
+<figure class="docs-shot wide grasp-still">
+<img decoding="async" loading="lazy" alt="Top grasp drawn on the estimated cube pose" class="en" height="720" src="../demo/robot/xarm_cube_grasp_en.jpg?v=4" width="960"/>
+<img decoding="async" loading="lazy" alt="用估计出的方块位姿画出的从上往下的抓取" class="zh" height="720" src="../demo/robot/xarm_cube_grasp.jpg?v=4" width="960"/>
+<figcaption><span class="en">Cube, first frame. Cyan visualizes the scripted grasp on the estimated pose.</span><span class="zh">方块首帧：青色将脚本中的抓取位置画在估计位姿上。</span></figcaption>
+</figure>
+<figure class="docs-shot wide grasp-play">
+<video preload="none" class="en" controls="" data-autoplay="1" height="720" loop="" muted="" playsinline="" poster="../demo/robot/carrot_grasp_en.jpg?v=4" width="960">
+<source data-src="../demo/robot/carrot_en.mp4?v=7" type="video/mp4"/>
+</video>
+<video preload="none" class="zh" controls="" data-autoplay="1" height="720" loop="" muted="" playsinline="" poster="../demo/robot/carrot_grasp.jpg?v=4" width="960">
+<source data-src="../demo/robot/carrot.mp4?v=7" type="video/mp4"/>
+</video>
+<figcaption><span class="en">WidowX grasp and placement: the actual grasp uses the frame-0 estimated pose, then the carrot is placed on the plate.</span><span class="zh">WidowX 抓取与放置：实际抓取使用第 0 帧估计位姿，随后将胡萝卜放到盘子上。</span></figcaption>
+</figure>
+<figure class="docs-shot wide grasp-play">
+<video preload="none" class="en" controls="" data-autoplay="1" height="720" loop="" muted="" playsinline="" poster="../demo/robot/eggplant_grasp_en.jpg?v=4" width="960">
+<source data-src="../demo/robot/eggplant_en.mp4?v=7" type="video/mp4"/>
+</video>
+<video preload="none" class="zh" controls="" data-autoplay="1" height="720" loop="" muted="" playsinline="" poster="../demo/robot/eggplant_grasp.jpg?v=4" width="960">
+<source data-src="../demo/robot/eggplant.mp4?v=7" type="video/mp4"/>
+</video>
+<figcaption><span class="en">WidowX grasp and placement: the actual grasp uses the frame-0 estimated pose, then the eggplant is placed in the sink basket.</span><span class="zh">WidowX 抓取与放置：实际抓取使用第 0 帧估计位姿，随后将茄子放进水槽篮子。</span></figcaption>
+</figure>
+<figure class="docs-shot wide grasp-play">
+<video preload="none" class="en" controls="" data-autoplay="1" height="720" loop="" muted="" playsinline="" poster="../demo/robot/xarm_cube_grasp_en.jpg?v=4" width="960">
+<source data-src="../demo/robot/xarm_cube_en.mp4?v=7" type="video/mp4"/>
+</video>
+<video preload="none" class="zh" controls="" data-autoplay="1" height="720" loop="" muted="" playsinline="" poster="../demo/robot/xarm_cube_grasp.jpg?v=4" width="960">
+<source data-src="../demo/robot/xarm_cube.mp4?v=7" type="video/mp4"/>
+</video>
+<figcaption><span class="en">xArm6 grasp and placement: the grasp center comes from the frame-0 estimate; the gripper closes along world +Y, then sets down the cube.</span><span class="zh">xArm6 抓取与放置：抓取中心来自第 0 帧估计，夹爪沿世界 +Y 合拢，随后放下方块。</span></figcaption>
+</figure>
+</div>
+<section aria-label="References and licenses / 参考文献与许可" class="license-notes"><h2 data-inline-section="true"><span class="en">References and licenses</span><span class="zh">参考文献与许可</span></h2><ol><li id="license-dinov2"><strong>DINOv2 — Apache-2.0</strong>. <span><span class="en">Code and official DINOv2 weights; retain copyright and license.</span><span class="zh">源码与官方 DINOv2 权重；保留版权和许可。</span></span> · <a href="https://github.com/facebookresearch/dinov2"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/dinov2/LICENSE"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a><div class="reference-citation">Oquab et al. DINOv2: Learning Robust Visual Features without Supervision. arXiv:2304.07193, 2023. · <a href="https://arxiv.org/abs/2304.07193"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-dinov2-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-dinov2-ref-zh" role="doc-backlink">↩</a></div></li><li id="license-package-mani-skill"><strong>mani-skill — Apache-2.0</strong>. <span><span class="en">Runtime dependency; source license verified against the preserved LICENSE, with upstream copyright and third-party notices retained. Model/data assets keep separate terms.</span><span class="zh">运行依赖；源码许可按已保留的 LICENSE 原文核实；保留上游版权及第三方声明，模型与数据资源另有条款。</span></span> · <a href="https://github.com/mani-skill/ManiSkill"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/package-mani-skill/LICENSE"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a> · <a href="licenses/package-mani-skill/LICENSE-3RD-PARTY"><span class="en">License/notice 2</span><span class="zh">许可/声明 2</span></a><div class="reference-citation">Tao et al. ManiSkill3: GPU Parallelized Robotics Simulation and Rendering for Generalizable Embodied AI. RSS 2025. · <a href="https://arxiv.org/abs/2410.00425"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-package-mani-skill-ref-en-table-1" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-package-mani-skill-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-package-mani-skill-ref-zh-table-1" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-package-mani-skill-ref-zh" role="doc-backlink">↩</a></div></li><li id="reference-bridge-data"><strong>BridgeData V2</strong> · <a href="https://rail-berkeley.github.io/bridgedata/"><span class="en">Original source</span><span class="zh">原始来源</span></a> · <a href="https://github.com/rail-berkeley/bridge_data_v2"><span class="en">GitHub</span><span class="zh">GitHub</span></a><div class="reference-citation">Walke et al. BridgeData V2: A Dataset for Robot Learning at Scale. arXiv:2308.12952, 2023. · <a href="https://arxiv.org/abs/2308.12952"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#reference-bridge-data-ref-en-table-1" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#reference-bridge-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#reference-bridge-data-ref-zh-table-1" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#reference-bridge-data-ref-zh" role="doc-backlink">↩</a></div></li></ol><p><span class="en">Model weights and dataset/task assets may have separate terms. WAPR's source license does not replace them.</span><span class="zh">模型权重、数据集与任务资源可能有独立条款；WAPR 源码许可不替代这些许可。</span></p></section><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="bottom"><a href="applications-reconstruct.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></strong></a><a href="credits.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Acknowledgments and references</span><span class="zh">致谢与参考资料</span></strong></a></nav><footer class="site-author">© 2026 <a href="credits.html#authorship">Yulin Wang</a> · <span><span class="en">Code and website author</span><span class="zh">代码与网站作者</span></span></footer></main>
+</div>
+<script src="../assets/lang.js"></script>
+<script src="nav.js?v=34"></script>
+<script src="media.js?v=20261006-perf1"></script><script src="../assets/table-layout.js?v=1"></script></body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+
+<!--
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Custom data — WAPR docs</title>
+<meta name="description" content="WAPR input requirements for custom RGB-D captures: camera intrinsics, metric object meshes, masks or boxes, depth units and example usage."/>
+<link rel="canonical" href="https://wangyulin-seu.github.io/WAPR/docs/data-own.html"/>
+<meta property="og:title" content="Custom data — WAPR docs"/>
+<meta property="og:description" content="WAPR input requirements for custom RGB-D captures: camera intrinsics, metric object meshes, masks or boxes, depth units and example usage."/>
+<meta property="og:url" content="https://wangyulin-seu.github.io/WAPR/docs/data-own.html"/>
+<meta property="og:type" content="website"/>
+
+<script>
+    (function () {
+      var lang = "en";
+      try { lang = localStorage.getItem("wapr-lang") === "zh" ? "zh" : "en"; } catch (e) {}
+      document.documentElement.setAttribute("data-lang", lang);
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    })();
+  </script>
+<link href="../assets/project.css?v=bar14" rel="stylesheet"/>
+<link href="docs.css?v=62" rel="stylesheet"/>
+<link href="../favicon.ico?v=11" rel="icon" type="image/x-icon"/>
+<link href="../assets/wapr-icon-32.png?v=11" rel="icon" sizes="32x32" type="image/png"/>
+<link href="../assets/wapr-icon-180.png?v=11" rel="apple-touch-icon" sizes="180x180"/>
+<link href="../assets/table-layout.css?v=1" rel="stylesheet"/><script src="section-routes.js?v=59"></script><link href="data-sixd-loc.html" rel="prev"/><link href="det2d.html" rel="next"/><link rel="stylesheet" href="../assets/github-docs.css?v=3"/>
+<script src="../assets/site-runtime.js?v=1"></script>
+</head>
+<body class="project docs" data-title-en="Custom data — WAPR docs" data-title-zh="自定义数据 — WAPR 文档">
+<div aria-hidden="true" class="mast-spacer"></div>
+<header class="mast">
+<a class="mast-hero-link" href="../index.html"><img alt="WAPR, wide-angle pose refinement" class="mast-hero" height="724" src="../assets/wapr-banner-1440.webp" srcset="../assets/wapr-banner-768.webp 768w, ../assets/wapr-banner-1440.webp 1440w, ../assets/wapr-banner-2172.webp 2172w" sizes="(max-width: 800px) 100vw, 1200px" fetchpriority="high" width="2172"/></a>
+<div aria-hidden="true" class="mast-scrim"></div>
+<div class="docs-top">
+<a class="docs-home" href="../index.html">WAPR</a>
+<nav aria-label="Site" class="docs-jump">
+<a href="../index.html"><span class="en">Home</span><span class="zh">主页</span></a>
+<a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"><span class="en">Paper</span><span class="zh">论文</span></a>
+<a href="https://github.com/WangYuLin-SEU/WAPR"><span class="en">Code</span><span class="zh">代码</span></a>
+</nav>
+<div class="lang-switch" role="group">
+<button data-set-lang="en" type="button">EN</button>
+<button data-set-lang="zh" type="button">中文</button>
+</div>
+</div>
+</header><script src="../assets/banner.js?v=18"></script>
+<div class="docs-shell">
+<nav aria-label="Documentation / 教程目录" class="docs-nav"><a href="index.html"><span class="en">Overview</span><span class="zh">概览</span></a><a class="sub" href="index-modules.html"><span class="en">How the modules work together</span><span class="zh">模块如何衔接</span></a><a class="sub" href="index-routes.html"><span class="en">Choose a route for your scene</span><span class="zh">根据场景选择入口</span></a><a class="sub" href="index-performance.html"><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></a><a class="sub" href="index-examples.html"><span class="en">Example overview</span><span class="zh">示例总览</span></a><a href="install.html"><span class="en">Installation</span><span class="zh">安装</span></a><a class="sub" href="install-guide.html"><span class="en">Installation guide</span><span class="zh">安装引导</span></a><a class="sub" href="install-core.html"><span class="en">Detection and pose setup</span><span class="zh">检测与位姿环境</span></a><a class="sub" href="install-extensions.html"><span class="en">Extension setup</span><span class="zh">扩展环境</span></a><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a><a class="sub" href="data-resources.html"><span class="en">Datasets and model resources</span><span class="zh">数据集与模型资源</span></a><a class="sub" href="data-bop-folder.html"><span class="en">Read the BOP sample</span><span class="zh">读取 BOP 示例数据</span></a><a class="sub" href="data-frame.html"><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></a><a class="sub" href="data-bop.html"><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></a><a class="sub" href="data-sixd-loc.html"><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></a><a aria-current="page" class="sub" href="data-own.html"><span class="en">Custom data</span><span class="zh">自定义数据</span></a><a href="det2d.html"><span class="en">2D detection and segmentation</span><span class="zh">2D 检测与分割</span></a><a class="sub" href="det2d-templates.html"><span class="en">CAD templates and feature encoding</span><span class="zh">CAD 模板与特征编码</span></a><a class="sub" href="det2d-call.html"><span class="en">Detector usage and evaluation</span><span class="zh">检测器使用与评估</span></a><a href="pose.html"><span class="en">6D pose tasks and interfaces</span><span class="zh">6D 位姿任务与接口</span></a><a class="sub" href="pose-one.html"><span class="en">One category, one instance</span><span class="zh">单类别、单实例</span></a><a class="sub" href="pose-loc.html"><span class="en">6D pose localization and detection</span><span class="zh">6D 位姿定位与检测</span></a><a class="sub" href="pose-track.html"><span class="en">6D pose tracking</span><span class="zh">6D 位姿跟踪</span></a><a class="sub" href="pose-backend-scaling.html"><span class="en">Inference and renderer scaling</span><span class="zh">推理与渲染后端性能</span></a><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a><a class="sub" href="applications-robi.html"><span class="en">ROBI detection experiments</span><span class="zh">ROBI 检测实验</span></a><a class="sub" href="applications-ycbineoat.html"><span class="en">YCBInEOAT single-object pose tracking</span><span class="zh">YCBInEOAT 单物体位姿跟踪</span></a><a class="sub" href="applications-taco.html"><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></a><a class="sub" href="applications-reconstruct.html"><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></a><a class="sub" href="applications-robot.html"><span class="en">Robot simulation</span><span class="zh">机器人仿真</span></a><a href="credits.html"><span class="en">Acknowledgments and references</span><span class="zh">致谢与参考资料</span></a></nav>
+<main class="docs-main"><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="top"><a href="data-sixd-loc.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></strong></a><a href="det2d.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">2D detection and segmentation</span><span class="zh">2D 检测与分割</span></strong></a></nav><nav aria-label="Breadcrumb / 章节路径" class="docs-breadcrumb"><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a></nav><h1 id="own"><img class="sec-icon" src="../assets/readme/icons/citation.svg" width="24" height="24" alt="" aria-hidden="true"/> <span class="en">Custom data</span><span class="zh">自定义数据</span></h1>
+<p class="en">For pose estimation, provide RGB-D, camera intrinsics, a metric mesh and a mask or box. The integrated detector can obtain regions when none are supplied. Depth and mesh coordinates use meters; camera intrinsics use pixels.</p>
+<p class="zh">位姿估计需要 RGB-D、相机内参、米制网格及 mask 或框。未提供区域时可使用一体化检测器。深度与网格坐标单位为米，相机内参单位为像素。</p>
+
+<p class="en">To use your own capture, provide an RGB image, depth, camera intrinsics and the CAD meshes to search for. <code>load_scene</code> reads these inputs from a folder; the detector predicts instance regions and the pose estimator processes all candidates from the frame in batches.</p>
+<p class="zh">接入自己的采集数据时，准备 RGB 图像、深度、相机内参和需要识别的 CAD 网格。<code>load_scene</code> 从目录读取这些输入；检测器预测实例区域，位姿估计器对同帧候选批量推理。</p>
+<p class="en">This page uses <code>samples/own_block</code>: HCCEPose RGB-D frame <code>000003</code>, captured with an iHawk100R RGB-D camera (<a href="https://berxel.com/cn/p100r.html">manufacturer's product page</a>), with several white printed wedges and one supplied <code>demo-bin-picking</code> object-1 mesh. One CAD category corresponds to multiple instances. The mesh is supplied directly; this example performs detection and pose estimation.</p>
+<p class="zh">本页使用 <code>samples/own_block</code>：HCCEPose 使用 iHawk100R RGB-D 相机采集的第 <code>000003</code> 帧（<a href="https://berxel.com/cn/p100r.html">厂商产品页面</a>），其中有多只白色打印三角块，并提供一份 <code>demo-bin-picking</code> 物体 1 网格。一份 CAD 类别对应多个实例，直接用已提供的网格进行检测与位姿估计。</p>
+<p class="en">The author's approximate camera prices are CNY 250 (US$37) used and CNY 1,000 (US$149) new. USD equivalents use the <a href="https://wise.com/au/currency-converter/usd-to-cny-rate/history/05-10-2026">5 October 2026 reference rate</a> of approximately CNY 6.705 per US dollar.</p>
+<p class="zh">作者提供的相机参考价格为：二手约人民币 250 元（约 37 美元），全新约人民币 1,000 元（约 149 美元）。美元按 <a href="https://wise.com/au/currency-converter/usd-to-cny-rate/history/05-10-2026">2026-10-05 参考汇率</a> 1 美元约合 6.705 元人民币换算。</p>
+<figure class="docs-shot rgbd-input">
+<img alt="Custom wedge frame 000003: RGB and metric depth with a horizontal colorbar / 自定义三角块第 000003 帧：RGB 与米制深度及水平色条" decoding="async" height="750" loading="lazy" src="figures/guide_own_block_rgbd.png?v=1" width="1800"/>
+<figcaption><span class="en">Wedge frame 000003: RGB and metric depth.</span><span class="zh">三角块第 000003 帧的 RGB 与米制深度。</span></figcaption>
+</figure><div class="figure-notes"><p class="en">Wedge capture, frame <code>000003</code>: RGB on the left and its depth on the right, on the same 400 × 640 pixel grid. The colorbar reports distance along the camera's optical axis in meters, spanning all valid depths in this frame (0.301–0.662 m): purple is nearer, yellow is farther, and black indicates missing or invalid depth. The source PNG uses millimeters; <code>load_scene</code> applies <code>depth_scale = 1</code> and divides by 1000. Camera intrinsics and the object mesh model are supplied separately; the predicted detections and poses are shown below.</p><p class="zh">三角块实拍第 <code>000003</code> 帧：左侧为 RGB，右侧为对应深度，两者使用相同的 400 × 640 像素网格。色条表示沿相机光轴方向的距离，单位为米，覆盖本帧全部有效深度（0.301–0.662 米）：紫色较近、黄色较远，黑色表示缺失或无效深度。原始 PNG 的单位为毫米，<code>load_scene</code> 按 <code>depth_scale = 1</code> 读取后除以 1000。相机内参与物体网格模型另行提供；下方展示检测与位姿预测结果。</p></div>
+<h2 data-inline-section="" id="own-files"><span class="en">Input files</span><span class="zh">输入文件</span></h2>
+<pre><code>my_scene/
+├── rgb.png
+├── depth.png
+├── camera.json
+├── objects.json
+└── models/
+    └── wedge.ply</code></pre>
+<p class="en">Provide a mesh in the units declared by <code>mesh_unit</code>. Use the object’s model diameter for <code>diameter_mm</code> when available; the loader otherwise uses the mesh-bounds diagonal. The detector renders CAD templates from this mesh, so its geometry should represent the object to be recognized.</p>
+<p class="zh">网格单位须与 <code>mesh_unit</code> 一致。已有模型直径时，在 <code>diameter_mm</code> 中填写；省略时，读取器使用网格包围盒对角线。检测器根据这份网格渲染 CAD 模板，因此网格几何应对应需要识别的物体。</p>
+<p class="en">Provide an RGB image, a depth image or meter-valued <code>depth.npy</code>, <code>camera.json</code>, <code>objects.json</code>, and the meshes referenced by the object list. The two JSON files from <code>samples/own_block</code> are shown below. Rotational symmetry is defined with the mesh preparation rather than in this frame manifest.</p>
+<p class="zh">每帧需提供 RGB 图像、深度图或已换算为米的 <code>depth.npy</code>、<code>camera.json</code>、<code>objects.json</code>，以及物体列表引用的网格。下面列出 <code>samples/own_block</code> 的两份 JSON。旋转对称性在网格准备阶段定义，不放在这份帧清单里。</p>
+<p class="en"><code>camera.json</code>. <code>fx</code>, <code>fy</code>, <code>cx</code>, <code>cy</code> are pixels. The depth png times <code>depth_scale</code> is millimeters. Here <code>depth_scale</code> is 1, so the png values are already millimeters. The loader then divides by 1000 and passes meters to the pose call.</p>
+<p class="zh"><code>camera.json</code>。<code>fx</code>、<code>fy</code>、<code>cx</code>、<code>cy</code> 是像素。深度 png 乘 <code>depth_scale</code> 是毫米。这里 <code>depth_scale</code> 是 1，所以 png 里的数已经是毫米。读取器再除以 1000，送给位姿调用的是米。</p>
+<pre><code>{
+  "fx": 390.9188, "fy": 390.9188, "cx": 318.9914, "cy": 202.7166, "depth_scale": 1.0
+}</code></pre>
+<p class="en"><code>objects.json</code>. <code>mesh_unit</code> is <code>"mm"</code> or <code>"m"</code>. This wedge ply is millimeters, so the loader multiplies its vertices by 0.001. One entry defines one class. <code>file</code> is resolved relative to <code>scene_dir</code>; <code>models/wedge.ply</code> points to the mesh inside this scene folder. <code>diameter_mm</code> may be omitted, in which case the loader uses the mesh-bounds diagonal. The wedge entry retains the 118.322 mm diameter provided by HCCEPose.</p>
+<p class="zh"><code>objects.json</code> 的 <code>mesh_unit</code> 取 <code>"mm"</code> 或 <code>"m"</code>。这份三角块 ply 以毫米计，读取器将顶点乘以 0.001。一条记录定义一个类别。<code>file</code> 相对 <code>scene_dir</code> 解析；<code>models/wedge.ply</code> 指向该场景目录内的网格。<code>diameter_mm</code> 可以省略，此时读取器采用网格包围盒对角线。三角块记录保留 HCCEPose 给出的 118.322 mm 直径。</p>
+<pre><code>{
+  "mesh_unit": "mm",
+  "objects": [
+    {"id": 1, "name": "wedge", "file": "models/wedge.ply", "diameter_mm": 118.322}
+  ]
+}</code></pre>
+<h2 data-inline-section="" id="own-run"><span class="en">Run the example</span><span class="zh">运行示例</span></h2>
+<p class="en">Example <code>examples/06_custom_scene.py</code> defaults to <code>samples/own_lmo</code>. On its first run, it downloads the LM-O<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: LM-O" href="#license-lmo-data" id="license-lmo-data-ref-en" role="doc-noteref">[2]</a></sup> sample if needed and creates this custom folder from scene 2, frame 307, referencing the eight downloaded CADs. To use your own capture, prepare the input files shown above and set <code>scene_dir</code> to their folder. The wedge capture illustrated on this page is not included in the downloadable sample packs; using <code>samples/own_block</code> requires supplying its RGB-D frame and mesh. Leave <code>template_path</code> empty to build the CAD template bank in GPU memory; set a path to save and reuse the bank.</p>
+<p class="zh">示例 <code>examples/06_custom_scene.py</code> 默认读取 <code>samples/own_lmo</code>。首次运行时，按需下载 LM-O<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: LM-O" href="#license-lmo-data" id="license-lmo-data-ref-zh" role="doc-noteref">[2]</a></sup> 小样，并用场景 2 第 307 帧生成这个自定义目录，引用已下载的八份 CAD。接入自己的采集数据时，按上方格式准备输入文件，将 <code>scene_dir</code> 改为对应目录。本页展示的三角块实拍数据不包含在可下载小样包中；使用 <code>samples/own_block</code> 需提供其 RGB-D 图像与网格。<code>template_path</code> 留空时在显存中建立 CAD 模板库；需要保存并复用模板库时再填写路径。</p>
+<p class="en">A separate timing run uses this wedge input on RTX 5090, OpenGL + TensorRT<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: tensorrt-cu12" href="#license-package-tensorrt-cu12" id="license-package-tensorrt-cu12-ref-en" role="doc-noteref">[1]</a></sup> FP16, with twelve hypotheses per region, three WAPR updates and two SAPR updates. Three complete warmups precede ten CUDA-synchronized calls with resident CAD meshes: median 2D detection 190.4 ms, pose stage 130.4 ms and complete detection-to-pose call 324.0 ms for ten input regions. The continuous total includes result assembly and per-frame transfers; it excludes loading, template/CAD preparation, warmup, drawing and final pose NMS. The interactive view below illustrates the pose selection and NMS results.</p>
+<p class="zh">同一三角块输入另行在 RTX 5090、OpenGL + TensorRT<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: tensorrt-cu12" href="#license-package-tensorrt-cu12" id="license-package-tensorrt-cu12-ref-zh" role="doc-noteref">[1]</a></sup> FP16 下测速，每区域十二个候选姿态，三次 WAPR 更新及两次 SAPR 更新。CAD 提前准备并驻留，三次完整预热后进行十次 CUDA 同步调用：十个输入区域的 2D 检测中位数为 190.4 毫秒，位姿阶段 130.4 毫秒，检测到位姿的连续调用合计 324.0 毫秒。合计包含结果整理及逐帧传输，不含加载、模板与 CAD 准备、预热、绘图及最终位姿 NMS。下方交互视图展示位姿筛选与 NMS 结果。</p>
+<p class="en">For the wedge input, set scene_dir to "samples/own_block" in example 06. The Out excerpt is the recorded input-shape line for that choice; inference logs continue with dictionaries containing obj_id, name, score_2d and score_6d. No hand-rounded pose rows are shown as stdout.</p><p class="zh">三角块输入需在示例 06 中将 scene_dir 设为 "samples/own_block"。Out 摘录为该设置下已记录的输入形状行；推理日志随后打印含 obj_id、name、score_2d 与 score_6d 的字典，不将手工四舍五入的位姿行展示为标准输出。</p>
+<div class="nb-cell">
+<div class="nb-in">
+<span class="nb-prompt">In [12]</span>
+<pre data-example="examples/06_custom_scene.py" data-example-lines="106:107"><code>rgb, depth_m, K, meshes, names = load_scene(scene_dir)
+print("rgb", tuple(rgb.shape), "depth_m", tuple(depth_m.shape), "K", tuple(K.shape), "classes", names, flush=True)</code></pre><p class="nb-source"><span class="en">Source: examples/06_custom_scene.py, lines 106–107</span><span class="zh">代码来源：examples/06_custom_scene.py，第 106–107 行</span></p><pre data-example="examples/06_custom_scene.py" data-example-lines="127:137"><code>mesh_only = {obj_id: pair[0] for obj_id, pair in meshes.items()}
+if template_path:
+    onboard_meshes(mesh_only, template_path, device=device)
+    template = template_path
+else:
+    template = onboard_meshes(mesh_only, "", device=device)
+detector = WAPRDet2D(template, device=device, backend=det_backend)
+estimator = WAPREstimator(device=device)
+prepared = estimator.prepare_meshes([pair[0] for pair in meshes.values()])
+mesh_setup_seconds = estimator.last_mesh_setup_seconds
+pose_meshes = {obj_id: (mesh, pair[1]) for (obj_id, pair), mesh in zip(meshes.items(), prepared)}</code></pre><p class="nb-source"><span class="en">Source: examples/06_custom_scene.py, lines 127–137</span><span class="zh">代码来源：examples/06_custom_scene.py，第 127–137 行</span></p><pre data-example="examples/06_custom_scene.py" data-example-lines="140:161"><code>poses, timing, detections = estimate_frame_many_categories_many_instances(estimator, detector, rgb, depth_m, K, pose_meshes)
+print("POSE_TIMING", timing, "model_setup_seconds", estimator.model_setup_seconds,
+      "initial_mesh_setup_seconds", mesh_setup_seconds, flush=True)
+print("det_ms", timing["total_ms"], "detections", len(detections), "instances", len(poses), flush=True)
+if visualize_det:
+    preview_detections = sorted(detections, key=lambda row: -float(row["score_2d"]))[:preview_top_k]
+    print("2d_preview", len(preview_detections), "of", len(detections), flush=True)
+    visualize_2d_detection(rgb, preview_detections, names=names, image=True, filename="custom_scene_det.jpg")
+rows = []
+for pose in poses:
+    row = dict(pose)
+    row["mesh"] = meshes[int(pose["obj_id"])][0]
+    print(
+        {
+            "obj_id": pose["obj_id"],
+            "name": pose.get("name", names.get(int(pose["obj_id"]), "")),
+            "score_2d": pose["score_2d"],
+            "score_6d": pose["score_6d"],
+        },
+        flush=True,
+    )
+    rows.append(row)</code></pre><p class="nb-source"><span class="en">Source: examples/06_custom_scene.py, lines 140–161</span><span class="zh">代码来源：examples/06_custom_scene.py，第 140–161 行</span></p></div>
+<div class="nb-out">
+<span class="nb-prompt">Out [12]</span>
+<div>
+<pre class="nb-text" data-example-output="figures/example_06_shape_stdout.txt">rgb (400, 640, 3) depth_m (400, 640) K (3, 3) classes {1: 'wedge'}</pre><p class="nb-source"><span><span class="en">Captured stdout excerpt · </span><span class="zh">已保存标准输出摘录 · </span></span></p>
+<div class="own-stage" id="own-stage">
+<div class="own-photo">
+<canvas id="own-image"></canvas>
+</div>
+<div class="own-cloud">
+<canvas id="own-cloud"></canvas>
+</div>
+<div class="own-chips" id="own-chips"></div>
+</div>
+<p class="nb-cap"><span class="en">Above, the frame. Below, the saved poses on the sensor depth.</span><span class="zh">上面是这一帧，下面是保存的位姿叠在传感器深度上。</span></p>
+<div class="figure-notes"><p class="en">This view selects nine of ten candidates, omitting the lowest-score candidate (0.432). GPU rendered-mask NMS removes two duplicates, leaving seven displayed poses. Mask IoU above 0.5 suppresses the lower WBPS score; this postprocessing is excluded from the independent timings above. The GPU mask NMS implementation is in <code>wapr.suppression</code>. Each chip and the selected photo label show the original instance index, 2D detection score and 6D pose score; the 6D score uses three decimal places. Click a chip, a box on the photo, or a mesh in the view. The chosen wedge is the red box and the bright mesh. This capture has no pose label. These saved predictions use 4 views, 3 in-plane rotations, 3 WAPR updates and 2 SAPR updates. The measurements above process ten input regions before this view’s filtering. Drag the view to orbit the instance you clicked. Several copies of one object stay separate. Scroll to zoom.</p><p class="zh">交互视图从十条候选中选取九条，略去分数最低的 0.432 候选；GPU 渲染 mask NMS 去掉两个重复项，保留七个位姿：mask IoU 大于 0.5 时抑制 WBPS 分数较低者；这一后处理不计入上方独立测速。该筛选使用 <code>wapr.suppression</code> 中的 GPU mask NMS。每个控件与图上选中实例的标签同时显示原始实例序号、2D 检测分数和 6D 位姿分数；6D 分数保留三位小数。点一个控件、照片上的一个框，或视图里的一块网格。选中的三角块是红框和亮着的网格。这次采集没有位姿标注，保存的预测使用 4 个视角、3 个平面内旋转、3 次 WAPR 更新与 2 次 SAPR 更新。上方测速处理筛选前的十个输入区域。拖动视图时绕你点中的那一个实例转，同一物体的多份实例分别显示，滚轮缩放。</p></div>
+</div>
+</div>
+</div>
+<section aria-label="References and licenses / 参考文献与许可" class="license-notes"><h2 data-inline-section="true"><span class="en">References and licenses</span><span class="zh">参考文献与许可</span></h2><ol><li id="license-package-tensorrt-cu12"><strong>tensorrt-cu12 — Other/Proprietary License</strong>. <span><span class="en">Runtime dependency; dependencies and model/data assets retain their own licenses.</span><span class="zh">运行依赖；依赖及模型/数据资源保留各自许可。</span></span> · <a href="https://github.com/nvidia/tensorrt"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/package-tensorrt-cu12/LICENSE.txt"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a> <a aria-label="Back to mention / 返回正文" href="#license-package-tensorrt-cu12-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-package-tensorrt-cu12-ref-zh" role="doc-backlink">↩</a></li><li id="license-lmo-data"><strong>LM-O data — CC-BY-SA-4.0</strong>. <span><span class="en">Data and model excerpt, not the loader code.</span><span class="zh">数据与模型摘录，不是读取代码。</span></span> · <a href="https://bop.felk.cvut.cz/datasets/#LM-O"><span class="en">Original source</span><span class="zh">原始来源</span></a> · <a href="https://github.com/thodan/bop_toolkit"><span class="en">GitHub: BOP toolkit</span><span class="zh">GitHub：BOP 工具集</span></a><div class="reference-citation">Brachmann et al. Learning 6D Object Pose Estimation Using 3D Object Coordinates. ECCV 2014. · <a href="https://doi.org/10.1007/978-3-319-10605-2_35"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-lmo-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-lmo-data-ref-zh" role="doc-backlink">↩</a></div></li></ol><p><span class="en">Model weights and dataset/task assets may have separate terms. WAPR's source license does not replace them.</span><span class="zh">模型权重、数据集与任务资源可能有独立条款；WAPR 源码许可不替代这些许可。</span></p></section><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="bottom"><a href="data-sixd-loc.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></strong></a><a href="det2d.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">2D detection and segmentation</span><span class="zh">2D 检测与分割</span></strong></a></nav><footer class="site-author">© 2026 <a href="credits.html#authorship">Yulin Wang</a> · <span><span class="en">Code and website author</span><span class="zh">代码与网站作者</span></span></footer></main>
+</div>
+<script src="../assets/lang.js"></script>
+<script src="nav.js?v=34"></script>
+<script src="../assets/three.min.js"></script>
+<script src="../assets/studio_grid.js?v=2"></script>
+<script src="own_view.js?v=20261006-perf1"></script>
+<script src="../assets/table-layout.js?v=1"></script></body>
+</html>

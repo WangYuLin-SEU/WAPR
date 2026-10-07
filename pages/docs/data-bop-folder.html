@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+
+
+<!--
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Read the BOP sample — WAPR docs</title>
+<script>
+    (function () {
+      var lang = "en";
+      try { lang = localStorage.getItem("wapr-lang") === "zh" ? "zh" : "en"; } catch (e) {}
+      document.documentElement.setAttribute("data-lang", lang);
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    })();
+  </script>
+<link href="../assets/project.css?v=bar14" rel="stylesheet"/>
+<link href="docs.css?v=62" rel="stylesheet"/>
+<link href="../favicon.ico?v=11" rel="icon" type="image/x-icon"/>
+<link href="../assets/wapr-icon-32.png?v=11" rel="icon" sizes="32x32" type="image/png"/>
+<link href="../assets/wapr-icon-180.png?v=11" rel="apple-touch-icon" sizes="180x180"/>
+<link href="../assets/table-layout.css?v=1" rel="stylesheet"/><script src="section-routes.js?v=59"></script><link href="data-resources.html" rel="prev"/><link href="data-frame.html" rel="next"/><link rel="stylesheet" href="../assets/github-docs.css?v=3"/>
+<script src="../assets/site-runtime.js?v=1"></script>
+</head>
+<body class="project docs" data-title-en="Read the BOP sample — WAPR docs" data-title-zh="读取 BOP 示例数据 — WAPR 文档">
+<div aria-hidden="true" class="mast-spacer"></div>
+<header class="mast">
+<a class="mast-hero-link" href="../index.html"><img alt="WAPR, wide-angle pose refinement" class="mast-hero" height="724" src="../assets/wapr-banner-1440.webp" srcset="../assets/wapr-banner-768.webp 768w, ../assets/wapr-banner-1440.webp 1440w, ../assets/wapr-banner-2172.webp 2172w" sizes="(max-width: 800px) 100vw, 1200px" fetchpriority="high" width="2172"/></a>
+<div aria-hidden="true" class="mast-scrim"></div>
+<div class="docs-top">
+<a class="docs-home" href="../index.html">WAPR</a>
+<nav aria-label="Site" class="docs-jump">
+<a href="../index.html"><span class="en">Home</span><span class="zh">主页</span></a>
+<a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"><span class="en">Paper</span><span class="zh">论文</span></a>
+<a href="https://github.com/WangYuLin-SEU/WAPR"><span class="en">Code</span><span class="zh">代码</span></a>
+</nav>
+<div class="lang-switch" role="group">
+<button data-set-lang="en" type="button">EN</button>
+<button data-set-lang="zh" type="button">中文</button>
+</div>
+</div>
+</header><script src="../assets/banner.js?v=18"></script>
+<div class="docs-shell">
+<nav aria-label="Documentation / 教程目录" class="docs-nav"><a href="index.html"><span class="en">Overview</span><span class="zh">概览</span></a><a class="sub" href="index-modules.html"><span class="en">How the modules work together</span><span class="zh">模块如何衔接</span></a><a class="sub" href="index-routes.html"><span class="en">Choose a route for your scene</span><span class="zh">根据场景选择入口</span></a><a class="sub" href="index-performance.html"><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></a><a class="sub" href="index-examples.html"><span class="en">Example overview</span><span class="zh">示例总览</span></a><a href="install.html"><span class="en">Installation</span><span class="zh">安装</span></a><a class="sub" href="install-guide.html"><span class="en">Installation guide</span><span class="zh">安装引导</span></a><a class="sub" href="install-core.html"><span class="en">Detection and pose setup</span><span class="zh">检测与位姿环境</span></a><a class="sub" href="install-extensions.html"><span class="en">Extension setup</span><span class="zh">扩展环境</span></a><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a><a class="sub" href="data-resources.html"><span class="en">Datasets and model resources</span><span class="zh">数据集与模型资源</span></a><a aria-current="page" class="sub" href="data-bop-folder.html"><span class="en">Read the BOP sample</span><span class="zh">读取 BOP 示例数据</span></a><a class="sub" href="data-frame.html"><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></a><a class="sub" href="data-bop.html"><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></a><a class="sub" href="data-sixd-loc.html"><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></a><a class="sub" href="data-own.html"><span class="en">Custom data</span><span class="zh">自定义数据</span></a><a href="det2d.html"><span class="en">2D detection and segmentation</span><span class="zh">2D 检测与分割</span></a><a class="sub" href="det2d-templates.html"><span class="en">CAD templates and feature encoding</span><span class="zh">CAD 模板与特征编码</span></a><a class="sub" href="det2d-call.html"><span class="en">Detector usage and evaluation</span><span class="zh">检测器使用与评估</span></a><a href="pose.html"><span class="en">6D pose tasks and interfaces</span><span class="zh">6D 位姿任务与接口</span></a><a class="sub" href="pose-one.html"><span class="en">One category, one instance</span><span class="zh">单类别、单实例</span></a><a class="sub" href="pose-loc.html"><span class="en">6D pose localization and detection</span><span class="zh">6D 位姿定位与检测</span></a><a class="sub" href="pose-track.html"><span class="en">6D pose tracking</span><span class="zh">6D 位姿跟踪</span></a><a class="sub" href="pose-backend-scaling.html"><span class="en">Inference and renderer scaling</span><span class="zh">推理与渲染后端性能</span></a><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a><a class="sub" href="applications-robi.html"><span class="en">ROBI detection experiments</span><span class="zh">ROBI 检测实验</span></a><a class="sub" href="applications-ycbineoat.html"><span class="en">YCBInEOAT single-object pose tracking</span><span class="zh">YCBInEOAT 单物体位姿跟踪</span></a><a class="sub" href="applications-taco.html"><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></a><a class="sub" href="applications-reconstruct.html"><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></a><a class="sub" href="applications-robot.html"><span class="en">Robot simulation</span><span class="zh">机器人仿真</span></a><a href="credits.html"><span class="en">Acknowledgments and references</span><span class="zh">致谢与参考资料</span></a></nav>
+<main class="docs-main"><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="top"><a href="data-resources.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">Datasets and model resources</span><span class="zh">数据集与模型资源</span></strong></a><a href="data-frame.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></strong></a></nav><nav aria-label="Breadcrumb / 章节路径" class="docs-breadcrumb"><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a></nav><h1 id="bop-folder"><img class="sec-icon" src="../assets/readme/icons/multi.svg" width="24" height="24" alt="" aria-hidden="true"/> <span class="en">Read the BOP sample</span><span class="zh">读取 BOP 示例数据</span></h1>
+<p class="en">The small pack <code>samples/bop/lmo/</code> has the eight LM-O<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: LM-O data" href="#license-lmo-data" id="license-lmo-data-ref-en" role="doc-noteref">[1]</a></sup> meshes and two frames of scene 2, under <code>test/000002/</code>. Image 1 is the frame <code>examples/05_bop_6d_detection.py</code> reads. It is not a row of <code>test_targets_bop19.json</code>. Image 307 is a BOP test target, and <code>examples/04_6d_localization.py</code> reads it with one known count for each of the eight categories. The source snippets below read the CADs and image 307 in example 04. The reader does not look for a <code>.pt</code> file. It lists every <code>models/obj_######.ply</code> and takes the number in the file name as <code>obj_id</code>. The English word is the LM-O name for that id. The ply does not store it. <code>mesh</code> is the geometry loaded from that file.</p>
+<p class="zh">示例包 <code>samples/bop/lmo/</code> 里是 LM-O<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: LM-O data" href="#license-lmo-data" id="license-lmo-data-ref-zh" role="doc-noteref">[1]</a></sup> 的八个网格，以及场景 2 的两帧，在 <code>test/000002/</code>。第 1 帧是 <code>examples/05_bop_6d_detection.py</code> 读的那一帧，它不在 <code>test_targets_bop19.json</code> 里。第 307 帧是 BOP 测试目标，<code>examples/04_6d_localization.py</code> 读取的即是该帧，八个类别各有一个预先给定的数量。下方源码片段展示示例 04 中的 CAD 读取与第 307 帧加载。读取器不检索 <code>.pt</code>。它列出每一个 <code>models/obj_######.ply</code>，把文件名里的数字当成 <code>obj_id</code>。英文是 LM-O 给这个编号的名字，ply 里不存这个名字。<code>mesh</code> 是从该文件读入的网格。</p>
+<p class="en">In cells quote literal fragments from the examples' <code>if __name__ == "__main__":</code> blocks. Run the complete named script for its imports, recipe variables and stage order. Out text is a verbatim excerpt of saved stdout. Independent visualizations and benchmark records are presented separately.</p><p class="zh">In 单元摘录示例 <code>if __name__ == "__main__":</code> 块内的原文片段；导入、配置变量及完整阶段顺序见对应脚本。Out 文本为已保存标准输出的原样摘录；独立可视化与计时记录另行展示。</p>
+<pre><code>lmo/
+  models/obj_000001.ply
+  models/obj_000005.ply
+  models/obj_000006.ply
+  models/obj_000008.ply
+  models/obj_000009.ply
+  models/obj_000010.ply
+  models/obj_000011.ply
+  models/obj_000012.ply
+  models/models_info.json
+  test/000002/rgb/000001.png
+  test/000002/rgb/000307.png
+  test/000002/depth/000001.png
+  test/000002/depth/000307.png
+  test/000002/scene_camera.json
+  test/000002/scene_gt.json
+  cnos-fastsam_scene2_im307.json</code></pre>
+<div class="nb-cell">
+<div class="nb-in">
+<span class="nb-prompt">In [1]</span>
+<pre data-example="examples/04_6d_localization.py" data-example-lines="80:86"><code>mesh_only = {}
+meshes = {}
+for obj_id in obj_ids:
+    mesh, diameter_m = load_mesh_m(bop_path, dataset, obj_id)
+    mesh.metadata["name"] = str(object_names[obj_id])
+    mesh_only[obj_id] = mesh
+    meshes[obj_id] = (mesh, diameter_m)</code></pre><p class="nb-source"><span class="en">Source: examples/04_6d_localization.py, lines 80–86</span><span class="zh">代码来源：examples/04_6d_localization.py，第 80–86 行</span></p></div>
+</div>
+<section aria-label="References and licenses / 参考文献与许可" class="license-notes"><h2 data-inline-section="true"><span class="en">References and licenses</span><span class="zh">参考文献与许可</span></h2><ol><li id="license-lmo-data"><strong>LM-O data — CC-BY-SA-4.0</strong>. <span><span class="en">Data and model excerpt, not the loader code.</span><span class="zh">数据与模型摘录，不是读取代码。</span></span> · <a href="https://bop.felk.cvut.cz/datasets/#LM-O"><span class="en">Original source</span><span class="zh">原始来源</span></a> · <a href="https://github.com/thodan/bop_toolkit"><span class="en">GitHub: BOP toolkit</span><span class="zh">GitHub：BOP 工具集</span></a><div class="reference-citation">Brachmann et al. Learning 6D Object Pose Estimation Using 3D Object Coordinates. ECCV 2014. · <a href="https://doi.org/10.1007/978-3-319-10605-2_35"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-lmo-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-lmo-data-ref-zh" role="doc-backlink">↩</a></div></li></ol><p><span class="en">Model weights and dataset/task assets may have separate terms. WAPR's source license does not replace them.</span><span class="zh">模型权重、数据集与任务资源可能有独立条款；WAPR 源码许可不替代这些许可。</span></p></section><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="bottom"><a href="data-resources.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">Datasets and model resources</span><span class="zh">数据集与模型资源</span></strong></a><a href="data-frame.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></strong></a></nav><footer class="site-author">© 2026 <a href="credits.html#authorship">Yulin Wang</a> · <span><span class="en">Code and website author</span><span class="zh">代码与网站作者</span></span></footer></main>
+</div>
+<script src="../assets/lang.js"></script>
+<script src="nav.js?v=34"></script>
+<script src="../assets/three.min.js"></script>
+<script src="../assets/studio_grid.js?v=2"></script>
+<script src="own_view.js?v=20261006-perf1"></script>
+<script src="../assets/table-layout.js?v=1"></script></body>
+</html>

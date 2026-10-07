@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+
+
+<!--
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Load one RGB-D frame — WAPR docs</title>
+<script>
+    (function () {
+      var lang = "en";
+      try { lang = localStorage.getItem("wapr-lang") === "zh" ? "zh" : "en"; } catch (e) {}
+      document.documentElement.setAttribute("data-lang", lang);
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    })();
+  </script>
+<link href="../assets/project.css?v=bar14" rel="stylesheet"/>
+<link href="docs.css?v=62" rel="stylesheet"/>
+<link href="../favicon.ico?v=11" rel="icon" type="image/x-icon"/>
+<link href="../assets/wapr-icon-32.png?v=11" rel="icon" sizes="32x32" type="image/png"/>
+<link href="../assets/wapr-icon-180.png?v=11" rel="apple-touch-icon" sizes="180x180"/>
+<link href="../assets/table-layout.css?v=1" rel="stylesheet"/><script src="section-routes.js?v=59"></script><link href="data-bop-folder.html" rel="prev"/><link href="data-bop.html" rel="next"/><link rel="stylesheet" href="../assets/github-docs.css?v=3"/>
+<script src="../assets/site-runtime.js?v=1"></script>
+</head>
+<body class="project docs" data-title-en="Load one RGB-D frame — WAPR docs" data-title-zh="加载一帧 RGB-D — WAPR 文档">
+<div aria-hidden="true" class="mast-spacer"></div>
+<header class="mast">
+<a class="mast-hero-link" href="../index.html"><img alt="WAPR, wide-angle pose refinement" class="mast-hero" height="724" src="../assets/wapr-banner-1440.webp" srcset="../assets/wapr-banner-768.webp 768w, ../assets/wapr-banner-1440.webp 1440w, ../assets/wapr-banner-2172.webp 2172w" sizes="(max-width: 800px) 100vw, 1200px" fetchpriority="high" width="2172"/></a>
+<div aria-hidden="true" class="mast-scrim"></div>
+<div class="docs-top">
+<a class="docs-home" href="../index.html">WAPR</a>
+<nav aria-label="Site" class="docs-jump">
+<a href="../index.html"><span class="en">Home</span><span class="zh">主页</span></a>
+<a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"><span class="en">Paper</span><span class="zh">论文</span></a>
+<a href="https://github.com/WangYuLin-SEU/WAPR"><span class="en">Code</span><span class="zh">代码</span></a>
+</nav>
+<div class="lang-switch" role="group">
+<button data-set-lang="en" type="button">EN</button>
+<button data-set-lang="zh" type="button">中文</button>
+</div>
+</div>
+</header><script src="../assets/banner.js?v=18"></script>
+<div class="docs-shell">
+<nav aria-label="Documentation / 教程目录" class="docs-nav"><a href="index.html"><span class="en">Overview</span><span class="zh">概览</span></a><a class="sub" href="index-modules.html"><span class="en">How the modules work together</span><span class="zh">模块如何衔接</span></a><a class="sub" href="index-routes.html"><span class="en">Choose a route for your scene</span><span class="zh">根据场景选择入口</span></a><a class="sub" href="index-performance.html"><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></a><a class="sub" href="index-examples.html"><span class="en">Example overview</span><span class="zh">示例总览</span></a><a href="install.html"><span class="en">Installation</span><span class="zh">安装</span></a><a class="sub" href="install-guide.html"><span class="en">Installation guide</span><span class="zh">安装引导</span></a><a class="sub" href="install-core.html"><span class="en">Detection and pose setup</span><span class="zh">检测与位姿环境</span></a><a class="sub" href="install-extensions.html"><span class="en">Extension setup</span><span class="zh">扩展环境</span></a><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a><a class="sub" href="data-resources.html"><span class="en">Datasets and model resources</span><span class="zh">数据集与模型资源</span></a><a class="sub" href="data-bop-folder.html"><span class="en">Read the BOP sample</span><span class="zh">读取 BOP 示例数据</span></a><a aria-current="page" class="sub" href="data-frame.html"><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></a><a class="sub" href="data-bop.html"><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></a><a class="sub" href="data-sixd-loc.html"><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></a><a class="sub" href="data-own.html"><span class="en">Custom data</span><span class="zh">自定义数据</span></a><a href="det2d.html"><span class="en">2D detection and segmentation</span><span class="zh">2D 检测与分割</span></a><a class="sub" href="det2d-templates.html"><span class="en">CAD templates and feature encoding</span><span class="zh">CAD 模板与特征编码</span></a><a class="sub" href="det2d-call.html"><span class="en">Detector usage and evaluation</span><span class="zh">检测器使用与评估</span></a><a href="pose.html"><span class="en">6D pose tasks and interfaces</span><span class="zh">6D 位姿任务与接口</span></a><a class="sub" href="pose-one.html"><span class="en">One category, one instance</span><span class="zh">单类别、单实例</span></a><a class="sub" href="pose-loc.html"><span class="en">6D pose localization and detection</span><span class="zh">6D 位姿定位与检测</span></a><a class="sub" href="pose-track.html"><span class="en">6D pose tracking</span><span class="zh">6D 位姿跟踪</span></a><a class="sub" href="pose-backend-scaling.html"><span class="en">Inference and renderer scaling</span><span class="zh">推理与渲染后端性能</span></a><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a><a class="sub" href="applications-robi.html"><span class="en">ROBI detection experiments</span><span class="zh">ROBI 检测实验</span></a><a class="sub" href="applications-ycbineoat.html"><span class="en">YCBInEOAT single-object pose tracking</span><span class="zh">YCBInEOAT 单物体位姿跟踪</span></a><a class="sub" href="applications-taco.html"><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></a><a class="sub" href="applications-reconstruct.html"><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></a><a class="sub" href="applications-robot.html"><span class="en">Robot simulation</span><span class="zh">机器人仿真</span></a><a href="credits.html"><span class="en">Acknowledgments and references</span><span class="zh">致谢与参考资料</span></a></nav>
+<main class="docs-main"><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="top"><a href="data-bop-folder.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">Read the BOP sample</span><span class="zh">读取 BOP 示例数据</span></strong></a><a href="data-bop.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></strong></a></nav><nav aria-label="Breadcrumb / 章节路径" class="docs-breadcrumb"><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a></nav><h1 id="frame"><img class="sec-icon" src="../assets/readme/icons/citation.svg" width="24" height="24" alt="" aria-hidden="true"/> <span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></h1>
+<p class="en">The following code loads LM-O<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: LM-O data" href="#license-lmo-data" id="license-lmo-data-ref-en" role="doc-noteref">[1]</a></sup> scene 2, image 307. The next section runs the 2D detector on that RGB frame. BOP depth times <code>depth_scale</code> is millimeters, then divided by 1000. T-LESS<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: T-LESS data" href="#license-tless-data" id="license-tless-data-ref-en" role="doc-noteref">[2]</a></sup> and HB<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: HomebrewedDB (HB)" href="#reference-hb-data" id="reference-hb-data-ref-en" role="doc-noteref">[3]</a></sup> read <code>test_primesense/</code>. The others read <code>test/</code>. <code>examples/05_bop_6d_detection.py</code> uses the same reader on image 1. Image 1 has no row in the published detection file further down.</p>
+<p class="zh">下面的代码加载 LM-O<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: LM-O data" href="#license-lmo-data" id="license-lmo-data-ref-zh" role="doc-noteref">[1]</a></sup> 场景 2 第 307 帧。下一节对该帧的 RGB 图像运行 2D 检测器。BOP 深度乘 <code>depth_scale</code> 是毫米，再除以 1000。T-LESS<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: T-LESS data" href="#license-tless-data" id="license-tless-data-ref-zh" role="doc-noteref">[2]</a></sup> 和 HB<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: HomebrewedDB (HB)" href="#reference-hb-data" id="reference-hb-data-ref-zh" role="doc-noteref">[3]</a></sup> 读 <code>test_primesense/</code>。其他读 <code>test/</code>。<code>examples/05_bop_6d_detection.py</code> 用同一个读取器读第 1 帧。第 1 帧在后面那份已公布的检测文件里没有记录。</p>
+<div class="nb-cell">
+<div class="nb-in">
+<span class="nb-prompt">In [2]</span>
+<pre data-example="examples/04_6d_localization.py" data-example-lines="114:120"><code>detector = WAPRDet2D(template, device=device, backend=det_backend)
+estimator = WAPREstimator(device=device)
+prepared = estimator.prepare_meshes([pair[0] for pair in meshes.values()])
+mesh_setup_seconds = estimator.last_mesh_setup_seconds
+pose_meshes = {obj_id: (mesh, pair[1]) for (obj_id, pair), mesh in zip(meshes.items(), prepared)}
+rgb, depth_m, K = load_bop_rgbd(bop_path, dataset, scene_id, im_id)
+print("rgb", tuple(rgb.shape), "depth_m", tuple(depth_m.shape), "K", tuple(K.shape), flush=True)</code></pre><p class="nb-source"><span class="en">Source: examples/04_6d_localization.py, lines 114–120</span><span class="zh">代码来源：examples/04_6d_localization.py，第 114–120 行</span></p></div>
+<div class="nb-out">
+<span class="nb-prompt">Out [2]</span>
+<div>
+<pre class="nb-text" data-example-output="figures/example_04_shape_stdout.txt">rgb (480, 640, 3) depth_m (480, 640) K (3, 3)</pre><p class="nb-source"><span><span class="en">Captured stdout excerpt · </span><span class="zh">已保存标准输出摘录 · </span></span></p>
+<img decoding="async" loading="lazy" alt="LM-O scene 2 image 307: RGB and metric depth, with invalid depth in black and a meter-scale colorbar" src="figures/guide_lmo_s2_im307_rgbd.png?v=1" style="width:100%;max-width:100%;height:auto;"/>
+<p class="nb-cap"><span class="en">LM-O scene 2, image 307: RGB on the left and the corresponding depth on the right. The colorbar gives distance along the camera optical axis in meters (0.599–1.959 m in this frame); purple is nearer and yellow is farther. Black indicates missing or invalid depth. <code>rgb</code> is H×W×3, <code>depth_m</code> is H×W in meters, and <code>K</code> is 3×3 in pixels. The next section detects on this RGB and estimates poses using the same depth.</span><span class="zh">LM-O 场景 2，第 307 帧：左侧为 RGB，右侧为对应深度。色条表示沿相机光轴方向的距离，单位为米（本帧有效范围 0.599–1.959 米）；紫色较近，黄色较远。黑色表示缺失或无效深度。<code>rgb</code> 是 H×W×3，<code>depth_m</code> 是 H×W、单位为米，<code>K</code> 是 3×3、单位为像素。下一节在这张 RGB 上检测，并结合相同深度估计位姿。</span></p>
+</div>
+</div>
+</div>
+<p class="en">Independent RGB-D visualization code; it does not participate in inference.</p><p class="zh">以下为独立 RGB-D 可视化代码，不参与推理。</p><pre data-visualization-only="true"><code>import numpy as np
+import matplotlib.pyplot as plt
+
+# Visualize metric depth without changing the inference input.
+# 将米制深度可视化，不修改供推理使用的 depth_m。
+valid_depth = np.isfinite(depth_m) &amp; (depth_m &gt; 0)
+depth_display_m = np.ma.masked_where(~valid_depth, depth_m)
+depth_cmap = plt.get_cmap("viridis").with_extremes(bad="#202020")
+fig, axes = plt.subplots(1, 2, figsize=(12, 5), layout="constrained")
+axes[0].imshow(rgb)
+axes[0].set_title("RGB")
+depth_image = axes[1].imshow(depth_display_m, cmap=depth_cmap)
+axes[1].set_title("Depth (black = invalid)")
+for axis in axes:
+    axis.set_axis_off()
+# The colorbar uses the full valid depth range, in meters.
+# 色条覆盖全部有效深度的范围，单位为米。
+fig.colorbar(depth_image, ax=axes, location="bottom", shrink=0.6, label="Depth (m)")
+plt.show()</code></pre>
+<section aria-label="References and licenses / 参考文献与许可" class="license-notes"><h2 data-inline-section="true"><span class="en">References and licenses</span><span class="zh">参考文献与许可</span></h2><ol><li id="license-lmo-data"><strong>LM-O data — CC-BY-SA-4.0</strong>. <span><span class="en">Data and model excerpt, not the loader code.</span><span class="zh">数据与模型摘录，不是读取代码。</span></span> · <a href="https://bop.felk.cvut.cz/datasets/#LM-O"><span class="en">Original source</span><span class="zh">原始来源</span></a> · <a href="https://github.com/thodan/bop_toolkit"><span class="en">GitHub: BOP toolkit</span><span class="zh">GitHub：BOP 工具集</span></a><div class="reference-citation">Brachmann et al. Learning 6D Object Pose Estimation Using 3D Object Coordinates. ECCV 2014. · <a href="https://doi.org/10.1007/978-3-319-10605-2_35"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-lmo-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-lmo-data-ref-zh" role="doc-backlink">↩</a></div></li><li id="license-tless-data"><strong>T-LESS data — CC-BY-4.0</strong>. <span><span class="en">Data and object models; attribute the original dataset.</span><span class="zh">数据与物体模型；须标注原始数据集。</span></span> · <a href="https://bop.felk.cvut.cz/datasets/#T-LESS"><span class="en">Original source</span><span class="zh">原始来源</span></a><div class="reference-citation">Hodaň et al. T-LESS: An RGB-D Dataset for 6D Pose Estimation of Texture-less Objects. WACV 2017. · <a href="https://arxiv.org/abs/1701.05498"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-tless-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-tless-data-ref-zh" role="doc-backlink">↩</a></div></li><li id="reference-hb-data"><strong>HomebrewedDB (HB)</strong> · <a href="https://bop.felk.cvut.cz/datasets/#HB"><span class="en">Official BOP dataset page</span><span class="zh">BOP 官方数据页</span></a><div class="reference-citation">Kaskman et al. HomebrewedDB: RGB-D Dataset for 6D Pose Estimation of 3D Objects. ICCV Workshops 2019. · <a href="https://openaccess.thecvf.com/content_ICCVW_2019/html/R6D/Kaskman_HomebrewedDB_RGB-D_Dataset_for_6D_Pose_Estimation_of_3D_Objects_ICCVW_2019_paper.html"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#reference-hb-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#reference-hb-data-ref-zh" role="doc-backlink">↩</a></div></li></ol><p><span class="en">Model weights and dataset/task assets may have separate terms. WAPR's source license does not replace them.</span><span class="zh">模型权重、数据集与任务资源可能有独立条款；WAPR 源码许可不替代这些许可。</span></p></section><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="bottom"><a href="data-bop-folder.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">Read the BOP sample</span><span class="zh">读取 BOP 示例数据</span></strong></a><a href="data-bop.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></strong></a></nav><footer class="site-author">© 2026 <a href="credits.html#authorship">Yulin Wang</a> · <span><span class="en">Code and website author</span><span class="zh">代码与网站作者</span></span></footer></main>
+</div>
+<script src="../assets/lang.js"></script>
+<script src="nav.js?v=34"></script>
+<script src="../assets/three.min.js"></script>
+<script src="../assets/studio_grid.js?v=2"></script>
+<script src="own_view.js?v=20261006-perf1"></script>
+<script src="../assets/table-layout.js?v=1"></script></body>
+</html>

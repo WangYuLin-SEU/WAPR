@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+
+
+<!--
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Installation guide — WAPR docs</title>
+<meta name="description" content="Install WAPR 0.0.5 from PyPI in an existing CUDA-enabled PyTorch environment. Prepare core dependencies, export examples and choose optional features."/>
+<link rel="canonical" href="https://wangyulin-seu.github.io/WAPR/docs/install-guide.html"/>
+<meta property="og:title" content="Installation guide — WAPR docs"/>
+<meta property="og:description" content="Install WAPR 0.0.5 from PyPI in an existing CUDA-enabled PyTorch environment. Prepare core dependencies, export examples and choose optional features."/>
+<meta property="og:url" content="https://wangyulin-seu.github.io/WAPR/docs/install-guide.html"/>
+<meta property="og:type" content="website"/>
+
+<script>
+    (function () {
+      var lang = "en";
+      try { lang = localStorage.getItem("wapr-lang") === "zh" ? "zh" : "en"; } catch (e) {}
+      document.documentElement.setAttribute("data-lang", lang);
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    })();
+  </script>
+<link href="../assets/project.css?v=bar14" rel="stylesheet"/>
+<link href="docs.css?v=62" rel="stylesheet"/>
+<link href="../favicon.ico?v=11" rel="icon" type="image/x-icon"/>
+<link href="../assets/wapr-icon-32.png?v=11" rel="icon" sizes="32x32" type="image/png"/>
+<link href="../assets/wapr-icon-180.png?v=11" rel="apple-touch-icon" sizes="180x180"/>
+<link href="../assets/table-layout.css?v=1" rel="stylesheet"/><script src="section-routes.js?v=59"></script><link href="install.html" rel="prev"/><link href="install-core.html" rel="next"/><link rel="stylesheet" href="../assets/github-docs.css?v=3"/>
+<script src="../assets/site-runtime.js?v=1"></script>
+</head>
+<body class="project docs" data-title-en="Installation guide — WAPR docs" data-title-zh="安装引导 — WAPR 文档">
+<div aria-hidden="true" class="mast-spacer"></div>
+<header class="mast">
+<a class="mast-hero-link" href="../index.html"><img alt="WAPR, wide-angle pose refinement" class="mast-hero" height="724" src="../assets/wapr-banner-1440.webp" srcset="../assets/wapr-banner-768.webp 768w, ../assets/wapr-banner-1440.webp 1440w, ../assets/wapr-banner-2172.webp 2172w" sizes="(max-width: 800px) 100vw, 1200px" fetchpriority="high" width="2172"/></a>
+<div aria-hidden="true" class="mast-scrim"></div>
+<div class="docs-top">
+<a class="docs-home" href="../index.html">WAPR</a>
+<nav aria-label="Site" class="docs-jump">
+<a href="../index.html"><span class="en">Home</span><span class="zh">主页</span></a>
+<a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"><span class="en">Paper</span><span class="zh">论文</span></a>
+<a href="https://github.com/WangYuLin-SEU/WAPR"><span class="en">Code</span><span class="zh">代码</span></a>
+</nav>
+<div class="lang-switch" role="group">
+<button data-set-lang="en" type="button">EN</button>
+<button data-set-lang="zh" type="button">中文</button>
+</div>
+</div>
+</header><script src="../assets/banner.js?v=18"></script>
+<div class="docs-shell">
+<nav aria-label="Documentation / 教程目录" class="docs-nav"><a href="index.html"><span class="en">Overview</span><span class="zh">概览</span></a><a class="sub" href="index-modules.html"><span class="en">How the modules work together</span><span class="zh">模块如何衔接</span></a><a class="sub" href="index-routes.html"><span class="en">Choose a route for your scene</span><span class="zh">根据场景选择入口</span></a><a class="sub" href="index-performance.html"><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></a><a class="sub" href="index-examples.html"><span class="en">Example overview</span><span class="zh">示例总览</span></a><a href="install.html"><span class="en">Installation</span><span class="zh">安装</span></a><a aria-current="page" class="sub" href="install-guide.html"><span class="en">Installation guide</span><span class="zh">安装引导</span></a><a class="sub" href="install-core.html"><span class="en">Detection and pose setup</span><span class="zh">检测与位姿环境</span></a><a class="sub" href="install-extensions.html"><span class="en">Extension setup</span><span class="zh">扩展环境</span></a><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a><a class="sub" href="data-resources.html"><span class="en">Datasets and model resources</span><span class="zh">数据集与模型资源</span></a><a class="sub" href="data-bop-folder.html"><span class="en">Read the BOP sample</span><span class="zh">读取 BOP 示例数据</span></a><a class="sub" href="data-frame.html"><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></a><a class="sub" href="data-bop.html"><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></a><a class="sub" href="data-sixd-loc.html"><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></a><a class="sub" href="data-own.html"><span class="en">Custom data</span><span class="zh">自定义数据</span></a><a href="det2d.html"><span class="en">2D detection and segmentation</span><span class="zh">2D 检测与分割</span></a><a class="sub" href="det2d-templates.html"><span class="en">CAD templates and feature encoding</span><span class="zh">CAD 模板与特征编码</span></a><a class="sub" href="det2d-call.html"><span class="en">Detector usage and evaluation</span><span class="zh">检测器使用与评估</span></a><a href="pose.html"><span class="en">6D pose tasks and interfaces</span><span class="zh">6D 位姿任务与接口</span></a><a class="sub" href="pose-one.html"><span class="en">One category, one instance</span><span class="zh">单类别、单实例</span></a><a class="sub" href="pose-loc.html"><span class="en">6D pose localization and detection</span><span class="zh">6D 位姿定位与检测</span></a><a class="sub" href="pose-track.html"><span class="en">6D pose tracking</span><span class="zh">6D 位姿跟踪</span></a><a class="sub" href="pose-backend-scaling.html"><span class="en">Inference and renderer scaling</span><span class="zh">推理与渲染后端性能</span></a><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a><a class="sub" href="applications-robi.html"><span class="en">ROBI detection experiments</span><span class="zh">ROBI 检测实验</span></a><a class="sub" href="applications-ycbineoat.html"><span class="en">YCBInEOAT single-object pose tracking</span><span class="zh">YCBInEOAT 单物体位姿跟踪</span></a><a class="sub" href="applications-taco.html"><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></a><a class="sub" href="applications-reconstruct.html"><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></a><a class="sub" href="applications-robot.html"><span class="en">Robot simulation</span><span class="zh">机器人仿真</span></a><a href="credits.html"><span class="en">Acknowledgments and references</span><span class="zh">致谢与参考资料</span></a></nav>
+<main class="docs-main"><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="top"><a href="install.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">Installation</span><span class="zh">安装</span></strong></a><a href="install-core.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Detection and pose setup</span><span class="zh">检测与位姿环境</span></strong></a></nav><nav aria-label="Breadcrumb / 章节路径" class="docs-breadcrumb"><a href="install.html"><span class="en">Installation</span><span class="zh">安装</span></a></nav><h1 id="guide"><img class="sec-icon" src="../assets/readme/icons/start.svg" width="24" height="24" alt="" aria-hidden="true"/> <span class="en">Installation guide</span><span class="zh">安装引导</span></h1>
+<h2 id="user-install" data-inline-section=""><span class="en">Install WAPR 0.0.5</span><span class="zh">安装 WAPR 0.0.5</span></h2>
+<p class="en">Reuse a compatible Linux or Windows NVIDIA GPU environment with CUDA-enabled PyTorch. The wheel does not bundle PyTorch, model weights or datasets. OGL requires a compatible CUDA toolkit, C++ compiler and CMake. Linux also needs OpenGL/EGL development libraries; Windows needs MSVC C++ build tools.</p>
+<p class="zh">复用兼容的 Linux 或 Windows NVIDIA GPU 环境及支持 CUDA 的 PyTorch。wheel 不打包 PyTorch、模型权重或数据集。OGL 需要兼容的 CUDA toolkit、C++ 编译器和 CMake；Linux 还需 OpenGL/EGL 开发库，Windows 需要 MSVC C++ 构建工具。</p>
+<pre><code>python -m pip install -U wapr==0.0.5
+python -m wapr.bootstrap
+python -c &quot;from wapr.bootstrap import export_examples; export_examples(&#x27;wapr_examples&#x27;)&quot;
+python wapr_examples/02_one_category_one_instance.py</code></pre>
+<p class="en">The universal wheel declares Python ≥3.8. This is a package requirement, not a guarantee that every optional dependency supports every Python, CUDA or operating-system version. Windows without TensorRT uses PyTorch by default; the TensorRT backend requires TensorRT 10. The supplied SAM3D and robot planning setups require Linux. macOS pose inference is not supported.</p>
+<p class="zh">通用 wheel 声明 Python ≥3.8；这不表示所有可选依赖支持每种 Python、CUDA 或操作系统版本。Windows 未安装 TensorRT 时默认使用 PyTorch；TensorRT 后端需要 TensorRT 10。随包 SAM3D 与机器人规划方案需要 Linux。不支持 macOS 位姿推理。</p>
+<p class="en">Core preparation reuses the existing PyTorch environment and asks before replacing installed dependencies. Optional features are prepared on first use, including detection dependencies in examples 01, 08, 09 and 12. Importing an example alone does not install optional features; Ultralytics is not a core dependency. For manual preparation, follow <a href="install-extensions.html">optional feature setup</a>. The first example obtains its required resources and may take longer on its first run.</p>
+<p class="zh">核心准备复用已有 PyTorch 环境，更换已有依赖前需确认。可选功能在首次使用时准备，示例 01、08、09、12 会先准备检测依赖；仅导入示例不会安装可选功能，Ultralytics 不属于基础依赖。手动准备方式见<a href="install-extensions.html">扩展环境</a>。首个示例会获取所需资源，首次运行可能耗时较长。</p>
+<h2 id="developer-install" data-inline-section=""><span class="en">Source usage</span><span class="zh">源码使用</span></h2>
+<p class="en">For editable recipes, clone the repository and use a compatible existing environment. The source installer described in <a href="install-core.html">source setup</a> is a separate route; its repository-relative paths do not describe the installed wheel. Conda is optional.</p>
+<p class="zh">需要修改仓库示例时可克隆源码，并使用兼容的已有环境。<a href="install-core.html">源码安装说明</a>是独立路线，其中仓库相对路径不代表 wheel 的缓存位置；不要求使用 Conda。</p>
+<pre><code>git clone https://github.com/WangYuLin-SEU/WAPR.git</code></pre>
+<section aria-label="References and licenses / 参考文献与许可" class="license-notes"><h2 data-inline-section="true"><span class="en">References and licenses</span><span class="zh">参考文献与许可</span></h2><ol><li id="license-lmo-data"><strong>LM-O data — CC-BY-SA-4.0</strong>. <span><span class="en">Data and model excerpt, not the loader code.</span><span class="zh">数据与模型摘录，不是读取代码。</span></span> · <a href="https://bop.felk.cvut.cz/datasets/#LM-O"><span class="en">Original source</span><span class="zh">原始来源</span></a> · <a href="https://github.com/thodan/bop_toolkit"><span class="en">GitHub: BOP toolkit</span><span class="zh">GitHub：BOP 工具集</span></a><div class="reference-citation">Brachmann et al. Learning 6D Object Pose Estimation Using 3D Object Coordinates. ECCV 2014. · <a href="https://doi.org/10.1007/978-3-319-10605-2_35"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-lmo-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-lmo-data-ref-zh" role="doc-backlink">↩</a></div></li></ol><p><span class="en">Model weights and dataset/task assets may have separate terms. WAPR's source license does not replace them.</span><span class="zh">模型权重、数据集与任务资源可能有独立条款；WAPR 源码许可不替代这些许可。</span></p></section><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="bottom"><a href="install.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">Installation</span><span class="zh">安装</span></strong></a><a href="install-core.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Detection and pose setup</span><span class="zh">检测与位姿环境</span></strong></a></nav><footer class="site-author">© 2026 <a href="credits.html#authorship">Yulin Wang</a> · <span><span class="en">Code and website author</span><span class="zh">代码与网站作者</span></span></footer></main>
+</div>
+<script src="../assets/lang.js"></script>
+<script src="nav.js?v=34"></script>
+<script src="../assets/table-layout.js?v=1"></script></body>
+</html>

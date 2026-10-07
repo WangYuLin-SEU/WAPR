@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+
+<!--
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>6D pose localization and detection — WAPR docs</title>
+<script>
+    (function () {
+      var lang = "en";
+      try { lang = localStorage.getItem("wapr-lang") === "zh" ? "zh" : "en"; } catch (e) {}
+      document.documentElement.setAttribute("data-lang", lang);
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    })();
+  </script>
+<link href="../assets/project.css?v=bar14" rel="stylesheet"/>
+<link href="docs.css?v=62" rel="stylesheet"/>
+<link href="../favicon.ico?v=11" rel="icon" type="image/x-icon"/>
+<link href="../assets/wapr-icon-32.png?v=11" rel="icon" sizes="32x32" type="image/png"/>
+<link href="../assets/wapr-icon-180.png?v=11" rel="apple-touch-icon" sizes="180x180"/>
+<link href="../assets/table-layout.css?v=1" rel="stylesheet"/><script src="section-routes.js?v=59"></script><link href="pose-one.html" rel="prev"/><link href="pose-track.html" rel="next"/><link rel="stylesheet" href="../assets/github-docs.css?v=3"/>
+<script src="../assets/site-runtime.js?v=1"></script>
+</head>
+<body class="project docs" data-title-en="6D pose localization and detection — WAPR docs" data-title-zh="6D 位姿定位与检测 — WAPR 文档">
+<div aria-hidden="true" class="mast-spacer"></div>
+<header class="mast">
+<a class="mast-hero-link" href="../index.html"><img alt="WAPR, wide-angle pose refinement" class="mast-hero" height="724" src="../assets/wapr-banner-1440.webp" srcset="../assets/wapr-banner-768.webp 768w, ../assets/wapr-banner-1440.webp 1440w, ../assets/wapr-banner-2172.webp 2172w" sizes="(max-width: 800px) 100vw, 1200px" fetchpriority="high" width="2172"/></a>
+<div aria-hidden="true" class="mast-scrim"></div>
+<div class="docs-top">
+<a class="docs-home" href="../index.html">WAPR</a>
+<nav aria-label="Site" class="docs-jump">
+<a href="../index.html"><span class="en">Home</span><span class="zh">主页</span></a>
+<a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"><span class="en">Paper</span><span class="zh">论文</span></a>
+<a href="https://github.com/WangYuLin-SEU/WAPR"><span class="en">Code</span><span class="zh">代码</span></a>
+</nav>
+<div class="lang-switch" role="group">
+<button data-set-lang="en" type="button">EN</button>
+<button data-set-lang="zh" type="button">中文</button>
+</div>
+</div>
+</header><script src="../assets/banner.js?v=18"></script>
+<div class="docs-shell">
+<nav aria-label="Documentation / 教程目录" class="docs-nav"><a href="index.html"><span class="en">Overview</span><span class="zh">概览</span></a><a class="sub" href="index-modules.html"><span class="en">How the modules work together</span><span class="zh">模块如何衔接</span></a><a class="sub" href="index-routes.html"><span class="en">Choose a route for your scene</span><span class="zh">根据场景选择入口</span></a><a class="sub" href="index-performance.html"><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></a><a class="sub" href="index-examples.html"><span class="en">Example overview</span><span class="zh">示例总览</span></a><a href="install.html"><span class="en">Installation</span><span class="zh">安装</span></a><a class="sub" href="install-guide.html"><span class="en">Installation guide</span><span class="zh">安装引导</span></a><a class="sub" href="install-core.html"><span class="en">Detection and pose setup</span><span class="zh">检测与位姿环境</span></a><a class="sub" href="install-extensions.html"><span class="en">Extension setup</span><span class="zh">扩展环境</span></a><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a><a class="sub" href="data-resources.html"><span class="en">Datasets and model resources</span><span class="zh">数据集与模型资源</span></a><a class="sub" href="data-bop-folder.html"><span class="en">Read the BOP sample</span><span class="zh">读取 BOP 示例数据</span></a><a class="sub" href="data-frame.html"><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></a><a class="sub" href="data-bop.html"><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></a><a class="sub" href="data-sixd-loc.html"><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></a><a class="sub" href="data-own.html"><span class="en">Custom data</span><span class="zh">自定义数据</span></a><a href="det2d.html"><span class="en">2D detection and segmentation</span><span class="zh">2D 检测与分割</span></a><a class="sub" href="det2d-templates.html"><span class="en">CAD templates and feature encoding</span><span class="zh">CAD 模板与特征编码</span></a><a class="sub" href="det2d-call.html"><span class="en">Detector usage and evaluation</span><span class="zh">检测器使用与评估</span></a><a href="pose.html"><span class="en">6D pose tasks and interfaces</span><span class="zh">6D 位姿任务与接口</span></a><a class="sub" href="pose-one.html"><span class="en">One category, one instance</span><span class="zh">单类别、单实例</span></a><a aria-current="page" class="sub" href="pose-loc.html"><span class="en">6D pose localization and detection</span><span class="zh">6D 位姿定位与检测</span></a><a class="sub" href="pose-track.html"><span class="en">6D pose tracking</span><span class="zh">6D 位姿跟踪</span></a><a class="sub" href="pose-backend-scaling.html"><span class="en">Inference and renderer scaling</span><span class="zh">推理与渲染后端性能</span></a><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a><a class="sub" href="applications-robi.html"><span class="en">ROBI detection experiments</span><span class="zh">ROBI 检测实验</span></a><a class="sub" href="applications-ycbineoat.html"><span class="en">YCBInEOAT single-object pose tracking</span><span class="zh">YCBInEOAT 单物体位姿跟踪</span></a><a class="sub" href="applications-taco.html"><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></a><a class="sub" href="applications-reconstruct.html"><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></a><a class="sub" href="applications-robot.html"><span class="en">Robot simulation</span><span class="zh">机器人仿真</span></a><a href="credits.html"><span class="en">Acknowledgments and references</span><span class="zh">致谢与参考资料</span></a></nav>
+<main class="docs-main"><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="top"><a href="pose-one.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">One category, one instance</span><span class="zh">单类别、单实例</span></strong></a><a href="pose-track.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">6D pose tracking</span><span class="zh">6D 位姿跟踪</span></strong></a></nav><nav aria-label="Breadcrumb / 章节路径" class="docs-breadcrumb"><a href="pose.html"><span class="en">6D pose tasks and interfaces</span><span class="zh">6D 位姿任务与接口</span></a></nav><h1 id="loc"><img class="sec-icon" src="../assets/readme/icons/pose.svg" width="24" height="24" alt="" aria-hidden="true"/> <span class="en">6D pose localization and detection</span><span class="zh">6D 位姿定位与检测</span></h1>
+<p class="en">Localization and detection share <code>estimate_frame_many_categories_many_instances</code>: predict 2D regions, estimate their poses in batches, then select the outputs. Localization supplies object identities and instance counts through <code>obj_ids</code> and <code>inst_count</code>; detection leaves instance counts unconstrained. Both use RGB-D, camera intrinsics and CAD meshes, and share the score thresholds and output format below.</p>
+<p class="zh">定位与检测共用 <code>estimate_frame_many_categories_many_instances</code>：预测 2D 区域，批量估计位姿，再筛选输出。定位通过 <code>obj_ids</code> 和 <code>inst_count</code> 提供物体类别及实例数量；检测不预设实例数量。两者均使用 RGB-D、相机内参与 CAD 网格，并采用下文相同的分数阈值和输出格式。</p>
+<h2 data-inline-section="" id="loc-combinations"><span class="en">Specify categories and instance counts</span><span class="zh">指定类别与实例数量</span></h2>
+<p class="en">The table describes API input combinations. Known-count localization requires both <code>obj_ids</code> and <code>inst_count</code>. Passing <code>inst_count=None</code> leaves the number of instances unconstrained; with <code>obj_ids</code>, it restricts the candidate categories rather than specifying the known-count localization task.</p>
+<p class="zh">下表列出接口支持的输入组合。已知数量的定位需要同时给出 <code>obj_ids</code> 与 <code>inst_count</code>。若设置 <code>inst_count=None</code>，实例数量便不受约束；此时 <code>obj_ids</code> 仅限定候选类别，不构成已知数量的定位任务。</p>
+<p class="en">A single category with a single instance is a localization case too, when its region must first be found. Category count and instance count are constraints on the same frame pipeline. If regions are already supplied, use the pose-only entries instead; whether there is a 2D detector is independent of whether you have one or many instances.</p>
+<p class="zh">需要先寻找区域时，单类单实例也属于定位用法。类别数与实例数是同一整帧流程上的约束。区域已经给定时，直接使用位姿估计入口；是否需要 2D 检测，与处理单个还是多个实例是两个独立维度。</p>
+<div class="docs-table-wrap"><table>
+<thead><tr><th><span class="en">Case</span><span class="zh">情况</span></th><th><code>obj_ids</code></th><th><code>inst_count</code></th></tr></thead>
+<tbody>
+<tr><td><span class="en">One category, one instance</span><span class="zh">单类、单实例</span></td><td><code>[8]</code></td><td><code>{8: 1}</code></td></tr>
+<tr><td><span class="en">One category, several instances</span><span class="zh">单类、多实例</span></td><td><code>[8]</code></td><td><code>{8: 3}</code><span class="en">, or <code>None</code> when the count is unknown</span><span class="zh">；数量未知时用 <code>None</code></span></td></tr>
+<tr><td><span class="en">Several categories, one instance each</span><span class="zh">多类、每类单实例</span></td><td><code>[8, 12]</code></td><td><code>{8: 1, 12: 1}</code></td></tr>
+<tr><td><span class="en">Several categories, several instances each</span><span class="zh">多类、每类多实例</span></td><td><code>[8, 12]</code></td><td><code>{8: 3, 12: 2}</code><span class="en">, or <code>None</code></span><span class="zh">；或 <code>None</code></span></td></tr>
+</tbody>
+</table></div>
+<pre><code>from wapr.frame import estimate_frame_many_categories_many_instances
+
+# Search for driller regions, then retain at most one estimated pose.
+# 先搜索电钻区域，再最多保留一个估计位姿。
+poses, timing, detections = estimate_frame_many_categories_many_instances(
+    estimator, detector, rgb, depth_m, K, meshes,
+    obj_ids=[8], inst_count={8: 1},
+)</code></pre>
+<p class="en">For frame inference, pass a mesh map made from the prepared snapshots. <code>timing["pose_hot_seconds"]</code> excludes setup and warmup; <code>mesh_setup_seconds</code>, <code>pose_warmup_seconds</code> and <code>detector_warmup_seconds</code> record those separately. <code>hot_frame_seconds</code> adds the measured detection/filter segment and pose segment, excluding the intervening warmup gap and final output assembly. It is not a continuous camera latency. A new pose workload receives three discarded warmup calls before its reported pose time.</p>
+<p class="zh">整帧推理传入由已准备快照构成的网格字典。<code>timing["pose_hot_seconds"]</code> 不包含准备与预热；<code>mesh_setup_seconds</code>、<code>pose_warmup_seconds</code> 和 <code>detector_warmup_seconds</code> 分别记录这些阶段。<code>hot_frame_seconds</code> 相加实测检测/过滤阶段和位姿阶段，排除中间的预热间隔与最终记录整理，不是相机连续延迟。新位姿负载在报告耗时前丢弃三次预热调用。</p>
+<p class="en">The count cap is applied after candidate pose estimation, ranked by <code>score_6d</code>. A cap of one neither guarantees one detection nor limits computation to one candidate. The numbers above illustrate configuration, not the contents of every scene.</p>
+<p class="zh">数量限制在候选位姿估计之后按 <code>score_6d</code> 排序应用。限制为一，不保证一定检测到一个，也不代表只计算一个候选。表中数字是配置示例，不表示每个场景都含这些实例。</p>
+<p class="en"><code>examples/04_6d_localization.py</code> is the localization call on this page. The categories and the count of each category are known before the image is read. The frame is LM-O<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: LM-O data" href="#license-lmo-data" id="license-lmo-data-ref-en" role="doc-noteref">[2]</a></sup> scene 2, image 307. <code>test_targets_bop19.json</code> names eight categories, ids 1, 5, 6, 8, 9, 10, 11, and 12, and each count is 1. The script writes those two values as <code>obj_ids</code> and <code>inst_count</code>, then calls <code>estimate_frame_many_categories_many_instances</code>. A category that is not in <code>obj_ids</code> is not detected and is not estimated. <code>inst_count</code> is the most that call keeps of that category, higher <code>score_6d</code> first. It does not require the detector to find that many. This call is not <code>estimate_one_category_one_instance</code>. The detection configuration below leaves <code>inst_count</code> unset.</p>
+<p class="zh"><code>examples/04_6d_localization.py</code> 就是这一节的定位。类别，以及每一类的数量，在读图之前就已经知道。这一帧是 LM-O<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: LM-O data" href="#license-lmo-data" id="license-lmo-data-ref-zh" role="doc-noteref">[2]</a></sup> 场景 2 第 307 帧。<code>test_targets_bop19.json</code> 写了八个类别，编号 1、5、6、8、9、10、11、12，每个数量是 1。脚本把这两个值写成 <code>obj_ids</code> 和 <code>inst_count</code>，再调用 <code>estimate_frame_many_categories_many_instances</code>。不在 <code>obj_ids</code> 里的类别不检测，也不估计。<code>inst_count</code> 是这一类这次最多留下几条，<code>score_6d</code> 高的在前。检测器不一定找得到这么多。这次调用不是 <code>estimate_one_category_one_instance</code>。下文的检测配置不传 <code>inst_count</code>。</p>
+<p class="en">Build the arguments first, then pass them in. The copy-this form is a custom folder plus one mask file. <code>load_scene</code> in <code>wapr/scene_files.py</code> returns the image, the depth, the camera, and the meshes of every category in that folder. It does not return a mask, and it does not return a pose. <code>examples/06_custom_scene.py</code> calls that same function, then passes <code>rgb</code>, <code>depth_m</code>, <code>K</code>, and <code>meshes</code> to <code>estimate_frame_many_categories_many_instances</code>. That frame call supports one or several categories and instances. For a supplied single region, take one mesh from the dict and call <code>estimate_one_category_one_instance</code>; to find that region first, use the frame entry with one category and a count cap of one.</p>
+<p class="zh">先把参数造出来，再传进去。可照抄的写法是一个自定义目录加一张 mask。<code>wapr/scene_files.py</code> 的 <code>load_scene</code> 返回图像、深度、相机，以及这个目录里每个类别的网格。它不返回 mask，也不返回位姿。<code>examples/06_custom_scene.py</code> 调用的是同一个函数，然后把 <code>rgb</code>、<code>depth_m</code>、<code>K</code>、<code>meshes</code> 传给 <code>estimate_frame_many_categories_many_instances</code>。整帧调用支持单个或多个类别与实例。已有单个区域时，从字典中取出一份网格，调用 <code>estimate_one_category_one_instance</code>；需要先寻找区域时，使用整帧入口，并指定一个类别及数量上限一。</p>
+<pre><code>import cv2
+from wapr import WAPREstimator
+from wapr.scene_files import load_scene
+
+rgb, depth_m, K, meshes, names = load_scene(scene_dir)
+mesh, diameter_m = meshes[obj_id]
+mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+n_view = 4
+n_inplane = 3
+
+est = WAPREstimator(device="cuda:0")
+pose_mesh = est.prepare_meshes([mesh])[0]
+mesh_setup_seconds = est.last_mesh_setup_seconds
+instances = [{"mesh": pose_mesh, "diameter_m": diameter_m, "mask": mask}]
+warmup_seconds = est.warmup_pose(rgb, depth_m, K, instances,
+                                n_view=n_view, n_inplane=n_inplane)
+out = est.estimate_one_category_one_instance(
+    rgb, depth_m, K, pose_mesh, diameter_m,
+    bbox_xywh=None, mask=mask,
+    n_view=n_view, n_inplane=n_inplane,
+)</code></pre>
+<p class="en">Prepare CAD geometry once with <code>prepare_meshes</code>, then reuse the returned snapshots in every frame. Centering, normals, mesh packing and GL upload belong to setup. Treat snapshot geometry as immutable: edit the source mesh and prepare a new snapshot when the geometry changes. <code>warmup_pose</code> discards three complete calls on the actual input workload; its returned seconds are separate from hot inference. For a pose timer, synchronize CUDA immediately before and after the estimation call. Model setup, mesh setup, warmup, file reading and drawing stay outside that timer. One-instance estimation uses the same GPU batch path as many-instance estimation.</p>
+<p class="zh">通过 <code>prepare_meshes</code> 一次性准备 CAD，后续各帧复用返回的网格快照。居中、法线计算、网格打包和 GL 上传属于准备阶段。快照几何不可原地修改：形状变化时编辑源网格，再生成新快照。<code>warmup_pose</code> 用实际输入负载完整预热三次并丢弃输出，单独返回预热秒数。测量位姿耗时时，在估计调用前后立即同步 CUDA；模型准备、网格准备、预热、读盘和绘图均在计时外。单实例估计也走与多实例相同的 GPU 批量计算路径。</p>
+<p class="en"><code>estimate_frame_many_categories_many_instances</code> starts from 2D detection and accepts any of the four category/instance combinations above. The <code>estimate_one_category_one_instance</code> call above is one category and one instance, and it does not take a class list. <code>obj_ids</code> is applied first. 2D matching scores only those classes, so a class outside the list is never chosen. 6D estimates only the boxes that remain. One id in <code>obj_ids</code> narrows this frame call to one category, and it can still return many instances of that category. That narrowed call is still not <code>estimate_one_category_one_instance</code>. An id that is not in <code>meshes</code> raises <code>KeyError</code>. An id that is not in the template bank raises <code>ValueError</code>. Omit <code>obj_ids</code>, or pass <code>None</code>, and the list is the mesh ids that are also in the bank. The <a href="data-sixd-loc.html">user guideline</a> does this for IC-BIN<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: IC-BIN" href="#reference-icbin-data" id="reference-icbin-data-ref-en" role="doc-noteref">[4]</a></sup> scene 1, image 26: object 1 only, even though object 2 is in the full IC-BIN set. That example is one category and many instances, not one instance.</p>
+<p class="zh"><code>estimate_frame_many_categories_many_instances</code> 是多类别、多实例，从 2D 检测来。上面的 <code>estimate_one_category_one_instance</code> 是单类别、单实例，它不接收类别名单。<code>obj_ids</code> 最先用上。2D 匹配只给这些类别打分，名单以外的类别不会被选中。6D 只估计留下来的框。<code>obj_ids</code> 里只放一个 id，会把这次整帧调用限定为单类别，并且仍可以返回这一类的多个实例。收窄之后仍然不是 <code>estimate_one_category_one_instance</code>。不在 <code>meshes</code> 里的 id 会抛出 <code>KeyError</code>。不在模板库里的 id 会抛出 <code>ValueError</code>。不传 <code>obj_ids</code>，或传 <code>None</code>，名单就是既在网格里、也在模板库里的 id。<a href="data-sixd-loc.html">使用指南</a>里 IC-BIN<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: IC-BIN" href="#reference-icbin-data" id="reference-icbin-data-ref-zh" role="doc-noteref">[4]</a></sup> 场景 1 第 26 帧就是这样：只要物体 1，尽管物体 2 也在完整的 IC-BIN 里。那个例子是单类别、多实例，不是单实例。</p>
+<p class="en">The two score gates are arguments, and they run after the class list. <code>score_2d_min</code> is the 2D gate. A box stays when its best allowed class is &gt;= that value. Omit it, or pass <code>None</code>, and the gate is <code>score_threshold</code> in <code>wapr/det2d.py</code>, which is 0.1. Pass another float to use a different gate on this call. <code>score_6d_min</code> is the WBPS gate on <code>score_6d</code>. A pose stays when that score is &gt;= the gate. Omit it, or pass <code>None</code>, and no pose is dropped by this score. The LM-O result uses a 0.50 <em>2D</em> input gate and silhouette NMS, without a WBPS score gate. Its extra driller predictions have WBPS scores around 0.25. A WBPS cutoff is not a general confidence probability or correctness threshold: a saved ROBI<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: ROBI data" href="#license-robi-data" id="license-robi-data-ref-en" role="doc-noteref">[3]</a></sup> chrome-screw pose below meets that case's equivalent-pose ADD criterion with a WBPS score of 0.262. Choose a threshold using validation data for the intended setting.</p>
+<p class="zh">两个分数阈值都是参数，在类别名单之后起作用。<code>score_2d_min</code> 是 2D 检测阈值：允许类别中的最高分不低于该值，候选框才保留。省略或传入 <code>None</code> 时，采用 <code>wapr/det2d.py</code> 的 <code>score_threshold = 0.1</code>；也可为本次调用传入其他数值。<code>score_6d_min</code> 作用于 WBPS 的 <code>score_6d</code>；省略或传入 <code>None</code> 时，不按位姿分数剔除。LM-O 展示结果采用 0.50 的 <em>2D</em> 输入阈值与轮廓 NMS，没有 WBPS 分数阈值；额外的 driller 预测，其 WBPS 分数约为 0.25。WBPS 截断值并非普适的置信概率或正确性阈值：下文ROBI<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: ROBI data" href="#license-robi-data" id="license-robi-data-ref-zh" role="doc-noteref">[3]</a></sup> 铬螺丝案例中，一条满足该案例等价姿态 ADD 判据的位姿，其 WBPS 分数仅为 0.262。实际阈值应根据目标场景的验证数据选择。</p>
+<p class="en">The per-class count is the last cut, after both score gates. <code>inst_count</code> maps an <code>obj_id</code> to how many poses of that class to keep. Each class is ordered by <code>score_6d</code>, high first, and only that many rows stay. A class missing from the dict is not capped. <code>None</code> does not cap any class. Same-class masks still pass IoU 0.5 inside the detector, before this count. In the configuration below, 14 is an explicit per-class upper limit; it is not a detected count or a guarantee that fourteen poses pass the score gates.</p>
+<p class="zh">每个类别的数量是最后一道，在两个分数阈值之后。<code>inst_count</code> 把 <code>obj_id</code> 映射到这一类留下几条。每一类按 <code>score_6d</code> 从高到低排，只留这个数量。字典里没有的类别不截断。<code>None</code> 则每一类都不截断。同一类的 mask 仍先在检测器里按 IoU 0.5 抑制，这一步在数量之前。下面配置中的 14 是显式的每类数量上限，不是检出的数量，也不保证十四条位姿都能通过分数阈值。</p>
+<pre><code>from wapr.frame import estimate_frame_many_categories_many_instances
+
+obj_ids = [1]
+inst_count = {1: 14}
+score_2d_min = 0.1
+score_6d_min = 0.5
+
+poses, timing, detections = estimate_frame_many_categories_many_instances(
+    estimator, detector, rgb, depth_m, K, meshes,
+    obj_ids=obj_ids,
+    inst_count=inst_count,
+    score_2d_min=score_2d_min,
+    score_6d_min=score_6d_min,
+    n_view=4, n_inplane=3,
+)</code></pre>
+<p class="en"><code>n_view</code> and <code>n_inplane</code> are one hypothesis setting for the whole call, not a setting per box. Every bounding box in this call is estimated with that same pair. The default pair is 4 tetrahedron views × 3 in-plane spins, 12 hypotheses. <code>within_group</code> picks one of those 12. Pass other integers to change the pair for every box together. Omit them, or pass <code>None</code>, to read <code>wapr/recipe.py</code>.</p>
+<p class="zh"><code>n_view</code> 和 <code>n_inplane</code> 是本次调用共用的候选采样设置，所有包围盒都使用这两个参数。默认是 4 个正四面体视角 × 3 次面内旋转，一共 12 个候选姿态。<code>within_group</code> 在这 12 个里选一个。要换次数，就改这一次的这两个整数，整批框一起换。不传，或传 <code>None</code>，就读 <code>wapr/recipe.py</code>。</p>
+<div class="docs-table-wrap"><table class="parameter-table parameter-source">
+<colgroup><col class="parameter-name"/><col/><col/></colgroup>
+<thead>
+<tr>
+<th><span class="en">Argument</span><span class="zh">参数</span></th>
+<th><span class="en">Where it is built</span><span class="zh">在哪里构造</span></th>
+<th><span class="en">Call</span><span class="zh">调用</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rgb</code>, <code>depth_m</code>, <code>K</code></td>
+<td><span class="en"><code>load_scene</code> in <code>wapr/scene_files.py</code>. <code>examples/06_custom_scene.py</code> calls it.</span><span class="zh"><code>wapr/scene_files.py</code> 的 <code>load_scene</code>。<code>examples/06_custom_scene.py</code> 调用它。</span></td>
+<td><code>rgb, depth_m, K, meshes, names = load_scene(scene_dir)</code></td>
+</tr>
+<tr>
+<td><code>mesh</code>, <code>diameter_m</code></td>
+<td><span class="en">The same return. <code>meshes[obj_id]</code> is <code>(mesh, diameter_m)</code>. Prepare the inference mesh with <code>estimator.prepare_meshes</code> before warmup or timing, and keep the returned snapshot for subsequent calls. Raw meshes remain accepted for compatibility, but their automatic setup is not hot inference.</span><span class="zh">同一次返回。<code>meshes[obj_id]</code> 是 <code>(mesh, diameter_m)</code>。预热和计时前调用 <code>estimator.prepare_meshes</code>，后续估计保留并复用返回的快照。接口也接受未经准备的网格，但自动准备的耗时不能计作预热后推理。</span></td>
+<td><code>mesh, diameter_m = meshes[obj_id]</code></td>
+</tr>
+<tr>
+<td><code>rgb</code>, <code>depth_m</code>, <code>K</code>, <code>mesh</code>, <code>diameter_m</code></td>
+<td><span class="en"><code>wapr.bop.load_bop_rgbd</code> reads RGB, metric depth and intrinsics; <code>load_mesh_m</code> reads metric CAD geometry and diameter. Examples 03, 04, 05 and 07 use these BOP readers. Example 10 reads ROBI<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: ROBI data" href="#license-robi-data" id="license-robi-data-ref-en-table-2" role="doc-noteref">[3]</a></sup>'s image, depth and <code>camera.yml</code> directly.</span><span class="zh"><code>wapr.bop.load_bop_rgbd</code> 读取 RGB、米制深度和内参；<code>load_mesh_m</code> 读取米制 CAD 与直径。示例 03、04、05、07 使用这些 BOP 读取函数。示例 10 直接读取 ROBI<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: ROBI data" href="#license-robi-data" id="license-robi-data-ref-zh-table-2" role="doc-noteref">[3]</a></sup> 图像、深度及 <code>camera.yml</code>。</span></td>
+<td><code>rgb, depth_m, K = load_bop_rgbd(bop_path, dataset, scene_id, im_id)</code><br/><code>mesh, diameter_m = load_mesh_m(bop_path, dataset, obj_id)</code></td>
+</tr>
+<tr>
+<td><code>rgb</code>, <code>depth_m</code>, <code>K</code>, <code>mesh</code>, <code>diameter_m</code>, <code>mask</code></td>
+<td><span class="en">The one-frame sample. <code>examples/02_one_category_one_instance.py</code> <code>main</code> reads <code>samples/pose_lmo/</code>. That folder is <code>meta.json</code>, not a <code>load_scene</code> folder, so this script does not call <code>load_scene</code>.</span><span class="zh">单帧示例。<code>examples/02_one_category_one_instance.py</code> 的 <code>main</code> 读 <code>samples/pose_lmo/</code>。这个目录是 <code>meta.json</code>，不是 <code>load_scene</code> 的目录，所以这个脚本不调用 <code>load_scene</code>。</span></td>
+<td><span class="en"><code>cv2.cvtColor(cv2.imread("rgb.png"), cv2.COLOR_BGR2RGB)</code>. <code>np.load("depth.npy").astype(np.float32)</code>. <code>K</code> and <code>diameter_m</code> from <code>meta.json</code>. <code>trimesh.load("model.ply", force="mesh", process=False)</code>. <code>cv2.imread("mask.png", cv2.IMREAD_GRAYSCALE)</code>.</span><span class="zh"><code>cv2.cvtColor(cv2.imread("rgb.png"), cv2.COLOR_BGR2RGB)</code>。<code>np.load("depth.npy").astype(np.float32)</code>。<code>K</code> 和 <code>diameter_m</code> 来自 <code>meta.json</code>。<code>trimesh.load("model.ply", force="mesh", process=False)</code>。<code>cv2.imread("mask.png", cv2.IMREAD_GRAYSCALE)</code>。</span></td>
+</tr>
+<tr>
+<td><code>mask</code></td>
+<td><span class="en">No function in <code>wapr</code> reads a mask file. <code>examples/02_one_category_one_instance.py</code> reads <code>mask.png</code>. <code>examples/08_ycbineoat_one_instance.py</code> predicts its frame-0 mask with <code>WAPRDet2D</code>.</span><span class="zh"><code>wapr</code> 里没有函数去读 mask 文件。<code>examples/02_one_category_one_instance.py</code> 读 <code>mask.png</code>。<code>examples/08_ycbineoat_one_instance.py</code> 用 <code>WAPRDet2D</code> 预测首帧 mask。</span></td>
+<td><code>mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)</code></td>
+</tr>
+<tr>
+<td><code>bbox_xywh</code></td>
+<td><span class="en">Supply four pixel coordinates or read <code>rec["bbox_xywh"]</code> from a detection JSON, as in example 07. When a pose input has no mask, the estimator constructs its box region with <code>wapr.estimator.mask_from_bbox</code>. Example 07 also uses this shared function to prepare missing masks for input NMS.</span><span class="zh">提供四个像素坐标，或像示例 07 一样读取检测 JSON 中的 <code>rec["bbox_xywh"]</code>。位姿输入缺少掩码时，估计器通过 <code>wapr.estimator.mask_from_bbox</code> 构造框区域；示例 07 也用该公共函数为输入 NMS 补齐缺失掩码。</span></td>
+<td><code>bbox_xywh = [x, y, w, h]</code><br/><code>mask = None</code></td>
+</tr>
+<tr>
+<td><code>n_view</code>, <code>n_inplane</code></td>
+<td><span class="en">Arguments of <code>estimate_one_category_one_instance</code>, <code>estimate_many_categories_many_instances</code>, and <code>estimate_frame_many_categories_many_instances</code>. They are not read from the scene folder. <code>None</code>, or omitting them, uses <code>n_view</code> and <code>n_inplane</code> in <code>wapr/recipe.py</code>. Those values are 4 and 3. <code>make_view_rots</code> in <code>wapr/estimator.py</code> turns the two counts into the initial rotations inside the call.</span><span class="zh"><code>estimate_one_category_one_instance</code>、<code>estimate_many_categories_many_instances</code>、<code>estimate_frame_many_categories_many_instances</code> 的参数。不从场景目录读取。<code>None</code> 或不传，就用 <code>wapr/recipe.py</code> 里的 <code>n_view</code> 和 <code>n_inplane</code>。现在是 4 和 3。<code>wapr/estimator.py</code> 的 <code>make_view_rots</code> 在这次调用里把这两个次数变成初始旋转。</span></td>
+<td><code>n_view = 4</code><br/><code>n_inplane = 3</code></td>
+</tr>
+<tr>
+<td><code>obj_ids</code>, <code>inst_count</code>, <code>score_2d_min</code>, <code>score_6d_min</code></td>
+<td><span class="en">Arguments of <code>estimate_frame_many_categories_many_instances</code> in <code>wapr/frame.py</code>. They are not arguments of <code>estimate_one_category_one_instance</code>. <code>obj_ids</code> is the class list used by both 2D matching and 6D. <code>score_2d_min</code> and <code>score_6d_min</code> are the two score gates. <code>inst_count</code> is the per-class count after those gates.</span><span class="zh"><code>wapr/frame.py</code> 里 <code>estimate_frame_many_categories_many_instances</code> 的参数。不是 <code>estimate_one_category_one_instance</code> 的参数。<code>obj_ids</code> 是 2D 匹配和 6D 共用的类别名单。<code>score_2d_min</code> 和 <code>score_6d_min</code> 是两个分数阈值。<code>inst_count</code> 是这两个阈值之后、每个类别留下的数量。</span></td>
+<td><code>obj_ids = [1]</code><br/><code>inst_count = {1: 14}</code><br/><code>score_2d_min = 0.1</code><br/><code>score_6d_min = 0.5</code></td>
+</tr>
+</tbody>
+</table></div>
+<p class="en"><code>rgb</code>, <code>depth_m</code>, <code>K</code>, and <code>mask</code> are read with <code>numpy.asarray</code>. Each one may be a <code>numpy.ndarray</code>, a rectangular nested <code>list</code>, or a <code>torch.Tensor</code> on CPU. A <code>dict</code> is not accepted. A CUDA tensor is not accepted: <code>asarray</code> raises <code>TypeError</code>. <code>bbox_xywh</code> and <code>diameter_m</code> go through Python <code>float</code>, so those two also accept a CUDA tensor. <code>mesh</code> is not an array.</p>
+<p class="zh"><code>rgb</code>、<code>depth_m</code>、<code>K</code>、<code>mask</code> 用 <code>numpy.asarray</code> 读入。每一个可以是 <code>numpy.ndarray</code>、整齐的嵌套 <code>list</code>，或 CPU 上的 <code>torch.Tensor</code>。不接受 <code>dict</code>。不接受 CUDA 上的 Tensor：<code>asarray</code> 抛出 <code>TypeError</code>。<code>bbox_xywh</code> 和 <code>diameter_m</code> 走 Python <code>float</code>，这两个也可以是 CUDA 上的 Tensor。<code>mesh</code> 不是数组。</p>
+<div class="docs-table-wrap"><table class="parameter-table parameter-contract">
+<colgroup><col class="parameter-name"/><col class="parameter-shape"/><col/><col/></colgroup>
+<thead>
+<tr>
+<th><span class="en">Argument</span><span class="zh">参数</span></th>
+<th><span class="en">Shape</span><span class="zh">形状</span></th>
+<th><span class="en">Dtype</span><span class="zh">类型</span></th>
+<th><span class="en">Restriction</span><span class="zh">限制</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rgb</code></td>
+<td><span class="en"><code>(H, W, 3)</code>. <code>(H, W)</code> is repeated to 3 channels. <code>(H, W, C)</code> with <code>C &gt; 3</code> keeps channels 0, 1, 2.</span><span class="zh"><code>(H, W, 3)</code>。<code>(H, W)</code> 会复制成 3 个通道。<code>(H, W, C)</code> 且 <code>C &gt; 3</code> 时只留第 0、1、2 通道。</span></td>
+<td><span class="en"><code>uint8</code> is already 0–255 and is cast to <code>float32</code>. Any other numeric dtype, including <code>float32</code> and <code>float64</code>: if the maximum is ≤ 1.5, the values are 0–1 and are multiplied by 255; if the maximum is &gt; 1.5, the values are already 0–255. The stored image is <code>float32</code>.</span><span class="zh"><code>uint8</code> 按 0–255 使用，再转成 <code>float32</code>。其他数值类型，包括 <code>float32</code> 和 <code>float64</code>：最大值 ≤ 1.5 时当作 0–1，乘 255；最大值 &gt; 1.5 时当作已经是 0–255。存下来的是 <code>float32</code>。</span></td>
+<td><span class="en">Channel order is RGB, not BGR. <code>(3, H, W)</code> and <code>(N, H, W, 3)</code> are not this call. <code>H</code> and <code>W</code> are the <code>depth_m</code> size. This function does not resize.</span><span class="zh">通道顺序是 RGB，不是 BGR。不接受 <code>(3, H, W)</code>，也不接受 <code>(N, H, W, 3)</code>。<code>H</code> 和 <code>W</code> 与 <code>depth_m</code> 相同。这个函数不缩放图像。</span></td>
+</tr>
+<tr>
+<td><code>depth_m</code></td>
+<td><span class="en"><code>(H, W)</code>. A third axis keeps index 0, so <code>(H, W, 1)</code> is read as <code>(H, W)</code>.</span><span class="zh"><code>(H, W)</code>。有第三维时只取第 0 个，所以 <code>(H, W, 1)</code> 按 <code>(H, W)</code> 读。</span></td>
+<td><span class="en">Cast to <code>float32</code> on entry. <code>float64</code>, <code>float32</code>, and integer dtypes such as <code>uint16</code> are converted. They are not rescaled.</span><span class="zh">入口转成 <code>float32</code>。<code>float64</code>、<code>float32</code>，以及 <code>uint16</code> 这类整数，只做类型转换，不乘系数。</span></td>
+<td><span class="en">The numbers are already meters. A <code>uint16</code> millimeter image is not divided by 1000. Some depth inside the mask must be &gt; 0, or <code>estimate_one_category_one_instance</code> raises <code>RuntimeError("depth")</code>.</span><span class="zh">数值已经是米。<code>uint16</code> 的毫米深度图不会除以 1000。mask 里要有 &gt; 0 的深度，否则 <code>estimate_one_category_one_instance</code> 抛出 <code>RuntimeError("depth")</code>。</span></td>
+</tr>
+<tr>
+<td><code>K</code></td>
+<td><span class="en"><code>(3, 3)</code>, or 9 numbers in row-major order. Any other count raises <code>ValueError</code> from <code>reshape(3, 3)</code>.</span><span class="zh"><code>(3, 3)</code>，或按行排开的 9 个数。元素个数不是 9 时，<code>reshape(3, 3)</code> 抛出 <code>ValueError</code>。</span></td>
+<td><span class="en">Cast to <code>float32</code>. A <code>float64</code> intrinsic is accepted and stored as <code>float32</code>.</span><span class="zh">转成 <code>float32</code>。传入 <code>float64</code> 可以，存成 <code>float32</code>。</span></td>
+<td><span class="en"><code>[[fx, 0, cx], [0, fy, cy], [0, 0, 1]]</code>, pixels, OpenCV. Not a normalized intrinsic. <code>fx</code> and <code>fy</code> are the divisors in the back-projection.</span><span class="zh"><code>[[fx, 0, cx], [0, fy, cy], [0, 0, 1]]</code>，像素，OpenCV。不是归一化内参。反投影时用 <code>fx</code> 和 <code>fy</code> 做除数。</span></td>
+</tr>
+<tr>
+<td><code>mesh</code></td>
+<td><span class="en">Vertices <code>(V, 3)</code> inside one <code>trimesh.Trimesh</code>.</span><span class="zh">一个 <code>trimesh.Trimesh</code>，顶点 <code>(V, 3)</code>。</span></td>
+<td><span class="en">A <code>trimesh.Trimesh</code>, or a path string that <code>trimesh.load(..., force="mesh", process=False)</code> reads. Vertices are cast to <code>float32</code> when the mesh is centered. Not a vertex <code>ndarray</code>, not a <code>dict</code>, not a tensor.</span><span class="zh"><code>trimesh.Trimesh</code>，或 <code>trimesh.load(..., force="mesh", process=False)</code> 能读的路径字符串。居中时顶点转成 <code>float32</code>。不是顶点 <code>ndarray</code>，不是 <code>dict</code>，不是 Tensor。</span></td>
+<td><span class="en">The vertex unit is meters. This call does not multiply by 0.001. A load that is not one <code>Trimesh</code> raises <code>TypeError</code>.</span><span class="zh">顶点单位是米。这次调用不乘 0.001。读入结果不是单个 <code>Trimesh</code> 时抛出 <code>TypeError</code>。</span></td>
+</tr>
+<tr>
+<td><code>diameter_m</code></td>
+<td><span class="en">One number. Not an array.</span><span class="zh">一个数。不是数组。</span></td>
+<td><span class="en">Python <code>int</code> or <code>float</code>, or a NumPy<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: numpy" href="#license-package-numpy" id="license-package-numpy-ref-en-table-3" role="doc-noteref">[1]</a></sup> scalar <code>float32</code> or <code>float64</code>. <code>float()</code> converts it to a Python <code>float</code>.</span><span class="zh">Python <code>int</code> 或 <code>float</code>，或 NumPy<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: numpy" href="#license-package-numpy" id="license-package-numpy-ref-zh-table-3" role="doc-noteref">[1]</a></sup> 标量 <code>float32</code>、<code>float64</code>。<code>float()</code> 把它转成 Python <code>float</code>。</span></td>
+<td><span class="en">Meters, and greater than 0. The crop half-edge is <code>refine_crop_ratio * diameter_m / 2</code>.</span><span class="zh">单位米，且大于 0。裁剪半边长是 <code>refine_crop_ratio * diameter_m / 2</code>。</span></td>
+</tr>
+<tr>
+<td><code>bbox_xywh</code></td>
+<td><span class="en">Four numbers <code>x, y, w, h</code>. A 1-D sequence of length 4: <code>list</code>, <code>tuple</code>, <code>ndarray</code> <code>(4,)</code>, or tensor <code>(4,)</code>. A longer sequence drops the tail. Shape <code>(1, 4)</code> raises <code>TypeError</code>.</span><span class="zh">四个数 <code>x, y, w, h</code>。一维、长度为 4：<code>list</code>、<code>tuple</code>、<code>ndarray</code> 的 <code>(4,)</code>，或 Tensor 的 <code>(4,)</code>。更长就丢掉后面的。形状 <code>(1, 4)</code> 会抛出 <code>TypeError</code>。</span></td>
+<td><span class="en">Each item is converted with <code>float</code>. <code>float32</code>, <code>float64</code>, and integers are accepted.</span><span class="zh">每一项用 <code>float</code> 转换。<code>float32</code>、<code>float64</code> 和整数都可以。</span></td>
+<td><span class="en">Pixels, origin at the top-left, y down. This is <code>xywh</code>, not <code>xyxy</code>. It is read only when <code>mask is None</code>. A passed <code>mask</code> ignores it. If both are missing, <code>ValueError</code>.</span><span class="zh">像素，原点在左上，y 向下。这是 <code>xywh</code>，不是 <code>xyxy</code>。只在 <code>mask is None</code> 时读取。传了 <code>mask</code> 就忽略它。两个都没有则 <code>ValueError</code>。</span></td>
+</tr>
+<tr>
+<td><code>mask</code></td>
+<td><span class="en"><code>(H, W)</code>, the same size as <code>depth_m</code>. A third axis keeps index 0. Not <code>(C, H, W)</code>.</span><span class="zh"><code>(H, W)</code>，与 <code>depth_m</code> 同尺寸。有第三维时只取第 0 个。不是 <code>(C, H, W)</code>。</span></td>
+<td><span class="en">No cast at entry. Foreground is <code>value &gt; 0</code>, so <code>uint8</code> 1 or 255, <code>bool</code> <code>True</code>, and a positive <code>float32</code> or <code>float64</code> all count. 0 is background. The crop later stores the mask as <code>float32</code>.</span><span class="zh">入口不转换类型。前景是 <code>value &gt; 0</code>，所以 <code>uint8</code> 的 1 或 255、<code>bool</code> 的 <code>True</code>、以及正的 <code>float32</code> 或 <code>float64</code> 都算。0 是背景。裁剪时再存成 <code>float32</code>。</span></td>
+<td><span class="en">A <code>mask</code> selects <code>wapr_w_mask</code> and ignores <code>bbox_xywh</code>. <code>estimate_one_category_one_instance</code> does not check the size. A different <code>H</code> or <code>W</code> fails in the depth reduction. A dimension of length 1 is broadcast, so pass the depth size. See <a href="pose.html#mask">region inputs and checkpoint selection</a>.</span><span class="zh">传了 <code>mask</code> 就用 <code>wapr_w_mask</code>，并忽略 <code>bbox_xywh</code>。<code>estimate_one_category_one_instance</code> 不检查尺寸。<code>H</code> 或 <code>W</code> 不同时，深度归约会失败。某一维长度为 1 会被广播，所以要传和深度相同的尺寸。见 <a href="pose.html#mask">区域输入与模型选择</a>。</span></td>
+</tr>
+<tr>
+<td><code>n_view</code></td>
+<td><span class="en">One integer. Not an array of directions.</span><span class="zh">一个整数。不是方向数组。</span></td>
+<td><span class="en">Python <code>int</code>. <code>None</code> reads <code>recipe.n_view</code>, which is 4.</span><span class="zh">Python <code>int</code>。<code>None</code> 读 <code>recipe.n_view</code>，现在是 4。</span></td>
+<td><span class="en">At least 1. 4, 6, 8, 12, and 20 are the vertices of the tetrahedron, octahedron, cube, icosahedron, and dodecahedron. Any other count is a Fibonacci sphere. The default 4 is the tetrahedron.</span><span class="zh">不小于 1。4、6、8、12、20 分别是正四面体、正八面体、立方体、正二十面体、正十二面体的顶点。其他数量是斐波那契球面。默认的 4 是正四面体。</span></td>
+</tr>
+<tr>
+<td><code>n_inplane</code></td>
+<td><span class="en">One integer, the number of spins. Not a list of angles.</span><span class="zh">一个整数，旋转次数。不是角度列表。</span></td>
+<td><span class="en">Python <code>int</code>. <code>None</code> reads <code>recipe.n_inplane</code>, which is 3.</span><span class="zh">Python <code>int</code>。<code>None</code> 读 <code>recipe.n_inplane</code>，现在是 3。</span></td>
+<td><span class="en">At least 1. The angles are <code>2π k / n_inplane</code> about camera +Z; the default 3 gives 0°, 120° and 240°. For both backends, <code>n_view * n_inplane</code> must belong to <code>wapr.pose_groups.wbps_group_sizes</code>: 2–25, plus the products of view counts 4/6/8/12/20 with in-plane counts 3/4/5/6 (34 distinct counts, maximum 120). Unsupported products raise <code>ValueError</code>. The default is 12 hypotheses per instance.</span><span class="zh">不小于 1。绕相机 +Z 的角度为 <code>2π k / n_inplane</code>，默认三次对应 0°、120°、240°。两种后端均要求 <code>n_view * n_inplane</code> 属于 <code>wapr.pose_groups.wbps_group_sizes</code>：2–25，以及视角数 4/6/8/12/20 与面内次数 3/4/5/6 的乘积，共 34 种不同组长，最大为 120。不受支持的乘积抛出 <code>ValueError</code>；默认每实例十二个候选姿态。</span></td>
+</tr>
+<tr>
+<td><code>obj_ids</code></td>
+<td><span class="en">A sequence of class ids, or <code>None</code>. Not a score.</span><span class="zh">一串类别 id，或 <code>None</code>。不是分数。</span></td>
+<td><span class="en">Each item is converted with <code>int</code>. A Python <code>int</code> is the usual item. This argument belongs to <code>estimate_frame_many_categories_many_instances</code>, and to <code>WAPRDet2D.detect_many_categories_many_instances</code> under the same name.</span><span class="zh">每一项用 <code>int</code> 转换。通常是 Python <code>int</code>。这个参数属于 <code>estimate_frame_many_categories_many_instances</code>，<code>WAPRDet2D.detect_many_categories_many_instances</code> 用同一个名字。</span></td>
+<td><span class="en"><code>None</code> uses the mesh ids that are also in the template bank. A passed list is the only set that 2D matching and 6D estimation will use. An id missing from <code>meshes</code> raises <code>KeyError</code>. An id missing from the bank raises <code>ValueError</code>.</span><span class="zh"><code>None</code> 用既在网格里、也在模板库里的 id。传入的名单是 2D 匹配和 6D 估计唯一会用的那一套。不在 <code>meshes</code> 里会抛出 <code>KeyError</code>。不在模板库里会抛出 <code>ValueError</code>。</span></td>
+</tr>
+<tr>
+<td><code>score_2d_min</code></td>
+<td><span class="en">One number, or <code>None</code>. Not per box.</span><span class="zh">一个数，或 <code>None</code>。不是每个框一个。</span></td>
+<td><span class="en">Python <code>float</code>, or a value <code>float()</code> accepts. <code>None</code> reads <code>score_threshold</code> in <code>wapr/det2d.py</code>.</span><span class="zh">Python <code>float</code>，或 <code>float()</code> 能转的值。<code>None</code> 读 <code>wapr/det2d.py</code> 的 <code>score_threshold</code>。</span></td>
+<td><span class="en">The recommended default is 0.1, and that is the value of <code>score_threshold</code>. A box stays when its best allowed class is &gt;= this gate. Pass another float to change it. <code>predict</code> takes the same gate as <code>score_min</code>.</span><span class="zh">推荐的默认值是 0.1，也就是 <code>score_threshold</code> 现在的值。允许类别里的最高分不低于这个阈值，包围盒才留下。传入另一个浮点数即可替换该值。<code>predict</code> 用 <code>score_min</code> 接收同一个阈值。</span></td>
+</tr>
+<tr>
+<td><code>score_6d_min</code></td>
+<td><span class="en">One number, or <code>None</code>. Not per pose until you pass one gate for the whole call.</span><span class="zh">一个数，或 <code>None</code>。传入的是这一次共用的一个阈值。</span></td>
+<td><span class="en">Python <code>float</code>, or a value <code>float()</code> accepts. <code>None</code> does not filter.</span><span class="zh">Python <code>float</code>，或 <code>float()</code> 能转的值。<code>None</code> 不过滤。</span></td>
+<td><span class="en">Keeps poses with <code>score_6d</code> at or above the gate. The default <code>None</code> disables this filter. The value 0.5 in the example is illustrative; select an operating threshold on separate validation data for the target setting.</span><span class="zh">保留 <code>score_6d</code> 不低于阈值的位姿。默认 <code>None</code> 不按该分数过滤；示例中的 0.5 仅用于演示，实际阈值需在目标场景的独立验证数据上选择。</span></td>
+</tr>
+<tr>
+<td><code>inst_count</code></td>
+<td><span class="en">A <code>dict</code> from <code>obj_id</code> to a count, or <code>None</code>.</span><span class="zh"><code>obj_id</code> 到数量的 <code>dict</code>，或 <code>None</code>。</span></td>
+<td><span class="en">Keys and values are converted with <code>int</code>. A count of 0 keeps none of that class. A negative count raises <code>ValueError</code>.</span><span class="zh">键和值都用 <code>int</code> 转换。数量 0 则这一类一条不留。负数抛出 <code>ValueError</code>。</span></td>
+<td><span class="en">Applied after both score gates. Within a class, higher <code>score_6d</code> comes first. A class missing from the dict is not capped. <code>None</code> caps nothing.</span><span class="zh">在两个分数阈值之后。同一类里 <code>score_6d</code> 高的在前。字典里没有的类别不截断。<code>None</code> 则不截断。</span></td>
+</tr>
+</tbody>
+</table></div>
+<p class="en">The supplied-region <code>estimate_one_category_one_instance</code> call returns a <code>dict</code>. <code>pose_4x4</code> is a NumPy<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: numpy" href="#license-package-numpy" id="license-package-numpy-ref-en" role="doc-noteref">[1]</a></sup> <code>float32</code> array of shape <code>(4, 4)</code>, object to camera. <code>R</code> is <code>float32</code> <code>(3, 3)</code>. <code>t_m</code> is <code>float32</code> <code>(3,)</code>, meters. <code>score_6d</code> is a Python <code>float</code>, <code>(100 - max(between_group)) / 200</code>. <code>within_group</code> picks the hypothesis inside the group. A larger <code>between_group</code> makes the returned score smaller.</p>
+<p class="zh">给定区域的 <code>estimate_one_category_one_instance</code> 调用返回一个 <code>dict</code>。<code>pose_4x4</code> 是 NumPy<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: numpy" href="#license-package-numpy" id="license-package-numpy-ref-zh" role="doc-noteref">[1]</a></sup> <code>float32</code>，形状 <code>(4, 4)</code>，物体到相机。<code>R</code> 是 <code>float32</code> 的 <code>(3, 3)</code>。<code>t_m</code> 是 <code>float32</code> 的 <code>(3,)</code>，米。<code>score_6d</code> 是 Python <code>float</code>，等于 <code>(100 - max(between_group)) / 200</code>。<code>within_group</code> 在这一组里选候选姿态。<code>between_group</code> 越大，返回的分数越小。</p>
+<h2 data-inline-section="" id="det"><span class="en">Detection without known instance counts</span><span class="zh">实例数量未知时的检测</span></h2>
+<p class="en"><code>examples/05_bop_6d_detection.py</code> applies full 6D detection to one BOP frame without a known instance count. <code>estimate_frame_many_categories_many_instances</code> first runs the 2D detector, then passes masks containing finite, positive depth to one <code>estimate_many_categories_many_instances</code> pose batch. A detection without usable depth remains in the 2D return but cannot yield a pose. The visible mask defines the pose region; the detector box is retained as metadata. This configuration leaves <code>inst_count</code> unset, so it does not cap a category's instance count.</p>
+<p class="zh"><code>examples/05_bop_6d_detection.py</code> 在不预先知道实例数量的情况下，对一帧 BOP 数据执行完整 6D 检测。<code>estimate_frame_many_categories_many_instances</code> 先运行 2D 检测器，再把 mask 内具有有限正深度的实例送入一次 <code>estimate_many_categories_many_instances</code> 位姿批处理。没有可用深度的检测仍保留在 2D 返回值中，但不能产生位姿。可见 mask 定义位姿区域，检测框只作为元数据保留。此配置不设置 <code>inst_count</code>，因此不限制每类的实例数量。</p>
+<pre><code>from wapr.frame import estimate_frame_many_categories_many_instances
+
+poses, timing, detections = estimate_frame_many_categories_many_instances(
+    estimator, detector, rgb, depth_m, K, meshes,
+    obj_ids=None,
+    inst_count=None,
+    score_2d_min=0.1,
+    score_6d_min=None,
+    n_view=4, n_inplane=3,
+)</code></pre>
+<p class="en"><code>meshes</code> maps <code>obj_id</code> to <code>(mesh, diameter_m)</code>. Each item in <code>poses</code> has <code>obj_id</code>, <code>score_2d</code>, <code>bbox_xywh</code>, <code>pose_4x4</code>, <code>R</code>, <code>t_m</code>, <code>score_6d</code>, and <code>time_s</code>. <code>score_2d</code> is the detector ranking score. It is not <code>score_6d</code>. <code>time_s</code> is that pose call divided by the number of instances that entered it, in seconds. Rows dropped by <code>score_6d_min</code> or <code>inst_count</code> are absent, so the kept rows sum to the batch only when nothing was dropped after the batch. Repeated <code>obj_id</code> values stay separate instances. <code>name</code> is included when the mesh metadata has one.</p>
+<p class="zh"><code>meshes</code> 把 <code>obj_id</code> 映射到 <code>(mesh, diameter_m)</code>。<code>poses</code> 的每一项含 <code>obj_id</code>、<code>score_2d</code>、<code>bbox_xywh</code>、<code>pose_4x4</code>、<code>R</code>、<code>t_m</code>、<code>score_6d</code>、<code>time_s</code>。<code>score_2d</code> 是检测器的排序分，不是 <code>score_6d</code>。<code>time_s</code> 是这次位姿调用总耗时除以进入调用的实例数，单位秒。被 <code>score_6d_min</code> 或 <code>inst_count</code> 删掉的行不在列表里，所以只有 batch 之后没有再删行时，留下的行才加回这次调用。重复的 <code>obj_id</code> 仍是各自的实例。网格 metadata 里有 <code>name</code> 时，位姿里也有它。</p>
+<p class="en">The third return, <code>detections</code>, contains every row that passed the 2D gate, including masks without usable depth. Each row has <code>obj_id</code>, <code>score_2d</code>, <code>bbox</code>, and <code>mask</code>. The detector visualization draws blue boxes, tinted masks, and labeled 2D scores; examples 04 and 05 show only their 12 highest-scoring rows to keep the image legible, while the full rows still enter the depth check. The 6D visualization draws red boxes, rendered contours, and labeled WBPS <code>score_6d</code>. Example 05 also limits this illustration to the 12 highest WBPS scores; inference itself is unchanged. <code>recipe.visualize</code> controls whether the 6D image is saved.</p>
+<p class="zh">第三个返回值 <code>detections</code> 包含通过 2D 阈值的全部检测行，其中也可能有 mask 内无有效深度的行。每行有 <code>obj_id</code>、<code>score_2d</code>、<code>bbox</code> 和 <code>mask</code>。2D 可视化绘制蓝色框、带颜色的 mask，并标注 2D 分数；示例 04、05 的插图只展示分数最高的 12 条，避免标签遮挡，但完整检测结果仍进入深度检查。6D 可视化绘制红色框、渲染轮廓，并标注 WBPS 的 <code>score_6d</code>。示例 05 也只在插图中展示 WBPS 分数最高的 12 条，推理本身不变。<code>recipe.visualize</code> 控制是否保存 6D 图。</p>
+<div id="nms">
+<p class="en">Rendered-contour suppression is a separate postprocessing step. The published LM-O figure suppresses overlapping poses of the same CAD when contour IoU exceeds 0.5, retaining the higher <code>score_6d</code>. Example 10 applies the same criterion with <code>rendered_mask_iou_nms</code>. Neither operation is part of <code>estimate_frame_many_categories_many_instances</code>. The shared CUDA implementation in <code>wapr/suppression.py</code> keeps silhouette intersections, ranking and greedy suppression on GPU; only the final indices return to CPU. Silhouettes retain the original image resolution, though pixel-center rasterization can differ at boundary pixels from OpenCV polygon filling.</p>
+<p class="zh">渲染轮廓抑制是独立的后处理步骤。发布页的 LM-O 图对同一 CAD 的位姿候选比较轮廓 IoU：超过 0.5 时保留 <code>score_6d</code> 较高者。示例 10 通过 <code>rendered_mask_iou_nms</code> 应用相同准则。这两处后处理均不属于 <code>estimate_frame_many_categories_many_instances</code>。<code>wapr/suppression.py</code> 的共享 CUDA 实现将轮廓交集、排序与贪心抑制保留在 GPU，仅将最终下标传回 CPU。轮廓保持原图分辨率，但按像素中心光栅化得到的边界像素可能与OpenCV 多边形填充结果不同。</p>
+<p class="en">Example 07 uses <code>greedy_mask_nms_across_categories</code> only for <code>detector = "json"</code>, to suppress supplied masks across categories. This input filter is distinct from both <a href="det2d-call.html#nms">same-category 2D mask NMS</a> and pose-contour suppression.</p>
+<p class="zh">示例 07 仅在 <code>detector = "json"</code> 时通过 <code>greedy_mask_nms_across_categories</code> 对外部掩码执行跨类别抑制。该输入过滤与<a href="det2d-call.html#nms">同类别 2D 掩码 NMS</a>及位姿轮廓抑制分别对应不同阶段。</p>
+</div>
+<section aria-label="References and licenses / 参考文献与许可" class="license-notes"><h2 data-inline-section="true"><span class="en">References and licenses</span><span class="zh">参考文献与许可</span></h2><ol><li id="license-package-numpy"><strong>numpy — BSD License</strong>. <span><span class="en">Runtime dependency; dependencies and model/data assets retain their own licenses.</span><span class="zh">运行依赖；依赖及模型/数据资源保留各自许可。</span></span> · <a href="https://numpy.org"><span class="en">Original source</span><span class="zh">原始来源</span></a> · <a href="licenses/package-numpy/LICENSE.txt"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a> <a aria-label="Back to mention / 返回正文" href="#license-package-numpy-ref-en-table-3" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-package-numpy-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-package-numpy-ref-zh-table-3" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-package-numpy-ref-zh" role="doc-backlink">↩</a></li><li id="license-lmo-data"><strong>LM-O data — CC-BY-SA-4.0</strong>. <span><span class="en">Data and model excerpt, not the loader code.</span><span class="zh">数据与模型摘录，不是读取代码。</span></span> · <a href="https://bop.felk.cvut.cz/datasets/#LM-O"><span class="en">Original source</span><span class="zh">原始来源</span></a> · <a href="https://github.com/thodan/bop_toolkit"><span class="en">GitHub: BOP toolkit</span><span class="zh">GitHub：BOP 工具集</span></a><div class="reference-citation">Brachmann et al. Learning 6D Object Pose Estimation Using 3D Object Coordinates. ECCV 2014. · <a href="https://doi.org/10.1007/978-3-319-10605-2_35"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-lmo-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-lmo-data-ref-zh" role="doc-backlink">↩</a></div></li><li id="license-robi-data"><strong>ROBI data — Not separately verified / 未单独核实</strong>. <span><span class="en">The saved public poses and dataset are credited to ROBI; an independent grant to redistribute them has not been verified.</span><span class="zh">保存的公开位姿和数据均注明 ROBI 来源；其再分发授权尚未独立核实。</span></span> · <a href="https://github.com/junyang224/ROBI_Toolkit"><span class="en">GitHub</span><span class="zh">GitHub</span></a><div class="reference-citation">Yang et al. ROBI: A Multi-View Dataset for Reflective Objects in Robotic Bin-Picking. IROS 2021. · <a href="https://arxiv.org/abs/2105.04112"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-robi-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-robi-data-ref-en-table-2" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-robi-data-ref-zh" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-robi-data-ref-zh-table-2" role="doc-backlink">↩</a></div></li><li id="reference-icbin-data"><strong>IC-BIN</strong> · <a href="https://bop.felk.cvut.cz/datasets/#IC-BIN"><span class="en">Official BOP dataset page</span><span class="zh">BOP 官方数据页</span></a><div class="reference-citation">Doumanoglou et al. Recovering 6D Object Pose and Predicting Next-Best-View in the Crowd. CVPR 2016. · <a href="https://openaccess.thecvf.com/content_cvpr_2016/html/Doumanoglou_Recovering_6D_Object_CVPR_2016_paper.html"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#reference-icbin-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#reference-icbin-data-ref-zh" role="doc-backlink">↩</a></div></li></ol><p><span class="en">Model weights and dataset/task assets may have separate terms. WAPR's source license does not replace them.</span><span class="zh">模型权重、数据集与任务资源可能有独立条款；WAPR 源码许可不替代这些许可。</span></p></section><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="bottom"><a href="pose-one.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">One category, one instance</span><span class="zh">单类别、单实例</span></strong></a><a href="pose-track.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">6D pose tracking</span><span class="zh">6D 位姿跟踪</span></strong></a></nav><footer class="site-author">© 2026 <a href="credits.html#authorship">Yulin Wang</a> · <span><span class="en">Code and website author</span><span class="zh">代码与网站作者</span></span></footer></main>
+</div>
+<script src="../assets/lang.js"></script>
+<script src="nav.js?v=34"></script>
+<script src="../assets/table-layout.js?v=1"></script></body>
+</html>

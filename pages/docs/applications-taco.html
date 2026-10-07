@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+
+<!--
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>TACO multi-object pose tracking — WAPR docs</title>
+<script>
+    (function () {
+      var lang = "en";
+      try { lang = localStorage.getItem("wapr-lang") === "zh" ? "zh" : "en"; } catch (e) {}
+      document.documentElement.setAttribute("data-lang", lang);
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    })();
+  </script>
+<link href="../assets/project.css?v=bar14" rel="stylesheet"/>
+<link href="docs.css?v=62" rel="stylesheet"/>
+<link href="../favicon.ico?v=11" rel="icon" type="image/x-icon"/>
+<link href="../assets/wapr-icon-32.png?v=11" rel="icon" sizes="32x32" type="image/png"/>
+<link href="../assets/wapr-icon-180.png?v=11" rel="apple-touch-icon" sizes="180x180"/>
+<link href="../assets/table-layout.css?v=1" rel="stylesheet"/><script src="section-routes.js?v=59"></script><link href="applications-ycbineoat.html" rel="prev"/><link href="applications-reconstruct.html" rel="next"/><link rel="stylesheet" href="../assets/github-docs.css?v=3"/>
+<script src="../assets/site-runtime.js?v=1"></script>
+</head>
+<body class="project docs" data-title-en="TACO multi-object pose tracking — WAPR docs" data-title-zh="TACO 多物体位姿跟踪 — WAPR 文档">
+<div aria-hidden="true" class="mast-spacer"></div>
+<header class="mast">
+<a class="mast-hero-link" href="../index.html"><img alt="WAPR, wide-angle pose refinement" class="mast-hero" height="724" src="../assets/wapr-banner-1440.webp" srcset="../assets/wapr-banner-768.webp 768w, ../assets/wapr-banner-1440.webp 1440w, ../assets/wapr-banner-2172.webp 2172w" sizes="(max-width: 800px) 100vw, 1200px" fetchpriority="high" width="2172"/></a>
+<div aria-hidden="true" class="mast-scrim"></div>
+<div class="docs-top">
+<a class="docs-home" href="../index.html">WAPR</a>
+<nav aria-label="Site" class="docs-jump">
+<a href="../index.html"><span class="en">Home</span><span class="zh">主页</span></a>
+<a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"><span class="en">Paper</span><span class="zh">论文</span></a>
+<a href="https://github.com/WangYuLin-SEU/WAPR"><span class="en">Code</span><span class="zh">代码</span></a>
+</nav>
+<div class="lang-switch" role="group">
+<button data-set-lang="en" type="button">EN</button>
+<button data-set-lang="zh" type="button">中文</button>
+</div>
+</div>
+</header><script src="../assets/banner.js?v=18"></script>
+<div class="docs-shell">
+<nav aria-label="Documentation / 教程目录" class="docs-nav"><a href="index.html"><span class="en">Overview</span><span class="zh">概览</span></a><a class="sub" href="index-modules.html"><span class="en">How the modules work together</span><span class="zh">模块如何衔接</span></a><a class="sub" href="index-routes.html"><span class="en">Choose a route for your scene</span><span class="zh">根据场景选择入口</span></a><a class="sub" href="index-performance.html"><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></a><a class="sub" href="index-examples.html"><span class="en">Example overview</span><span class="zh">示例总览</span></a><a href="install.html"><span class="en">Installation</span><span class="zh">安装</span></a><a class="sub" href="install-guide.html"><span class="en">Installation guide</span><span class="zh">安装引导</span></a><a class="sub" href="install-core.html"><span class="en">Detection and pose setup</span><span class="zh">检测与位姿环境</span></a><a class="sub" href="install-extensions.html"><span class="en">Extension setup</span><span class="zh">扩展环境</span></a><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a><a class="sub" href="data-resources.html"><span class="en">Datasets and model resources</span><span class="zh">数据集与模型资源</span></a><a class="sub" href="data-bop-folder.html"><span class="en">Read the BOP sample</span><span class="zh">读取 BOP 示例数据</span></a><a class="sub" href="data-frame.html"><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></a><a class="sub" href="data-bop.html"><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></a><a class="sub" href="data-sixd-loc.html"><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></a><a class="sub" href="data-own.html"><span class="en">Custom data</span><span class="zh">自定义数据</span></a><a href="det2d.html"><span class="en">2D detection and segmentation</span><span class="zh">2D 检测与分割</span></a><a class="sub" href="det2d-templates.html"><span class="en">CAD templates and feature encoding</span><span class="zh">CAD 模板与特征编码</span></a><a class="sub" href="det2d-call.html"><span class="en">Detector usage and evaluation</span><span class="zh">检测器使用与评估</span></a><a href="pose.html"><span class="en">6D pose tasks and interfaces</span><span class="zh">6D 位姿任务与接口</span></a><a class="sub" href="pose-one.html"><span class="en">One category, one instance</span><span class="zh">单类别、单实例</span></a><a class="sub" href="pose-loc.html"><span class="en">6D pose localization and detection</span><span class="zh">6D 位姿定位与检测</span></a><a class="sub" href="pose-track.html"><span class="en">6D pose tracking</span><span class="zh">6D 位姿跟踪</span></a><a class="sub" href="pose-backend-scaling.html"><span class="en">Inference and renderer scaling</span><span class="zh">推理与渲染后端性能</span></a><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a><a class="sub" href="applications-robi.html"><span class="en">ROBI detection experiments</span><span class="zh">ROBI 检测实验</span></a><a class="sub" href="applications-ycbineoat.html"><span class="en">YCBInEOAT single-object pose tracking</span><span class="zh">YCBInEOAT 单物体位姿跟踪</span></a><a aria-current="page" class="sub" href="applications-taco.html"><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></a><a class="sub" href="applications-reconstruct.html"><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></a><a class="sub" href="applications-robot.html"><span class="en">Robot simulation</span><span class="zh">机器人仿真</span></a><a href="credits.html"><span class="en">Acknowledgments and references</span><span class="zh">致谢与参考资料</span></a></nav>
+<main class="docs-main"><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="top"><a href="applications-ycbineoat.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">YCBInEOAT single-object pose tracking</span><span class="zh">YCBInEOAT 单物体位姿跟踪</span></strong></a><a href="applications-reconstruct.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></strong></a></nav><nav aria-label="Breadcrumb / 章节路径" class="docs-breadcrumb"><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a></nav><h1 id="taco"><img class="sec-icon" src="../assets/readme/icons/gallery.svg" width="24" height="24" alt="" aria-hidden="true"/> <span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></h1>
+<p class="en">Example 09 provides a runnable two-object tracking workflow. The estimates and visible-alignment diagnostics below come from a separate two-object experiment. The results describe this sequence and its stated depth tolerances; they do not validate complete multi-instance tracking accuracy for the current batch API. For the update interface, see <a href="pose-track.html#track-batch">batched pose tracking</a>.</p>
+<p class="zh">示例 09 提供可直接运行的双物体跟踪流程。下方估计结果及可见区域对齐诊断来自独立的双物体实验。结果对应本序列及所列深度容差，不能代表当前批量计算接口的完整多实例跟踪精度。更新接口见<a href="pose-track.html#track-batch">批量计算位姿跟踪</a>。</p>
+<h2 data-inline-section="" id="taco-run"><span class="en">Run example 09</span><span class="zh">运行示例 09</span></h2>
+<p class="en">Track a known wooden box and lint roller on raw frames 80–109, stride 1. Their CAD meshes and saved manual RGB clicks are inputs; SAM 2<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: SAM 2" href="#license-sam2" id="license-sam2-ref-en" role="doc-noteref">[2]</a></sup> predicts both initial masks. Neither preparation nor inference reads motion-capture poses, dataset masks or camera extrinsics. To use another first frame, save integer RGB clicks for that frame in <code>examples/09_taco_init_clicks.json</code> and update the visible frame interval.</p>
+<p class="zh">在原始第 80–109 帧、步长 1 上跟踪已知木盒和粘毛滚筒。输入为两份 CAD 网格及保存的人工 RGB 点击点，SAM 2<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: SAM 2" href="#license-sam2" id="license-sam2-ref-zh" role="doc-noteref">[2]</a></sup> 预测两个初始化掩码。准备及推理均不读取动捕位姿、数据集掩码或相机外参。更换首个处理帧时，在 <code>examples/09_taco_init_clicks.json</code> 保存该帧的整数 RGB 点击点，并修改脚本中可见的帧区间。</p>
+<p class="en">Complete the <a href="install-core.html#third-party">DINOv2 and SAM 2 setup</a><sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: DINOv2" href="#license-dinov2" id="license-dinov2-ref-en" role="doc-noteref">[1]</a></sup>, and compile the TensorRT<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: tensorrt-cu12" href="#license-package-tensorrt-cu12" id="license-package-tensorrt-cu12-ref-en" role="doc-noteref">[3]</a></sup> FP16 engines, including <code>wbps_batch.engine</code>, on your inference GPU. The example uses the OGL renderer. Unpack the five files listed below following the <a href="https://github.com/leolyliu/TACO-Instructions">official TACO layout</a><sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: TACO data" href="#license-taco-data" id="license-taco-data-ref-en" role="doc-noteref">[4]</a></sup>; change <code>raw_root</code> in the preparation script if your dataset is elsewhere. The lossless depth reader requires <code>imageio-ffmpeg</code>.</p>
+<p class="zh">先完成 <a href="install-core.html#third-party">DINOv2 与 SAM 2 环境准备</a><sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: DINOv2" href="#license-dinov2" id="license-dinov2-ref-zh" role="doc-noteref">[1]</a></sup>，在推理显卡上编译 TensorRT<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: tensorrt-cu12" href="#license-package-tensorrt-cu12" id="license-package-tensorrt-cu12-ref-zh" role="doc-noteref">[3]</a></sup> FP16 引擎，包括 <code>wbps_batch.engine</code>；本例使用 OGL 渲染器。按 <a href="https://github.com/leolyliu/TACO-Instructions">TACO 官方目录结构</a><sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: TACO data" href="#license-taco-data" id="license-taco-data-ref-zh" role="doc-noteref">[4]</a></sup>解压下面五份文件；数据位于别处时，修改准备脚本中的 <code>raw_root</code>。无损深度解码需要 <code>imageio-ffmpeg</code>。</p>
+<pre><code>datasets/TACO/
+  Egocentric_RGB_Videos/(brush, roller, box)/20231104_007/color.mp4
+  Egocentric_Depth_Videos/(brush, roller, box)/20231104_007/egocentric_depth.avi
+  Egocentric_Camera_Parameters/(brush, roller, box)/20231104_007/egocentric_intrinsic.txt
+  Object_Models/093_cm.obj
+  Object_Models/076_cm.obj</code></pre>
+<pre><code>python -m pip install imageio-ffmpeg
+python examples/09_taco_many_instances/prepare_sample.py
+python examples/09_taco_many_instances.py</code></pre>
+<p class="en">Run from the repository root. Preparation preserves uint16 depth, resizes it by nearest neighbor to the 512×376 RGB grid, and checks frame counts. The existing intrinsics already describe that grid. Inference divides depth by 4000 and converts mesh centimeters to meters. The untextured meshes use grayscale observations for pose and DINOv2, with color images for SAM 2 and display.</p>
+<p class="zh">在仓库根目录执行。准备脚本保留 uint16 深度，以最近邻缩放至 512×376 的 RGB 网格，并检查帧数；现有内参已经对应这个像素网格。推理时深度除以 4000，网格从厘米转换为米。无纹理网格对应的位姿及 DINOv2 输入为灰度观测，SAM 2 与展示使用彩色图。</p>
+<p class="en">Encode each frame once with DINOv2, associate each track with its own reliable and initial features, and batch all active pose updates. WAPR/SAPR and WBPS run together across objects while keeping independent six-pose scoring groups. A missing region or score below the explicit experimental threshold 0.5 triggers searches using the two feature sources separately, followed by shared SAM 2 box segmentation and batched pose initialization. Rank the tracked or held pose against the actual recovery candidates in independent groups of two or three; choose top1 within each group. This threshold is not an accuracy criterion or a library default.</p>
+<p class="zh">DINOv2 每帧只编码一次，各轨迹根据自己的可靠帧及初始化特征匹配区域，再批量更新全部活跃位姿。WAPR/SAPR 与 WBPS 跨物体合批，各物体保留独立的六候选评分组。区域缺失或分数低于显式实验阈值 0.5 时，分别搜索两种特征来源的区域，再共享 SAM 2 的图像编码分割候选框，并批量初始化候选位姿。将跟踪或保留位姿与实际补救候选组成独立的两、三候选组，组内选 top1；该阈值不代表精度达标，也不是库默认值。</p>
+<div class="nb-cell"><div class="nb-in"><span class="nb-prompt">In [1]</span><pre data-example="examples/09_taco_many_instances.py" data-example-lines="307:310"><code>normal_started = time.perf_counter()
+updates = track_many_categories_many_instances(estimator, rgb_pose, depth_m, K, active)
+torch.cuda.synchronize(device)
+normal_seconds = time.perf_counter() - normal_started</code></pre><p class="nb-source"><span class="en">Source: examples/09_taco_many_instances.py, lines 307–310</span><span class="zh">代码来源：examples/09_taco_many_instances.py，第 307–310 行</span></p></div></div>
+<p class="en">Outputs go to <code>outputs/taco_many_instances/</code>: predicted initialization masks, box-and-contour previews, and <code>tracking.json</code>. <code>TRACK</code> and <code>REASSOC</code> update the reliable state. <code>LOST</code> keeps the previous reliable pose with <code>pose_updated=false</code>; that held pose is not a new estimate and is omitted from the preview. Each track retains its own ID. Recovery is an attempted search, not a guarantee of reacquisition.</p>
+<p class="zh">输出位于 <code>outputs/taco_many_instances/</code>：预测的初始化掩码、包围盒与轮廓预览，以及 <code>tracking.json</code>。<code>TRACK</code> 和 <code>REASSOC</code> 更新可靠状态；<code>LOST</code> 保留上一可靠位姿，并记录 <code>pose_updated=false</code>，该保留值不是当前帧的新估计，也不绘入预览。各轨迹保留自己的编号；补救搜索不保证找回目标。</p>
+<p class="en">Model loading, mesh preparation/packing/GL upload, initial feature seeding and three discarded warmups are recorded separately. Each hot frame records shared-region time, normal pose time, recovery time and a continuous total; drawing, decoding and writes are excluded. Resource counters must remain unchanged in timed pose calls. Initialization uses 4×3 hypotheses and the visible repository update counts; tracking uses six hypotheses per object. The figures below use their stated experiment settings; their results cannot be directly attributed to these current example settings.</p>
+<p class="zh">模型加载、网格准备及打包上传、初始特征建库，以及三次丢弃结果的预热均单独记录。每个热推理帧分别记录共享区域阶段、常规位姿阶段、补救阶段及连续总耗时，不含绘图、解码及写文件；计时内的资源操作计数必须保持不变。初始化采用 4×3 候选及仓库中可见的更新次数，跟踪为每个物体六候选。下方图表使用各自注明的实验设置，不能把其结果直接归于上述当前示例设置。</p>
+<p class="en">This example tracks two objects through 30 frames on RTX 4080 SUPER. This demonstration is not a dataset accuracy benchmark or an RTX 5090 speed measurement.</p>
+<p class="zh">该示例在 RTX 4080 SUPER 上处理 30 帧、跟踪两个物体。这组演示不作为完整数据集精度或 RTX 5090 性能结果。</p>
+<h2 data-inline-section="" id="track-multi"><span class="en">Sequence inputs</span><span class="zh">序列输入</span></h2>
+<p class="en">The saved <a href="https://huggingface.co/datasets/mzhobro/taco_dataset">TACO</a> excerpt, <code>(brush, roller, box)/20231104_007</code>, contains a lint roller and a wooden box: 114 RGB-D frames, RGB at 512×376 and 30 fps, with both meshes and motion-capture reference poses. Divide stored 16-bit depth by 4000 to obtain meters (0.25 mm per count), then resize it to the RGB pixel grid; missing returns remain invalid. Input conventions and data links are in <a href="data-resources.html#taco-data">tracking resources</a>.</p>
+<p class="zh">本地 <a href="https://huggingface.co/datasets/mzhobro/taco_dataset">TACO</a> 摘录 <code>(brush, roller, box)/20231104_007</code> 包含粘毛滚筒与木盒：共 114 帧 RGB-D，RGB 分辨率 512×376、帧率 30 fps，并含两份网格及动捕参考位姿。16 位深度值除以 4000 换算为米（每计数 0.25 mm），再缩放至 RGB 像素网格；缺失回波保留为无效深度。输入约定与数据链接见<a href="data-resources.html#taco-data">跟踪资源</a>。</p>
+<figure class="docs-shot wide taco-pose-comparison">
+<video preload="none" controls="" height="376" loop="" muted="" playsinline="" data-src="figures/taco_pose_compare.mp4?v=3" width="1032"></video>
+
+<div class="taco-pose-stills">
+<strong>WAPR</strong>
+<div class="taco-pose-still-row">
+<svg aria-label="WAPR, first saved frame" role="img" viewbox="0 0 512 376"><image height="1144" href="figures/taco_pose_compare.jpg?v=3" width="1032" x="0" y="0"/></svg>
+<svg aria-label="WAPR, second saved frame" role="img" viewbox="0 0 512 376"><image height="1144" href="figures/taco_pose_compare.jpg?v=3" width="1032" x="0" y="-384"/></svg>
+<svg aria-label="WAPR, third saved frame" role="img" viewbox="0 0 512 376"><image height="1144" href="figures/taco_pose_compare.jpg?v=3" width="1032" x="0" y="-768"/></svg>
+</div>
+<strong><span class="en">Motion capture</span><span class="zh">动捕</span></strong>
+<div class="taco-pose-still-row">
+<svg aria-label="Motion capture, first saved frame" role="img" viewbox="0 0 512 376"><image height="1144" href="figures/taco_pose_compare.jpg?v=3" width="1032" x="-520" y="0"/></svg>
+<svg aria-label="Motion capture, second saved frame" role="img" viewbox="0 0 512 376"><image height="1144" href="figures/taco_pose_compare.jpg?v=3" width="1032" x="-520" y="-384"/></svg>
+<svg aria-label="Motion capture, third saved frame" role="img" viewbox="0 0 512 376"><image height="1144" href="figures/taco_pose_compare.jpg?v=3" width="1032" x="-520" y="-768"/></svg>
+</div>
+</div>
+<figcaption><span class="en">TACO comparison: WAPR and motion capture, with boxes and contours.</span><span class="zh">TACO 对照：WAPR 与动捕的包围盒及轮廓。</span></figcaption>
+</figure><div class="figure-notes"><p class="en">Bounding boxes and mesh contours. Video: WAPR estimates at left, TACO motion-capture references at right. Stills: WAPR above, motion capture below; each column shows the same frame. The estimated roller contour is blue and its reference is green; the box is orange in both methods. Across these 30 frames, their median origin differences are 30 mm for the box and 25 mm for the roller. The box rotations differ by 4.5°. The roller rotations differ by about 180°, although their contours overlap; this raw angle is sensitive to object symmetry.</p><p class="zh">包围盒与网格轮廓。视频左侧为 WAPR 估计，右侧为 TACO 动捕参考位姿；下方静帧上排为 WAPR、下排为动捕，每列对应同一帧。滚筒的估计轮廓为蓝色、参考轮廓为绿色；两种方法的木盒均以橙色区分。这 30 帧的原点距离中位数分别为木盒 30 mm、滚筒 25 mm。木盒旋转相差 4.5°；滚筒旋转相差约 180°，但轮廓仍重合，原始角度受物体对称性影响。</p></div>
+<p class="en">These two <code>.obj</code> files have vertices and normals only, no texture coordinates and no texture image, so the renderer uses gray vertices. The whole frame is converted to grayscale and stored as three equal channels before <code>estimate_one_category_one_instance</code>, <code>dino_tokens</code>, <code>wapr_wo_mask</code>, <code>sapr</code>, and WBPS. Frame 80 calls <code>WAPREstimator.estimate_one_category_one_instance</code> with a SAM 2 mask from one point on the box and one point on the roller. Each later frame keeps that pose, moves it with <code>translation_from_one_instance</code>, refines with <code>wapr_wo_mask</code> and <code>sapr</code>, and WBPS picks one of the six. Where the rendered depth and the sensor both return, the median absolute difference over these 30 frames is 16.5 mm on the box and 5.4 mm on the roller.</p>
+<p class="zh">这两个 <code>.obj</code> 只有顶点和法线，没有纹理坐标，也没有纹理图，所以渲染用灰色顶点。整幅图先转成灰度，再存成三个相同的通道，然后才送给 <code>estimate_one_category_one_instance</code>、<code>dino_tokens</code>、<code>wapr_wo_mask</code>、<code>sapr</code> 和 WBPS。第 80 帧用木盒上的一个点和滚筒上的一个点得到 SAM 2 mask，调用 <code>WAPREstimator.estimate_one_category_one_instance</code>。后面每一帧留着这个位姿，用 <code>translation_from_one_instance</code> 平移，再用 <code>wapr_wo_mask</code> 和 <code>sapr</code> 修正，WBPS 在六个里面选一个。渲染深度和传感器都有回波的地方，这 30 帧绝对差的中位数是木盒 16.5 mm、滚筒 5.4 mm。</p>
+<h2 data-inline-section="" id="track-scores"><span class="en">Annotations and visible contours</span><span class="zh">标注与可见轮廓</span></h2>
+<p class="en">This sequence has official 6D object-pose arrays: <code>tool_076.npy</code> for the roller and <code>target_093.npy</code> for the box, each with one 4×4 transform per frame. TACO also provides egocentric camera extrinsics. Its <a href="https://github.com/leolyliu/TACO-Instructions#whole-dataset-version-1">V1 release notes</a> list automatic hand-object 2D segmentations, but those files are absent from this local excerpt; we have not verified masks for this exact episode. We found no separately verified 2D detection-box labels here. A box can be derived from a mask, but it is not an independent annotation.</p>
+<p class="zh">这段序列有官方 6D 物体位姿数组：滚筒为 <code>tool_076.npy</code>，木盒为 <code>target_093.npy</code>，每帧各有一个 4×4 变换；TACO 也提供第一人称相机外参。官方 <a href="https://github.com/leolyliu/TACO-Instructions#whole-dataset-version-1">V1 发布说明</a>列有自动生成的手物 2D 分割，但当前本地摘录没有这些文件，尚未核实这一段是否有完整可用的对应掩码。本地也没有单独核验过的 2D 检测框标注。从掩码可以导出包围盒，但它并非独立标注。</p>
+<p class="en">The <a href="https://openaccess.thecvf.com/content/CVPR2024/papers/Liu_TACO_Benchmarking_Generalizable_Bimanual_Tool-ACtion-Object_Understanding_CVPR_2024_paper.pdf">TACO paper</a> derives object poses from optical markers registered to scanned meshes. Its automatic 2D masks start from rendered hand-object silhouettes and are refined with SAM, so they should not be used as an independent test that favors or disproves the motion-capture poses. The <a href="https://openaccess.thecvf.com/content/CVPR2024/supplemental/Liu_TACO_Benchmarking_Generalizable_CVPR_2024_supplemental.pdf">supplement</a> reports less than 1 mm world-space error for markers used in camera calibration; that does not establish the accuracy of the complete object pose after mesh registration, camera calibration, and synchronization. We therefore report WAPR-to-mocap pose differences as differences from a dataset reference, and use the following image comparison only as a visual alignment diagnostic.</p>
+<p class="zh"><a href="https://openaccess.thecvf.com/content/CVPR2024/papers/Liu_TACO_Benchmarking_Generalizable_Bimanual_Tool-ACtion-Object_Understanding_CVPR_2024_paper.pdf">TACO 论文</a>从光学标记点及其与扫描网格模型的配准得到物体位姿。官方自动 2D 掩码先由手物网格剪影生成，再经 SAM 修正，因而不能把它当作独立证据来证明或否定动捕位姿。<a href="https://openaccess.thecvf.com/content/CVPR2024/supplemental/Liu_TACO_Benchmarking_Generalizable_CVPR_2024_supplemental.pdf">补充材料</a>报告了相机标定所用标记点的世界坐标误差小于 1 mm，但这不能直接代表网格配准、相机标定和时间同步后的完整物体位姿精度。因此，我们将 WAPR 与动捕的位姿差记为相对数据集参考位姿的差异；下方图像比较只用于检查投影对齐。</p>
+<p class="en">For the image comparison, SAM 2 segments each object from a point in frame 80 and tracks that mask through later frames. This is a proxy visible mask, not a manually verified ground truth. Each WAPR or mocap pose renders a mesh depth map. Where sensor depth is valid and more than 40 mm nearer than the rendered surface, that rendered pixel is hidden. The final comparison restricts both masks to valid sensor-depth pixels, then computes IoU and the symmetric mean distance between their external contours. Missing-depth holes are not counted as internal contour edges. The example below uses frame 84; amber is SAM 2 and blue is WAPR. Both depth panels use the same 0.60–0.95 m color scale, with black for missing depth.</p>
+<p class="zh">图像比较中，SAM 2 从第 80 帧每个物体上的一个点分割可见区域，随后逐帧掩码跟踪；这是一份近似可见掩码，并非经人工核验的真值。根据 WAPR 或动捕位姿渲染物体网格深度。当传感器深度有效且比渲染表面近至少 40 mm 时，去掉该渲染像素。最后将两块掩码限制到有效深度像素，计算交并比与外轮廓之间的对称平均距离；深度孔洞不另算内部轮廓。下面以第 84 帧为例：琥珀色表示 SAM 2，蓝色表示 WAPR。两幅深度图共用 0.60–0.95 m 色标，黑色为缺失深度。</p>
+<h3 data-inline-section="" id="wooden-box-frame-84"><span class="en">Wooden box, frame 84</span><span class="zh">木盒，第 84 帧</span></h3>
+<div class="taco-score-steps">
+<figure class="taco-score-step"><img alt="SAM 2 visible box region over RGB" decoding="async" height="300" loading="lazy" src="figures/taco_score/box_sam.png" width="300"/><figcaption><span class="en">1 · SAM 2 segmentation region</span><span class="zh">1 · SAM 2 分割区域</span></figcaption></figure>
+<figure class="taco-score-step"><img alt="Wooden-box mesh depth rendered at the WAPR pose" decoding="async" height="300" loading="lazy" src="figures/taco_score/box_rendered_depth.png" width="300"/><figcaption><span class="en">2 · Mesh depth at WAPR pose</span><span class="zh">2 · WAPR 位姿的网格深度</span></figcaption></figure>
+<figure class="taco-score-step"><img alt="Measured sensor depth near the wooden box" decoding="async" height="300" loading="lazy" src="figures/taco_score/box_sensor_depth.png" width="300"/><figcaption><span class="en">3 · Measured depth</span><span class="zh">3 · 传感器实测深度</span></figcaption></figure>
+<figure class="taco-score-step"><img alt="Box mesh projection after accounting for nearer sensor surfaces" decoding="async" height="300" loading="lazy" src="figures/taco_score/box_visible.png" width="300"/><figcaption><span class="en">4 · Visible projection</span><span class="zh">4 · 遮挡后的可见投影</span></figcaption></figure>
+<figure class="taco-score-step"><img alt="Box SAM 2 boundary in amber and WAPR visible boundary in blue" decoding="async" height="300" loading="lazy" src="figures/taco_score/box_comparison.png" width="300"/><figcaption><span class="en">5 · Contours; IoU 0.89</span><span class="zh">5 · 轮廓对照；IoU 0.89</span></figcaption></figure>
+</div>
+<h3 data-inline-section="" id="lint-roller-frame-84"><span class="en">Lint roller, frame 84</span><span class="zh">粘毛滚筒，第 84 帧</span></h3>
+<div class="taco-score-steps">
+<figure class="taco-score-step"><img alt="SAM 2 visible roller region over RGB" decoding="async" height="300" loading="lazy" src="figures/taco_score/roller_sam.png" width="300"/><figcaption><span class="en">1 · SAM 2 segmentation region</span><span class="zh">1 · SAM 2 分割区域</span></figcaption></figure>
+<figure class="taco-score-step"><img alt="Roller mesh depth rendered at the WAPR pose" decoding="async" height="300" loading="lazy" src="figures/taco_score/roller_rendered_depth.png" width="300"/><figcaption><span class="en">2 · Mesh depth at WAPR pose</span><span class="zh">2 · WAPR 位姿的网格深度</span></figcaption></figure>
+<figure class="taco-score-step"><img alt="Measured sensor depth near the roller and hand" decoding="async" height="300" loading="lazy" src="figures/taco_score/roller_sensor_depth.png" width="300"/><figcaption><span class="en">3 · Measured depth</span><span class="zh">3 · 传感器实测深度</span></figcaption></figure>
+<figure class="taco-score-step"><img alt="Roller mesh projection after hand occlusion is accounted for" decoding="async" height="300" loading="lazy" src="figures/taco_score/roller_visible.png" width="300"/><figcaption><span class="en">4 · Visible projection</span><span class="zh">4 · 遮挡后的可见投影</span></figcaption></figure>
+<figure class="taco-score-step"><img alt="Roller SAM 2 boundary in amber and WAPR visible boundary in blue" decoding="async" height="300" loading="lazy" src="figures/taco_score/roller_comparison.png" width="300"/><figcaption><span class="en">5 · Contours; IoU 0.87</span><span class="zh">5 · 轮廓对照；IoU 0.87</span></figcaption></figure>
+</div>
+<div class="score-wrap docs-table-wrap">
+<table class="score-table taco-score-table">
+<caption><span class="en">Depth-visible projection vs SAM 2 · 40 mm tolerance</span><span class="zh">深度可见投影与 SAM 2 掩码 · 40 mm 容差</span><span class="score-note"><span class="en">Bold: better result for the same object and frame range.</span><span class="zh">粗体：同一物体、同一帧段下较好的结果。</span></span></caption>
+<thead>
+<tr>
+<th rowspan="2"><span class="en">Object</span><span class="zh">物体</span></th>
+<th class="column-start" rowspan="2"><span class="en">Frames</span><span class="zh">帧</span></th>
+<th class="band column-start" colspan="2"><span class="en">Motion capture</span><span class="zh">动捕</span></th>
+<th class="band method-start" colspan="2">WAPR</th>
+</tr>
+<tr>
+<th class="num column-start">IoU ↑<span class="unit"><span class="en">Higher is better</span><span class="zh">越高越好</span></span></th>
+<th class="num"><span class="en">Contour error ↓</span><span class="zh">外轮廓误差 ↓</span><span class="unit"><span class="en">px · Lower is better</span><span class="zh">px · 越低越好</span></span></th>
+<th class="num method-start">IoU ↑<span class="unit"><span class="en">Higher is better</span><span class="zh">越高越好</span></span></th>
+<th class="num"><span class="en">Contour error ↓</span><span class="zh">外轮廓误差 ↓</span><span class="unit"><span class="en">px · Lower is better</span><span class="zh">px · 越低越好</span></span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="seq" rowspan="2"><span class="en">Box</span><span class="zh">木盒</span></td>
+<td class="column-start table-numeric">80–109</td>
+<td class="num column-start table-numeric">0.72</td>
+<td class="num table-numeric">4.1</td>
+<td class="num method-start table-numeric"><strong>0.83</strong></td>
+<td class="num table-numeric"><strong>2.5</strong></td>
+</tr>
+<tr class="alt">
+<td class="column-start table-numeric">80–86</td>
+<td class="num column-start table-numeric">0.63</td>
+<td class="num table-numeric">4.8</td>
+<td class="num method-start table-numeric"><strong>0.87</strong></td>
+<td class="num table-numeric"><strong>2.5</strong></td>
+</tr>
+<tr class="group">
+<td class="seq" rowspan="2"><span class="en">Roller</span><span class="zh">滚筒</span></td>
+<td class="column-start table-numeric">80–109</td>
+<td class="num column-start table-numeric">0.69</td>
+<td class="num table-numeric">4.6</td>
+<td class="num method-start table-numeric"><strong>0.85</strong></td>
+<td class="num table-numeric"><strong>1.8</strong></td>
+</tr>
+<tr class="alt">
+<td class="column-start table-numeric">80–86</td>
+<td class="num column-start table-numeric">0.66</td>
+<td class="num table-numeric">3.6</td>
+<td class="num method-start table-numeric"><strong>0.85</strong></td>
+<td class="num table-numeric"><strong>2.5</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="en">The 40 mm tolerance is an explicit diagnostic choice, not a calibrated sensor-noise estimate. At 20 mm, the long-window IoU becomes 0.74/0.81 for the box and 0.68/0.87 for the roller (motion capture/WAPR). In the short roller window, the motion-capture IoU changes from 0.66 at 40 mm to 0.44 at 20 mm: a smaller tolerance removes parts of its rendered surface as well as the occluded handle. The table therefore describes visible image agreement under this depth test, not 6D pose error or an ADD score. The complete mesh contours remain in the videos so the original pose geometry can also be inspected.</p>
+<p class="zh">40 mm 是明确给出的诊断阈值，并非标定得到的传感器噪声。改为 20 mm 后，完整片段的木盒 IoU 为 0.74/0.81，滚筒为 0.68/0.87（动捕/WAPR）。在滚筒的短片段，动捕 IoU 则由 40 mm 下的 0.66 变为 20 mm 下的 0.44：较小阈值不仅去除了被手遮挡的握柄，也去除了部分渲染物体表面。因此，这张表衡量的是给定深度判断下的可见图像重合，不是 6D 位姿误差或 ADD。视频仍保留完整物体网格模型轮廓，便于同时检查原始位姿几何。</p>
+<section aria-label="References and licenses / 参考文献与许可" class="license-notes"><h2 data-inline-section="true"><span class="en">References and licenses</span><span class="zh">参考文献与许可</span></h2><ol><li id="license-dinov2"><strong>DINOv2 — Apache-2.0</strong>. <span><span class="en">Code and official DINOv2 weights; retain copyright and license.</span><span class="zh">源码与官方 DINOv2 权重；保留版权和许可。</span></span> · <a href="https://github.com/facebookresearch/dinov2"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/dinov2/LICENSE"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a><div class="reference-citation">Oquab et al. DINOv2: Learning Robust Visual Features without Supervision. arXiv:2304.07193, 2023. · <a href="https://arxiv.org/abs/2304.07193"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-dinov2-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-dinov2-ref-zh" role="doc-backlink">↩</a></div></li><li id="license-sam2"><strong>SAM 2 — Apache-2.0; cctorch: BSD-3-Clause</strong>. <span><span class="en">Native source and official checkpoints; cctorch carries an additional BSD notice. Ultralytics-converted files require checking their distributor terms.</span><span class="zh">原生源码与官方权重；cctorch 另附 BSD 声明。Ultralytics 转换文件还需核对分发方条款。</span></span> · <a href="https://github.com/facebookresearch/sam2/tree/2b90b9f5ceec907a1c18123530e92e794ad901a4"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/sam2/LICENSE"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a> · <a href="licenses/sam2/LICENSE_cctorch"><span class="en">License/notice 2</span><span class="zh">许可/声明 2</span></a><div class="reference-citation">Ravi et al. SAM 2: Segment Anything in Images and Videos. arXiv:2408.00714, 2024. · <a href="https://arxiv.org/abs/2408.00714"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-sam2-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-sam2-ref-zh" role="doc-backlink">↩</a></div></li><li id="license-package-tensorrt-cu12"><strong>tensorrt-cu12 — Other/Proprietary License</strong>. <span><span class="en">Runtime dependency; dependencies and model/data assets retain their own licenses.</span><span class="zh">运行依赖；依赖及模型/数据资源保留各自许可。</span></span> · <a href="https://github.com/nvidia/tensorrt"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/package-tensorrt-cu12/LICENSE.txt"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a> <a aria-label="Back to mention / 返回正文" href="#license-package-tensorrt-cu12-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-package-tensorrt-cu12-ref-zh" role="doc-backlink">↩</a></li><li id="license-taco-data"><strong>TACO data — Not separately verified / 未单独核实</strong>. <span><span class="en">Data terms have not been separately verified. The official repository is the original source; the referenced Hugging Face acquisition mirror has no explicit license field. Confirm the data owner's terms for redistribution or commercial use.</span><span class="zh">数据条款尚未单独核实。官方仓库为原始出处；实际获取数据的 Hugging Face 镜像数据卡未声明明确许可字段。再分发或商业使用须核实数据权利方的条款。</span></span> · <a href="https://github.com/leolyliu/TACO-Instructions"><span class="en">GitHub</span><span class="zh">GitHub</span></a><div class="reference-citation">Liu et al. TACO: Benchmarking Generalizable Bimanual Tool-ACtion-Object Understanding. CVPR 2024. · <a href="https://openaccess.thecvf.com/content/CVPR2024/papers/Liu_TACO_Benchmarking_Generalizable_Bimanual_Tool-ACtion-Object_Understanding_CVPR_2024_paper.pdf"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-taco-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-taco-data-ref-zh" role="doc-backlink">↩</a></div></li></ol><p><span class="en">Model weights and dataset/task assets may have separate terms. WAPR's source license does not replace them.</span><span class="zh">模型权重、数据集与任务资源可能有独立条款；WAPR 源码许可不替代这些许可。</span></p></section><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="bottom"><a href="applications-ycbineoat.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">YCBInEOAT single-object pose tracking</span><span class="zh">YCBInEOAT 单物体位姿跟踪</span></strong></a><a href="applications-reconstruct.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></strong></a></nav><footer class="site-author">© 2026 <a href="credits.html#authorship">Yulin Wang</a> · <span><span class="en">Code and website author</span><span class="zh">代码与网站作者</span></span></footer></main>
+</div>
+<script src="../assets/lang.js"></script>
+<script src="nav.js?v=34"></script>
+<script src="media.js?v=20261006-perf1"></script><script src="../assets/table-layout.js?v=1"></script></body>
+</html>

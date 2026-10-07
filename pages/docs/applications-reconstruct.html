@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+
+
+<!--
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Reconstruction and cross-scene pose — WAPR docs</title>
+<script>
+    (function () {
+      var lang = "en";
+      try { lang = localStorage.getItem("wapr-lang") === "zh" ? "zh" : "en"; } catch (e) {}
+      document.documentElement.setAttribute("data-lang", lang);
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    })();
+  </script>
+<link href="../assets/project.css?v=bar14" rel="stylesheet"/>
+<link href="../assets/showcase.css?v=78" rel="stylesheet"/><link href="docs.css?v=62" rel="stylesheet"/>
+<link href="../favicon.ico?v=11" rel="icon" type="image/x-icon"/>
+<link href="../assets/wapr-icon-32.png?v=11" rel="icon" sizes="32x32" type="image/png"/>
+<link href="../assets/wapr-icon-180.png?v=11" rel="apple-touch-icon" sizes="180x180"/>
+<link href="../assets/table-layout.css?v=1" rel="stylesheet"/><script src="section-routes.js?v=59"></script><link href="applications-taco.html" rel="prev"/><link href="applications-robot.html" rel="next"/><link rel="stylesheet" href="../assets/github-docs.css?v=3"/>
+<script src="../assets/site-runtime.js?v=1"></script>
+</head>
+<body class="project docs" data-title-en="Reconstruction and cross-scene pose — WAPR docs" data-title-zh="重建与跨场景位姿 — WAPR 文档">
+<div aria-hidden="true" class="mast-spacer"></div>
+<header class="mast">
+<a class="mast-hero-link" href="../index.html"><img alt="WAPR, wide-angle pose refinement" class="mast-hero" height="724" src="../assets/wapr-banner-1440.webp" srcset="../assets/wapr-banner-768.webp 768w, ../assets/wapr-banner-1440.webp 1440w, ../assets/wapr-banner-2172.webp 2172w" sizes="(max-width: 800px) 100vw, 1200px" fetchpriority="high" width="2172"/></a>
+<div aria-hidden="true" class="mast-scrim"></div>
+<div class="docs-top">
+<a class="docs-home" href="../index.html">WAPR</a>
+<nav aria-label="Site" class="docs-jump">
+<a href="../index.html"><span class="en">Home</span><span class="zh">主页</span></a>
+<a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"><span class="en">Paper</span><span class="zh">论文</span></a>
+<a href="https://github.com/WangYuLin-SEU/WAPR"><span class="en">Code</span><span class="zh">代码</span></a>
+</nav>
+<div class="lang-switch" role="group">
+<button data-set-lang="en" type="button">EN</button>
+<button data-set-lang="zh" type="button">中文</button>
+</div>
+</div>
+</header><script src="../assets/banner.js?v=18"></script>
+<div class="docs-shell">
+<nav aria-label="Documentation / 教程目录" class="docs-nav"><a href="index.html"><span class="en">Overview</span><span class="zh">概览</span></a><a class="sub" href="index-modules.html"><span class="en">How the modules work together</span><span class="zh">模块如何衔接</span></a><a class="sub" href="index-routes.html"><span class="en">Choose a route for your scene</span><span class="zh">根据场景选择入口</span></a><a class="sub" href="index-performance.html"><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></a><a class="sub" href="index-examples.html"><span class="en">Example overview</span><span class="zh">示例总览</span></a><a href="install.html"><span class="en">Installation</span><span class="zh">安装</span></a><a class="sub" href="install-guide.html"><span class="en">Installation guide</span><span class="zh">安装引导</span></a><a class="sub" href="install-core.html"><span class="en">Detection and pose setup</span><span class="zh">检测与位姿环境</span></a><a class="sub" href="install-extensions.html"><span class="en">Extension setup</span><span class="zh">扩展环境</span></a><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a><a class="sub" href="data-resources.html"><span class="en">Datasets and model resources</span><span class="zh">数据集与模型资源</span></a><a class="sub" href="data-bop-folder.html"><span class="en">Read the BOP sample</span><span class="zh">读取 BOP 示例数据</span></a><a class="sub" href="data-frame.html"><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></a><a class="sub" href="data-bop.html"><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></a><a class="sub" href="data-sixd-loc.html"><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></a><a class="sub" href="data-own.html"><span class="en">Custom data</span><span class="zh">自定义数据</span></a><a href="det2d.html"><span class="en">2D detection and segmentation</span><span class="zh">2D 检测与分割</span></a><a class="sub" href="det2d-templates.html"><span class="en">CAD templates and feature encoding</span><span class="zh">CAD 模板与特征编码</span></a><a class="sub" href="det2d-call.html"><span class="en">Detector usage and evaluation</span><span class="zh">检测器使用与评估</span></a><a href="pose.html"><span class="en">6D pose tasks and interfaces</span><span class="zh">6D 位姿任务与接口</span></a><a class="sub" href="pose-one.html"><span class="en">One category, one instance</span><span class="zh">单类别、单实例</span></a><a class="sub" href="pose-loc.html"><span class="en">6D pose localization and detection</span><span class="zh">6D 位姿定位与检测</span></a><a class="sub" href="pose-track.html"><span class="en">6D pose tracking</span><span class="zh">6D 位姿跟踪</span></a><a class="sub" href="pose-backend-scaling.html"><span class="en">Inference and renderer scaling</span><span class="zh">推理与渲染后端性能</span></a><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a><a class="sub" href="applications-robi.html"><span class="en">ROBI detection experiments</span><span class="zh">ROBI 检测实验</span></a><a class="sub" href="applications-ycbineoat.html"><span class="en">YCBInEOAT single-object pose tracking</span><span class="zh">YCBInEOAT 单物体位姿跟踪</span></a><a class="sub" href="applications-taco.html"><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></a><a aria-current="page" class="sub" href="applications-reconstruct.html"><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></a><a class="sub" href="applications-robot.html"><span class="en">Robot simulation</span><span class="zh">机器人仿真</span></a><a href="credits.html"><span class="en">Acknowledgments and references</span><span class="zh">致谢与参考资料</span></a></nav>
+<main class="docs-main"><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="top"><a href="applications-taco.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></strong></a><a href="applications-robot.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Robot simulation</span><span class="zh">机器人仿真</span></strong></a></nav><nav aria-label="Breadcrumb / 章节路径" class="docs-breadcrumb"><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a></nav><h1 id="reconstruct"><img class="sec-icon" src="../assets/readme/icons/reconstruct.svg" width="24" height="24" alt="" aria-hidden="true"/> <span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></h1>
+<p class="en">This chapter shows how to build a model of an object without an existing CAD mesh and use it for 6D pose estimation. Starting from an RGB-D image and camera intrinsics, select the object with a pixel click or a sentence. Example 11 reconstructs a mesh, determines its metric dimensions, and estimates the object's position and orientation in that image. It saves the mesh, a matching 4 × 4 pose matrix, and a report.</p>
+<p class="zh">本章介绍如何为没有现成 CAD 网格的物体建立模型，并将它用于 6D 位姿估计。从一张 RGB-D 图像及相机内参出发，用点击点或一句话指定目标。示例 11 重建网格、确定米制尺寸，并估计物体在这张图上的位置与朝向，保存网格、与之配套的 4 × 4 位姿矩阵和报告。</p>
+<p class="en">The saved mesh can then be reused in another scene. Example 12 takes this mesh, a new RGB-D image, and its camera intrinsics; it selects the highest-scoring 2D detection and estimates the object's 6D pose, saving the pose and an overlay. Reconstruction and cross-scene estimation are separate runs, so the same model can be used on new images.</p>
+<p class="zh">保存的网格可以继续用于其他场景。示例 12 输入这份网格、另一张 RGB-D 图像及其相机内参，选取得分最高的 2D 检测实例，估计物体的 6D 位姿，并保存位姿与叠图。重建与跨场景估计分别运行，同一份模型可以用于新的图像。</p>
+<div data-inline-section="" id="reconstruct-start"></div>
+<div class="docs-table-wrap"><table><thead><tr><th><span class="en">Case</span><span class="zh">案例</span></th><th><span class="en">Input</span><span class="zh">输入</span></th><th><span class="en">Output</span><span class="zh">输出</span></th></tr></thead><tbody>
+<tr><td><a href="applications-reconstruct.html#reconstruct-call"><span class="en">11 · Single-frame reconstruction</span><span class="zh">11 · 单帧重建与对齐</span></a></td><td><span class="en">RGB-D, K, a point or sentence</span><span class="zh">RGB-D、内参、点或句子</span></td><td><span class="en">Mesh, source-image pose, report</span><span class="zh">网格、源图位姿、报告</span></td></tr>
+<tr><td><a href="applications-reconstruct.html#reconstruct-pose"><span class="en">12 · Cross-scene pose</span><span class="zh">12 · 跨场景位姿估计</span></a></td><td><span class="en">Saved mesh, another RGB-D, K</span><span class="zh">已保存的网格、另一张 RGB-D、内参</span></td><td><span class="en">New-image pose and overlay</span><span class="zh">新图位姿与叠图</span></td></tr>
+</tbody></table></div>
+<p class="en">For each RGB-D input, keep the RGB image and depth on the same pixel grid. <code>read_rgb_depth</code> converts source depth to metres; <code>cam_K.txt</code> contains a 3 × 3 pixel-space camera matrix. The SAM 2<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: SAM 2" href="#license-sam2" id="license-sam2-ref-en" role="doc-noteref">[2]</a></sup> mask must also have the RGB height and width. Confirm these inputs before running a full UV bake: the bake changes appearance, while mask and depth errors can change the reconstructed shape and its metric scale.</p><p class="zh">每组 RGB-D 输入须保证彩色图和深度图处于同一像素网格。<code>read_rgb_depth</code> 将原始深度换算为米；<code>cam_K.txt</code> 保存像素坐标系下的 3 × 3 相机内参。SAM 2<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: SAM 2" href="#license-sam2" id="license-sam2-ref-zh" role="doc-noteref">[2]</a></sup> 掩码也必须与 RGB 图同高同宽。运行耗时的 UV 烘焙前应先核对这些输入：烘焙改变外观，而掩码和深度错误还会影响重建形状及米制尺寸。</p><h2 data-inline-section="" id="reconstruct-call"><span class="en">Case 11 single-frame reconstruction and alignment</span><span class="zh">案例 11 单帧重建与对齐</span></h2>
+<p class="en">Set <code>OBJECT_NAME</code>, <code>FRAME_RGB</code>, <code>FRAME_DEPTH</code> and <code>FRAME_K</code> in <code>examples/11_reconstruct_object.py</code>. The name controls the output directory; changing it does not change the input images. Depth uses the explicit <code>DEPTH_UNIT_M</code> conversion, and K is a 3 × 3 pixel-space matrix. The default input is the first cracker-box frame with a saved integer pixel click.</p>
+<p class="zh">在 <code>examples/11_reconstruct_object.py</code> 中设置 <code>OBJECT_NAME</code>、<code>FRAME_RGB</code>、<code>FRAME_DEPTH</code> 与 <code>FRAME_K</code>。物体名决定输出目录；只修改名称不会更换输入图像。深度由显式的 <code>DEPTH_UNIT_M</code> 换算为米，内参是 3 × 3 像素矩阵。默认输入为饼干盒首帧及保存的整数像素点击点。</p>
+<pre><code>python examples/11_reconstruct_object.py</code></pre>
+<h3 data-inline-section="" id="reconstruct-prompt"><span id="reconstruct-query"></span><span id="reconstruct-sentence"></span><span class="en">Select and segment the object</span><span class="zh">选择并分割目标</span></h3>
+<p class="en">With <code>SENTENCE = ""</code>, SAM 2 uses <code>CLICK_UV</code>, a saved pixel (u, v). With a sentence, Qwen2.5-VL<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: Qwen2.5-VL-3B-Instruct" href="#license-qwen-vl-3b" id="license-qwen-vl-3b-ref-en" role="doc-noteref">[6]</a></sup> predicts a box and SAM 2 segments within it. No annotated pose is projected to obtain the click, and saved overlay images are not mask inputs. Both prompt routes continue through the same reconstruction stages.</p>
+<p class="zh"><code>SENTENCE = ""</code> 时，SAM 2 使用保存的像素点 <code>CLICK_UV</code>，坐标为 (u, v)。设置句子时，千问 2.5-VL 预测目标框，再由 SAM 2 分割。程序不从标注位姿投影生成点击点，也不从保存的叠加图提取掩码。两种提示随后执行同一套重建阶段。</p>
+<h3 data-inline-section="" id="reconstruct-mask-review"><span class="en">Check the mask</span><span class="zh">检查掩码</span></h3>
+<p class="en">The predicted mask must be nonempty and match the RGB-D grid. Inspect it when a prompt selects the wrong region or includes the background; the mask affects reconstruction, scale selection, and pose initialization.</p>
+<p class="zh">预测掩码必须非空，并与 RGB-D 图像尺寸一致。若提示选错目标或包含背景，应先检查掩码；它会影响重建、尺度选择与位姿初始化。</p>
+<h3 data-inline-section="" id="reconstruct-generate"><span class="en">Reconstruct the mesh</span><span class="zh">重建网格</span></h3>
+<p class="en"><code>SIZE_PATH_POINT = "unipose"</code> retains full UV baking and UniPose9D<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: UniPose9D" href="#license-unipose9d" id="license-unipose9d-ref-en" role="doc-noteref">[4]</a></sup> dimensions. <code>SIZE_PATH_SENTENCE = "outline"</code> retains the vertex-color mesh and observation-based outline sizing. <code>SIZE_PATH</code> selects the active recipe visibly; either prompt can use either size route when you change that variable. SAM 3D<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: SAM 3D Objects" href="#license-sam3d" id="license-sam3d-ref-en" role="doc-noteref">[3]</a></sup> is released before loading the pose estimator.</p>
+<p class="zh"><code>SIZE_PATH_POINT = "unipose"</code> 保留完整 UV 烘焙与 UniPose9D<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: UniPose9D" href="#license-unipose9d" id="license-unipose9d-ref-zh" role="doc-noteref">[4]</a></sup> 尺寸估计；<code>SIZE_PATH_SENTENCE = "outline"</code> 保留顶点色网格与观测轮廓定标。实际路径由可见变量 <code>SIZE_PATH</code> 决定；修改它后，两种提示都可以使用任一尺寸路径。加载位姿估计器前释放 SAM 3D<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: SAM 3D Objects" href="#license-sam3d" id="license-sam3d-ref-zh" role="doc-noteref">[3]</a></sup>。</p>
+<h3 data-inline-section="" id="reconstruct-align"><span class="en">Set metric dimensions and select the source-image pose</span><span class="zh">确定米制尺寸并选择源图位姿</span></h3>
+<p class="en">First compare isotropic scale trials with batched WAPR, SAPR and WBPS. Then constrain dimensions with the predicted UniPose9D box or the visible mask outline. Refine a batch of pose hypotheses for the sized mesh; WBPS supplies geometric scores and DINOv2<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: DINOv2" href="#license-dinov2" id="license-dinov2-ref-en" role="doc-noteref">[1]</a></sup> compares the actual mesh appearance with the photograph. The selected pose is the object-to-camera transform saved with the output mesh.</p>
+<p class="zh">先将各向同性尺度候选批量计算送入 WAPR、SAPR 与 WBPS，再根据预测的 UniPose9D 包围盒或可见掩码轮廓校正尺寸。对定标后的网格批量计算修正位姿候选，WBPS 提供几何评分，DINOv2<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: DINOv2" href="#license-dinov2" id="license-dinov2-ref-zh" role="doc-noteref">[1]</a></sup> 比较网格实际外观与照片。最终选择的物体到相机位姿与输出网格配套保存。</p>
+<h3 data-inline-section="" id="reconstruct-roma"><span class="en">Update shape with RoMa</span><span class="zh">用 RoMa 更新形状</span></h3>
+<p class="en"><code>APPLY_ROMA = True</code> runs observation-only shape fitting. Each round matches a fresh render to the same photograph and fits three axis scales while keeping the selected pose fixed. The solver does not fit an unapplied translation. Scale bounds, match count and stopping choices remain visible. An update is retained only when its applied deformation improves correspondence error and the new render passes fresh-match checks; otherwise the previous mesh is kept and the report records why it stopped.</p>
+<p class="zh"><code>APPLY_ROMA = True</code> 启用仅用观测的形状拟合。每轮将当前网格的新渲染与同一张照片匹配，在选定位姿固定的情况下拟合三轴缩放。求解器不再拟合一个未实际应用的平移量。缩放范围、匹配数量与停止条件均显式保留。只有实际变形降低对应误差、且新渲染通过重新匹配检查时才保留更新；否则保留上一轮网格，并在报告中记录停止原因。</p>
+<h3 data-inline-section="" id="reconstruct-prediction-outputs"><span class="en">Save a matched mesh and pose</span><span class="zh">保存配套的网格与位姿</span></h3>
+<pre><code>outputs/reconstruct_object/&lt;object&gt;/
+  report.json
+  prediction/
+    mesh.bin, mesh.json, mesh.jpg  # JPEG only for UV / UV 网格才有 JPEG
+    pose.npy                     # 4 × 4 object-to-camera / 物体到相机
+    mask.png, overlay.png
+    provenance.json</code></pre>
+<p class="en">Mesh vertices and pose translation are meters. The original reconstructed-object coordinate frame is retained; there is no reference-CAD alignment, printed-face turn or later-frame shape fit. The report records prompt, input hashes, size path, selected pose and RoMa<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: RoMa" href="#license-roma" id="license-roma-ref-en" role="doc-noteref">[5]</a></sup> decisions. The overlay uses the serialized mesh and saved pose. Neither entry writes to <code>pages/demo/</code>. The selected-pose scores describe the mesh before RoMa; the report labels that stage, and RoMa records its own correspondence errors.</p>
+<p class="zh">网格顶点与位姿平移的单位均为米，保留原重建物体坐标系；不执行参考 CAD 坐标对齐、印刷面翻转或后续帧形状拟合。报告记录提示、输入摘要、尺寸路径、所选位姿与 RoMa<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: RoMa" href="#license-roma" id="license-roma-ref-zh" role="doc-noteref">[5]</a></sup> 决策。叠图使用实际序列化的网格和保存的位姿。两个入口都不写入 <code>pages/demo/</code>。 所选位姿的评分对应 RoMa 更新前的网格，报告明确记录该阶段；RoMa 另行记录对应关系误差。</p>
+<h2 data-inline-section="" id="reconstruct-pose"><span class="en">Case 12 cross-scene pose estimation</span><span class="zh">案例 12 跨场景位姿估计</span></h2>
+<p class="en"><code>examples/12_cross_scene_pose.py</code> reads example 11's independent prediction bundle. Set its mesh, new RGB-D and camera file paths. Its supplied target scene is YCB-V<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: YCB-Video (YCB-V)" href="#reference-ycbv-data" id="reference-ycbv-data-ref-en" role="doc-noteref">[8]</a></sup> scene 50, frame 1130, for the mustard bottle. Prepare the mustard bundle with example 11 before running that recipe: set the object name to mustard, the RGB-D to the first frame of <code>mustard0</code>, K to that sequence's <code>cam_K.txt</code>, and a saved point or <code>SENTENCE = "黄色的瓶子"</code>. Choose <code>SIZE_PATH</code> explicitly.</p>
+<p class="zh"><code>examples/12_cross_scene_pose.py</code> 读取示例 11 的独立预测包，输入路径指定网格、新场景 RGB-D 与相机文件。所附配置使用 YCB-V<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: YCB-Video (YCB-V)" href="#reference-ycbv-data" id="reference-ycbv-data-ref-zh" role="doc-noteref">[8]</a></sup> 场景 50、第 1130 帧中的芥末瓶。运行前，先用示例 11 生成芥末瓶预测包：物体名设为 mustard，RGB-D 指向 <code>mustard0</code> 首帧，内参指向该序列的 <code>cam_K.txt</code>，并指定保存的点击点或 <code>SENTENCE = "黄色的瓶子"</code>；尺寸路径由 <code>SIZE_PATH</code> 显式选择。</p>
+<pre><code>python examples/12_cross_scene_pose.py</code></pre>
+<p class="en">Templates are built from the saved mesh and rebuilt when its geometry or texture changes. The detector selects the instance with the highest <code>score_2d</code>. That predicted mask initializes one batch of 6D hypotheses; WAPR, SAPR, WBPS and DINOv2 choose the new-image pose without repeating the pose pipeline for the same instance. This case does not segment from a prompt, reconstruct a mesh, or update its shape.</p>
+<p class="zh">模板由保存的网格生成；网格几何或贴图变化时重建模板库。检测器选择 <code>score_2d</code> 最高的实例，使用其预测掩码初始化一批 6D 位姿候选，再通过 WAPR、SAPR、WBPS 与 DINOv2 选择新图位姿；同一实例不会重复执行位姿流程。此案例不从提示分割，不重新建模，也不更新形状。</p>
+<p class="en">Outputs are <code>outputs/cross_scene_pose/&lt;object&gt;/pose.npy</code>, <code>mask.png</code>, <code>overlay.png</code> and <code>report.json</code>. An empty detection set records <code>no_detection</code>. <code>REFERENCE_MASK_PATH = None</code> keeps evaluation optional; when supplied, that mask is read only after prediction files are saved, and its IoUs go to a separate <code>evaluation.json</code>. IoU never chooses the instance or pose.</p>
+<p class="zh">输出为 <code>outputs/cross_scene_pose/&lt;物体&gt;/pose.npy</code>、<code>mask.png</code>、<code>overlay.png</code> 与 <code>report.json</code>。没有检测时记录 <code>no_detection</code>。<code>REFERENCE_MASK_PATH = None</code> 表示不要求评测掩码；指定后也只在预测文件保存后读取，将 IoU 写入独立的 <code>evaluation.json</code>。IoU 不参与选择实例或位姿。</p>
+<ol class="example-steps"><li><span class="en">Load the independent mesh and provenance; read the new RGB-D and convert depth to meters using the camera scale.</span><span class="zh">读取独立网格及来源记录；加载新 RGB-D，按相机深度系数换算为米。</span></li><li><span class="en">Hash the geometry and texture for template reuse; warm the detector and decode the highest-scoring predicted mask.</span><span class="zh">以几何和纹理摘要判断模板是否可复用；预热检测器，解码最高分预测掩码。</span></li><li><span class="en">Initialize the 4 × 3 pose group with sensor depth; visibly call masked WAPR, SAPR and WBPS on the whole group.</span><span class="zh">用传感器深度初始化 4 × 3 位姿组；依次显式调用带 mask 的 WAPR、SAPR 与 WBPS，对整组计算。</span></li><li><span class="en">Keep positive within-group scores, or the full group if none pass; DINOv2 ranks rendered appearance. Save pose, mask, overlay and relative input paths before optional evaluation.</span><span class="zh">保留组内评分为正的候选；若均未通过则保留全组，由 DINOv2 比较渲染外观。先保存位姿、掩码、叠图及相对输入路径，再进行可选评测。</span></li></ol>
+<h3 data-inline-section="" id="cross-scene-recorded-result"><span class="en">Reconstructed mesh and new-scene pose</span><span class="zh">重建网格与新场景位姿结果</span></h3>
+<p class="en">These saved figures show the same cross-scene experiment as the project page. The source is the first YCBInEOAT<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: YCBInEOAT data" href="#license-ycbineoat-data" id="license-ycbineoat-data-ref-en" role="doc-noteref">[7]</a></sup> <code>mustard0</code> frame; the target is YCB-V scene 50, frame 1130, with a different camera, lighting and background. The saved mesh was constrained by a predicted box. The following result details specify the candidate filtering and pose selection used in this comparison.</p>
+<p class="zh">这些保存图片对应宣传页的同一组跨场景实验。源图为 YCBInEOAT<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: YCBInEOAT data" href="#license-ycbineoat-data" id="license-ycbineoat-data-ref-zh" role="doc-noteref">[7]</a></sup> 的 <code>mustard0</code> 首帧，目标图为 YCB-V 场景 50、第 1130 帧，相机、光照与背景不同。保存的网格经预测包围盒约束定标；下文给出本对照的候选筛选与位姿选择设置。</p>
+<figure class="docs-shot wide">
+<img decoding="async" alt="Source RGB-D reconstruction followed by detection and WAPR pose in a new scene" class="en" loading="lazy" src="figures/cross_scene_flow_en.svg?v=20261005"/>
+<img decoding="async" alt="源图重建网格用于另一场景的检测与 WAPR 位姿估计" class="zh" loading="lazy" src="figures/cross_scene_flow_zh.svg?v=20261005"/>
+<figcaption><span class="en">Source image → reconstructed mesh → detection in another scene → WAPR pose. The target frame's annotated identities, boxes and masks are excluded from prediction.</span><span class="zh">源图 → 重建网格 → 另一场景中的检测 → WAPR 位姿。目标帧标注的类别、框与掩码不参与预测。</span></figcaption>
+</figure>
+<p class="en">The saved result record contains 27 detector candidates, with four scores at or above 0.50. The highest <code>score_2d</code>, 0.767, selects the mustard region. WAPR refines twelve pose hypotheses for it; positive <code>within_group</code> candidates remain and DINOv2 selects the render closest to the photograph. Its returned <code>score_6d</code> is 0.863, <code>within_group</code> 63.7 and DINOv2 cosine 0.775. Offline mask IoUs are 0.941 for detection and 0.885 for the projected pose; neither IoU selects the region or pose. This one frame does not measure performance over the complete test set.</p>
+<p class="zh">保存的结果记录包含 27 个检测候选，其中四个分数不低于 0.50。最高的 <code>score_2d</code> 为 0.767，据此选择芥末瓶区域。WAPR 对其修正十二个候选姿态，保留 <code>within_group</code> 为正的候选，再由 DINOv2 选择与照片最接近的渲染。返回的 <code>score_6d</code> 为 0.863、<code>within_group</code> 为 63.7、DINOv2 余弦为 0.775。事后计算的掩码 IoU 分别为检测 0.941、位姿投影 0.885，均不参与选择区域或位姿。该单帧结果不代表完整测试集上的性能。</p>
+<figure class="docs-shot">
+<img decoding="async" alt="Cross-scene 2D detection scores, mustard selected in blue" height="480" loading="lazy" src="../demo/cross/detect.png?v=12" width="640"/>
+<figcaption><span class="en">2D scores: mustard 0.77 in blue; the other displayed regions score 0.54, 0.53 and 0.51.</span><span class="zh">2D 检测分数：蓝色芥末瓶为 0.77，其余展示区域为 0.54、0.53 与 0.51。</span></figcaption>
+</figure>
+<figure class="docs-shot wide">
+<img decoding="async" alt="WAPR mesh contours and 6D scores in the target scene" height="480" loading="lazy" src="../demo/cross/pose.png?v=12" width="1016"/>
+<figcaption><span class="en">Projected mesh contours and returned 6D scores. The selected mustard pose scores 0.86; the enlarged mesh shows that pose. Other regions score 0.30, 0.19 and 0.12.</span><span class="zh">网格投影轮廓与返回的 6D 分数。选中的芥末瓶位姿为 0.86，放大网格展示该位姿；其余区域为 0.30、0.19 与 0.12。</span></figcaption>
+</figure>
+<h2 data-inline-section="" id="reconstruct-diagnostics"><span class="en">Reconstruction results and optional diagnostics</span><span class="zh">重建结果与可选诊断</span></h2>
+
+
+<div data-reconstruct-root="../demo/reconstruct/" data-reconstruction-gallery="">
+<h4 data-inline-section="" id="reconstruct-cracker-gallery"><span class="en">Cracker-box mesh and pose</span><span class="zh">饼干盒网格与位姿</span></h4>
+<p class="en">The same saved cracker-box mesh shown on the project page is included here. Before, After and Ground truth display the mesh before metric sizing, the saved sized reconstruction and the reference CAD. Reference geometry is used for this offline comparison, not to choose reconstructed dimensions. Its sorted sides are 80.3 × 164.0 × 218.1 mm, compared with 71.7 × 164.0 × 213.5 mm for the reference; the checked surface distance is 4.7 mm.</p>
+<p class="zh">这里直接展示宣传页的同一份饼干盒网格。对齐前、对齐后与真值分别展示米制定标前网格、保存的定标后重建与参考 CAD。参考几何用于事后对照，不参与选择重建尺寸。重建排序三边为 80.3 × 164.0 × 218.1 mm，参考为 71.7 × 164.0 × 213.5 mm；表面距离为 4.7 mm。</p>
+<div class="recon-row recon-narrow">
+<figure>
+<img decoding="async" alt="Cracker-box source image and selected mask" id="recon-prompt" loading="lazy" src="../demo/reconstruct/prompt.png?v=5"/>
+<figcaption><span class="en">Source frame and selected target mask.</span><span class="zh">源帧与选定的目标掩码。</span></figcaption>
+</figure>
+<figure>
+<div class="demo-chips" id="recon-mesh-mode">
+<button data-mesh="before" type="button"><span class="en">Before</span><span class="zh">对齐前</span></button>
+<button aria-pressed="true" data-mesh="pred" type="button"><span class="en">After</span><span class="zh">对齐后</span></button>
+<button data-mesh="gt" type="button"><span class="en">Ground truth</span><span class="zh">真值</span></button>
+</div>
+<div class="recon-view"><canvas id="recon-mesh"></canvas><div class="recon-ruler" id="recon-ruler"><b>10 cm</b></div><div aria-live="polite" class="recon-size recon-size-overlay" id="recon-size" role="status"></div></div>
+<figcaption><span class="en">Saved reconstructed mesh and reference CAD. Drag to rotate; scroll to zoom.</span><span class="zh">保存的重建网格与参考 CAD。拖动旋转，滚轮缩放。</span></figcaption>
+</figure>
+</div>
+<div class="recon-poses">
+<figure><img decoding="async" alt="Cracker-box reconstructed mesh rendered at its source-frame pose" height="480" loading="lazy" src="../demo/reconstruct/pose_0000.png?v=5" width="1016"/><figcaption><span class="en">Source frame 0, with the reconstructed mesh rendered at the estimated pose.</span><span class="zh">源图第 0 帧，按估计位姿渲染重建网格。</span></figcaption></figure>
+<figure><img decoding="async" alt="Same saved cracker-box mesh at the saved frame 200 pose" height="480" loading="lazy" src="../demo/reconstruct/pose_0200.png?v=45" width="1016"/><figcaption><span class="en">Frame 200, estimating the object pose with the same reconstructed mesh.</span><span class="zh">第 200 帧，使用同一份重建网格估计物体位姿。</span></figcaption></figure>
+</div>
+<h4 data-inline-section="" id="reconstruct-archived-cracker"><span class="en">Cracker-box reconstruction: stages and measurements</span><span class="zh">饼干盒重建：步骤与测量</span></h4>
+<p class="en">The cracker-box reconstruction uses the following procedure. In the point-prompt route, SAM 2 segments the selected object. The saved comparison extracts the mask from its stored prompt overlay. SAM 3D Objects builds a mesh from the mask, then bakes a UV texture from 100 Gaussian views at 1024 pixels for 2500 steps. The raw mesh is not in meters. Depth inside the mask tries four isotropic sizes, and the higher <code class="inline">score_6d</code> keeps one. WAPR estimates the pose at that size. The pose stays. UniPose9D reads the same mask and the same depth and returns a 3D bbox: a rotation, a center, and three edge lengths. The mesh is scaled along those bbox axes until the posed mesh fills the bbox. The real mesh is not used to choose the size. WAPR also estimates the real mesh on this photo. Those two poses place the scaled mesh in the real mesh's coordinates. The cracker's sorted sides are 80.3 × 164.0 × 218.1 mm. The real box is 71.7 × 164.0 × 213.5 mm. The sum of absolute differences is 13.2 mm, and the mean surface distance is 4.7 mm. WAPR refines 12 poses. Poses with <code class="inline">within_group</code> above 0 stay, and DINOv2 keeps the render closest to the photo. That contour covers 0.952 of the mask. The pictures below show that render, with a magnified view. The bar is 10 cm.</p>
+<p class="zh">饼干盒重建采用以下流程。点提示路径由 SAM 2 分割所选物体；保存的对比结果从提示图提取掩码。SAM 3D Objects 用所得掩码生成网格，再用 100 个 1024 像素的高斯视角烘焙 UV 贴图，优化 2500 步。原始网格的单位尚非米。mask 里的深度在四个各向同性尺度上尝试，<code class="inline">score_6d</code> 保留分数更高者。WAPR 在这个尺寸上估计位姿，然后位姿保持不动。UniPose9D 读同一个 mask 和同一份深度，返回一个包围盒：旋转、中心，以及三条边长。网格沿这三条包围盒轴缩放，直至已变换到该位姿的网格填满该包围盒。真实网格不参与选尺寸。WAPR 再在这张照片上估计真实网格。这两个位姿把缩放后的网格放进真实网格的坐标系。饼干盒排序后的三边是 80.3 × 164.0 × 218.1 mm。真实盒子是 71.7 × 164.0 × 213.5 mm。绝对差之和是 13.2 mm，表面平均距离是 4.7 mm。WAPR 修正 12 个位姿。<code class="inline">within_group</code> 大于 0 的候选姿态予以保留，再由 DINOv2 保留与照片最接近的渲染。这个轮廓覆盖 mask 的 0.952。下面的图是这次渲染，旁边是放大。标尺是 10 cm。</p>
+<h4 data-inline-section="" id="reconstruct-gallery"><span class="en">Single-frame reconstruction of the sugar box and mustard bottle</span><span class="zh">糖盒与芥末瓶的单帧重建</span></h4>
+<p class="en">The geometric comparisons evaluate the displayed meshes. Sorted side lengths are in the reference CAD frame. Surface distance is the symmetric mean nearest-point distance between 4000 sampled points per mesh; the reported value is the median of ten repetitions. The offline check gives 4.7 mm for cracker, 3.3 mm for sugar and 4.9 mm for mustard.</p>
+<p class="zh">几何对比使用展示的网格：排序边长在参考 CAD 坐标系中计算；表面距离为每网格采样 4000 点后的对称平均最近点距离，报告十次重复的中位数。离线复核记录给出饼干盒 4.7 mm、糖盒 3.3 mm、芥末瓶 4.9 mm。</p>
+<p class="en">The sugar box and the mustard bottle use the same reconstruction as the cracker: the original SAM 3D Objects mesh, then a UV texture from 100 Gaussian views at 1024 pixels for 2500 steps. Sugar's sorted sides are 52.3 × 93.8 × 170.7 mm, against the real 45.4 × 92.6 × 176.1 mm. The sum of absolute differences is 13.5 mm, and the mean surface distance is 3.3 mm. Mustard is 56.4 × 90.7 × 185.7 mm, against the real 57.7 × 95.7 × 191.5 mm. The sum is 12.1 mm, and the mean surface distance is 4.9 mm. The real meshes were not used to choose the sizes. Each pose picture keeps the hypotheses with <code class="inline">within_group</code> above 0, then DINOv2 keeps the render closest to the photo. That contour covers 0.971 of the sugar mask and 0.902 of the mustard mask. The bar is 10 cm.</p>
+<p class="zh">糖盒和芥末瓶的重建与饼干盒相同：原来的 SAM 3D Objects 网格，再用 100 个 1024 像素的高斯视角烘焙 UV 贴图，优化 2500 步。糖盒排序后的三边是 52.3 × 93.8 × 170.7 mm，真实盒子是 45.4 × 92.6 × 176.1 mm。绝对差之和是 13.5 mm，表面平均距离是 3.3 mm。芥末瓶是 56.4 × 90.7 × 185.7 mm，真实瓶子是 57.7 × 95.7 × 191.5 mm。绝对差之和是 12.1 mm，表面平均距离是 4.9 mm。真实网格都没有用来选尺寸。每张位姿图先留下 <code class="inline">within_group</code> 大于 0 的候选姿态，再由 DINOv2 留下和照片最接近的渲染。这个轮廓覆盖糖盒 mask 的 0.971，覆盖芥末瓶 mask 的 0.902。标尺是 10 cm。</p>
+<div class="recon-row recon-narrow">
+<figure>
+<img alt="" decoding="async" id="recon-sugar-prompt" loading="lazy" src="../demo/reconstruct/sugar_prompt.png?v=22"/>
+<div class="demo-chips" id="recon-sugar-mode">
+<button data-mesh="before" type="button"><span class="en">Before</span><span class="zh">对齐前</span></button>
+<button aria-pressed="true" data-mesh="pred" type="button"><span class="en">After</span><span class="zh">对齐后</span></button>
+<button data-mesh="gt" type="button"><span class="en">Ground truth</span><span class="zh">真值</span></button>
+</div>
+<div class="recon-view">
+<canvas id="recon-sugar"></canvas>
+<div class="recon-ruler" id="recon-sugar-ruler"><b>10 cm</b></div>
+<div aria-live="polite" class="recon-size recon-size-overlay" id="recon-sugar-size" role="status"></div>
+</div>
+<figcaption><span class="en">Sugar box: the stored prompt overlay marks the point and object mask. The viewer compares the reconstructed mesh before and after metric sizing with the reference CAD.</span><span class="zh">糖盒：保存的提示图标出点与目标掩码。查看器对照米制尺寸确定前后的重建网格与参考 CAD。</span></figcaption>
+</figure>
+<figure>
+<img alt="" decoding="async" id="recon-mustard-prompt" loading="lazy" src="../demo/reconstruct/mustard_prompt.png?v=22"/>
+<div class="demo-chips" id="recon-mustard-mode">
+<button data-mesh="before" type="button"><span class="en">Before</span><span class="zh">对齐前</span></button>
+<button aria-pressed="true" data-mesh="pred" type="button"><span class="en">After</span><span class="zh">对齐后</span></button>
+<button data-mesh="gt" type="button"><span class="en">Ground truth</span><span class="zh">真值</span></button>
+</div>
+<div class="recon-view">
+<canvas id="recon-mustard"></canvas>
+<div class="recon-ruler" id="recon-mustard-ruler"><b>10 cm</b></div>
+<div aria-live="polite" class="recon-size recon-size-overlay" id="recon-mustard-size" role="status"></div>
+</div>
+<figcaption><span class="en">Mustard bottle: the stored prompt overlay marks the object mask used for reconstruction. The viewer uses the same sizing controls; the pose image below uses the selected mesh.</span><span class="zh">芥末瓶：保存的提示图标出重建所用的目标掩码。查看器使用相同的尺寸切换控件；下方位姿图使用选定的网格。</span></figcaption>
+</figure>
+</div>
+<div class="recon-poses">
+<figure>
+<img alt="" decoding="async" id="recon-sugar-pose" loading="lazy" src="../demo/reconstruct/sugar_pose.png?v=2"/>
+<figcaption><span class="en">Sugar box, this mesh rendered at its pose</span><span class="zh">糖盒，这份网格按位姿渲染</span></figcaption>
+</figure>
+<figure>
+<img alt="" decoding="async" id="recon-mustard-pose" loading="lazy" src="../demo/reconstruct/mustard_pose.png?v=4"/>
+<figcaption><span class="en">Mustard bottle, this mesh rendered at its pose</span><span class="zh">芥末瓶，这份网格按位姿渲染</span></figcaption>
+</figure>
+</div>
+<p class="demo-hint"><span class="en">Choose Before, After or Ground truth to inspect the corresponding box dimensions. Drag to rotate and scroll to zoom. </span><span class="zh">选择对齐前、对齐后或真值，查看对应包围盒尺寸；拖动旋转，滚轮缩放。</span></p>
+</div>
+<details class="doc-detail reconstruction-archive" open=""><summary><span class="en">View the reconstruction results</span><span class="zh">查看重建结果图</span></summary><figure class="prompt-shot">
+<img decoding="async" loading="lazy" alt="Point and mask on the cracker box" src="../demo/reconstruct/prompt.png?v=6"/>
+<figcaption><span class="en">A point prompt on the cracker box. Blue marks the resulting instance mask.</span><span class="zh">饼干盒上的点提示。蓝色区域是生成的实例掩码。</span></figcaption>
+</figure><figure class="evidence-board columns-3" data-evidence-board="language_flow">
+<div class="evidence-panels">
+<figure class="evidence-panel">
+<svg aria-label="1 · Text prompt" height="480" role="img" viewbox="56 96 640 480" width="640">
+<image height="1248" href="../demo/language/flow.png" width="2144"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      1 · Text prompt
+     </span>
+<span class="zh">
+      1 · 文字提示
+     </span>
+</span>
+<span class="panel-detail">
+<span class="en">
+      Yellow bottle
+     </span>
+<span class="zh">
+      黄色的瓶子
+     </span>
+</span>
+</figcaption>
+</figure>
+<figure class="evidence-panel">
+<svg aria-label="2 · Qwen localization" height="480" role="img" viewbox="752 96 640 480" width="640">
+<image height="1248" href="../demo/language/flow.png" width="2144"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      2 · Qwen localization
+     </span>
+<span class="zh">
+      2 · 千问目标定位
+     </span>
+</span>
+</figcaption>
+</figure>
+<figure class="evidence-panel">
+<svg aria-label="3 · SAM 2 segmentation" height="480" role="img" viewbox="1448 96 640 480" width="640">
+<image height="1248" href="../demo/language/flow.png" width="2144"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      3 · SAM 2 segmentation
+     </span>
+<span class="zh">
+      3 · SAM 2 实例分割
+     </span>
+</span>
+</figcaption>
+</figure>
+<figure class="evidence-panel">
+<svg aria-label="4 · UV-baked reference mesh" height="480" role="img" viewbox="404 690 640 480" width="640">
+<image height="1248" href="../demo/language/flow.png" width="2144"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      4 · UV-baked reference mesh
+     </span>
+<span class="zh">
+      4 · 参考 UV 烘焙网格
+     </span>
+</span>
+</figcaption>
+</figure>
+<figure class="evidence-panel">
+<svg aria-label="5 · Pose-aligned outline" height="480" role="img" viewbox="1100 690 640 480" width="640">
+<image height="1248" href="../demo/language/flow.png" width="2144"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      5 · Pose-aligned outline
+     </span>
+<span class="zh">
+      5 · 位姿与轮廓对齐
+     </span>
+</span>
+</figcaption>
+</figure>
+</div>
+<figcaption>
+<span class="en">
+   Language-prompt reconstruction flow: predicted box and SAM 2 mask, a UV-baked gallery mesh in the fourth panel, and the language-run outline in the last panel. Example 11 supports sentence prompts.
+  </span>
+<span class="zh">
+   语言提示重建流程：预测框与 SAM 2 掩码，第四格为 UV 烘焙展示网格，最后一格为语言提示运行得到的轮廓。示例 11 支持句子提示。
+  </span>
+</figcaption>
+</figure>
+<figure class="evidence-board columns-3" data-evidence-board="guide_mesh_generate">
+<div class="evidence-panels">
+<figure class="evidence-panel">
+<svg aria-label="Input mask" height="420" role="img" viewbox="28 28 560 420" width="560">
+<image height="1080" href="figures/guide_mesh_generate.png" width="1792"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      Input mask
+     </span>
+<span class="zh">
+      输入掩码
+     </span>
+</span>
+</figcaption>
+</figure>
+<figure class="evidence-panel">
+<svg aria-label="Vertex-color mesh" height="420" role="img" viewbox="616 28 560 420" width="560">
+<image height="1080" href="figures/guide_mesh_generate.png" width="1792"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      Vertex-color mesh
+     </span>
+<span class="zh">
+      顶点色网格
+     </span>
+</span>
+<span class="panel-detail">
+<span class="en">
+      About 8000 vertices
+     </span>
+<span class="zh">
+      约 8000 个顶点
+     </span>
+</span>
+</figcaption>
+</figure>
+<figure class="evidence-panel">
+<svg aria-label="UV-baked mesh" height="420" role="img" viewbox="1204 28 560 420" width="560">
+<image height="1080" href="figures/guide_mesh_generate.png" width="1792"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      UV-baked mesh
+     </span>
+<span class="zh">
+      UV 烘焙网格
+     </span>
+</span>
+</figcaption>
+</figure>
+<figure class="evidence-panel">
+<svg aria-label="Texture before filling" height="420" role="img" viewbox="322 554 560 420" width="560">
+<image height="1080" href="figures/guide_mesh_generate.png" width="1792"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      Texture before filling
+     </span>
+<span class="zh">
+      补全前的贴图
+     </span>
+</span>
+</figcaption>
+</figure>
+<figure class="evidence-panel">
+<svg aria-label="Texture after filling" height="420" role="img" viewbox="910 554 560 420" width="560">
+<image height="1080" href="figures/guide_mesh_generate.png" width="1792"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      Texture after filling
+     </span>
+<span class="zh">
+      补全后的贴图
+     </span>
+</span>
+</figcaption>
+</figure>
+</div>
+<figcaption>
+<span class="en">
+   Mesh appearance and texture completion in the reconstruction comparison.
+  </span>
+<span class="zh">
+   重建实验中的网格外观与贴图补全。
+  </span>
+</figcaption>
+</figure>
+<div class="figure-notes"><p class="en">The first three panels show the input mask, reduced vertex-color mesh, and UV-baked mesh. Baking retains more of the package print; the blue reference outline is for comparison. The two texture panels show filling unbaked texels. Texture repair does not move vertices.</p><p class="zh">前三个面板为输入掩码、简化的顶点色网格，以及经过 UV 烘焙的网格。烘焙保留了更多包装印刷细节；蓝色参考轮廓仅用于对照。两个贴图面板展示补齐空纹素前后的结果。修补贴图不会移动顶点。</p></div><figure class="evidence-board columns-2" data-evidence-board="guide_scale_factors">
+<div class="evidence-panels">
+<figure class="evidence-panel">
+<svg aria-label="×0.75 · discard" height="420" role="img" viewbox="28 28 520 420" width="520">
+<image height="1080" href="figures/guide_scale_factors.png" width="1124"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      ×0.75 · discard
+     </span>
+<span class="zh">
+      ×0.75 · 不保留
+     </span>
+</span>
+<span class="panel-detail">
+<span class="en">
+      Score ↑ 0.405 · IoU ↑ 0.301
+     </span>
+<span class="zh">
+      分数 ↑ 0.405 · IoU ↑ 0.301
+     </span>
+</span>
+</figcaption>
+</figure>
+<figure class="evidence-panel">
+<svg aria-label="×1.00 · discard" height="420" role="img" viewbox="576 28 520 420" width="520">
+<image height="1080" href="figures/guide_scale_factors.png" width="1124"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      ×1.00 · discard
+     </span>
+<span class="zh">
+      ×1.00 · 不保留
+     </span>
+</span>
+<span class="panel-detail">
+<span class="en">
+      Score ↑ 0.397 · IoU ↑ 0.652
+     </span>
+<span class="zh">
+      分数 ↑ 0.397 · IoU ↑ 0.652
+     </span>
+</span>
+</figcaption>
+</figure>
+<figure class="evidence-panel">
+<svg aria-label="×1.40 · keep" height="428" role="img" viewbox="24 550 528 428" width="528">
+<image height="1080" href="figures/guide_scale_factors.png" width="1124"/>
+</svg>
+<figcaption>
+<span class="panel-label best-result">
+<span class="en">
+      ×1.40 · keep
+     </span>
+<span class="zh">
+      ×1.40 · 保留
+     </span>
+</span>
+<span class="panel-detail best-result">
+<span class="en">
+      Score ↑ 0.589 · IoU ↑ 0.845
+     </span>
+<span class="zh">
+      分数 ↑ 0.589 · IoU ↑ 0.845
+     </span>
+</span>
+</figcaption>
+</figure>
+<figure class="evidence-panel">
+<svg aria-label="×2.00 · discard" height="420" role="img" viewbox="576 554 520 420" width="520">
+<image height="1080" href="figures/guide_scale_factors.png" width="1124"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      ×2.00 · discard
+     </span>
+<span class="zh">
+      ×2.00 · 不保留
+     </span>
+</span>
+<span class="panel-detail">
+<span class="en">
+      Score ↑ 0.205 · IoU ↑ 0.490
+     </span>
+<span class="zh">
+      分数 ↑ 0.205 · IoU ↑ 0.490
+     </span>
+</span>
+</figcaption>
+</figure>
+</div>
+<figcaption>
+<span class="en">
+   Four isotropic scale candidates for the cracker box. Blue shows the projected mesh contour; ×1.40 is retained.
+  </span>
+<span class="zh">
+   饼干盒的四个等比例尺度候选。蓝线为网格投影轮廓，保留 ×1.40。
+  </span>
+</figcaption>
+</figure>
+<div class="figure-notes">
+<p class="en">In this run, ×0.75 projects inside the box and ×2.00 extends beyond it. The retained ×1.40 candidate has the highest score, 0.589, and mask IoU, 0.845. These values describe this cracker-box run.</p>
+<p class="zh">这次运行中，×0.75 的投影小于盒子轮廓，×2.00 超出轮廓。保留的 ×1.40 候选具有最高分数 0.589 和最高 mask IoU 0.845；这些数值仅对应这次饼干盒运行。</p>
+</div>
+<figure class="evidence-board columns-3" data-evidence-board="guide_box_pairs">
+<div class="evidence-panels">
+<figure class="evidence-panel">
+<svg aria-label="Cracker box" height="480" role="img" viewbox="28 28 480 480" width="480">
+<image height="614" href="figures/guide_box_pairs.png" width="1552"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      Cracker box
+     </span>
+<span class="zh">
+      饼干盒
+     </span>
+</span>
+<span class="panel-detail">
+<span class="en">
+      80.3 × 164.0 × 218.1 mm
+     </span>
+<span class="zh">
+      80.3 × 164.0 × 218.1 mm
+     </span>
+</span>
+</figcaption>
+</figure>
+<figure class="evidence-panel">
+<svg aria-label="Sugar box" height="480" role="img" viewbox="536 28 480 480" width="480">
+<image height="614" href="figures/guide_box_pairs.png" width="1552"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      Sugar box
+     </span>
+<span class="zh">
+      糖盒
+     </span>
+</span>
+<span class="panel-detail">
+<span class="en">
+      52.3 × 93.8 × 170.7 mm
+     </span>
+<span class="zh">
+      52.3 × 93.8 × 170.7 mm
+     </span>
+</span>
+</figcaption>
+</figure>
+<figure class="evidence-panel">
+<svg aria-label="Mustard bottle" height="480" role="img" viewbox="1044 28 480 480" width="480">
+<image height="614" href="figures/guide_box_pairs.png" width="1552"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      Mustard bottle
+     </span>
+<span class="zh">
+      芥末瓶
+     </span>
+</span>
+<span class="panel-detail">
+<span class="en">
+      56.4 × 90.7 × 185.7 mm
+     </span>
+<span class="zh">
+      56.4 × 90.7 × 185.7 mm
+     </span>
+</span>
+</figcaption>
+</figure>
+</div>
+<figcaption>
+<span class="en">
+   Meshes sized using the UniPose9D box. Blue is the reference-object contour, used only for comparison.
+  </span>
+<span class="zh">
+   根据 UniPose9D 包围盒定标的重建网格。蓝线为参考物体轮廓，仅用于事后对照。
+  </span>
+</figcaption>
+</figure>
+<div class="figure-notes">
+<p class="en">The reference side lengths are 71.7 × 164.0 × 213.5 mm for the cracker box, 45.4 × 92.6 × 176.1 mm for the sugar box, and 57.7 × 95.7 × 191.5 mm for the mustard bottle. These measurements do not select the reconstructed dimensions.</p>
+<p class="zh">参考三边尺寸分别为：饼干盒 71.7 × 164.0 × 213.5 mm，糖盒 45.4 × 92.6 × 176.1 mm，芥末瓶 57.7 × 95.7 × 191.5 mm。这些测量值不参与选择重建网格的尺寸。</p>
+</div>
+<figure class="prompt-shot outline-fit">
+<img decoding="async" loading="lazy" alt="Blue mesh outline fitted to the cracker box" class="en" src="figures/guide_outline_en.svg?v=caption-20261005"/>
+<img decoding="async" loading="lazy" alt="Blue mesh outline fitted to the cracker box" class="zh" src="figures/guide_outline_zh.svg?v=caption-20261005"/>
+<figcaption><span class="en">Cracker-box outline alignment. Blue is the estimated mesh contour fitted to the segmentation boundary.</span><span class="zh">饼干盒的轮廓对齐结果。蓝线为贴合分割边界的估计网格投影。</span></figcaption>
+</figure>
+<div class="figure-notes outline-fit-notes">
+<p class="en">In this diagnostic, the three axis scale factors are 0.850, 1.000, and 0.893. The second axis is left unchanged: its projected extent is only 15.6 px, about 0.15 of the longest axis, below <code>AXIS_OBSERVABLE_FRACTION = 0.40</code>. This view does not sufficiently constrain that axis's scale.</p>
+<p class="zh">这次尺度诊断中，三轴缩放系数为 0.850、1.000、0.893。第二条轴保持原尺度：它在图像上的投影仅为 15.6 像素，约为最长轴的 0.15，低于 <code>AXIS_OBSERVABLE_FRACTION = 0.40</code>。这张图对该轴的尺度约束不足。</p>
+</div>
+<figure class="evidence-board columns-2" data-evidence-board="guide_roma">
+<div class="evidence-panels">
+<figure class="evidence-panel">
+<svg aria-label="After box sizing" height="480" role="img" viewbox="28 48 420 480" width="420">
+<image height="654" href="figures/guide_roma.png" width="924"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      After box sizing
+     </span>
+<span class="zh">
+      包围盒定标后
+     </span>
+</span>
+</figcaption>
+</figure>
+<figure class="evidence-panel">
+<svg aria-label="After RoMa diagnostic" height="480" role="img" viewbox="476 48 420 480" width="420">
+<image height="654" href="figures/guide_roma.png" width="924"/>
+</svg>
+<figcaption>
+<span class="panel-label">
+<span class="en">
+      After RoMa diagnostic
+     </span>
+<span class="zh">
+      RoMa 诊断后
+     </span>
+</span>
+</figcaption>
+</figure>
+</div>
+<figcaption>
+<span class="en">
+   Mustard mesh after box sizing and after the RoMa diagnostic, at the same pose.
+  </span>
+<span class="zh">
+   同一位姿下，芥末瓶定标与 RoMa 诊断的对照。
+  </span>
+</figcaption>
+</figure>
+<div class="figure-notes"><p class="en">This scale diagnostic used reference-CAD assistance. It compares mustard vertices after box sizing with the RoMa diagnostic result at the same pose; it is not the output of the observation-only default stage.</p><p class="zh">这次尺度诊断使用参考 CAD 辅助，对照包围盒定标后的芥末瓶与同一位姿下的 RoMa 诊断结果；它不代表默认仅用观测的形状更新结果。</p></div></details>
+<section aria-label="References and licenses / 参考文献与许可" class="license-notes"><h2 data-inline-section="true"><span class="en">References and licenses</span><span class="zh">参考文献与许可</span></h2><ol><li id="license-dinov2"><strong>DINOv2 — Apache-2.0</strong>. <span><span class="en">Code and official DINOv2 weights; retain copyright and license.</span><span class="zh">源码与官方 DINOv2 权重；保留版权和许可。</span></span> · <a href="https://github.com/facebookresearch/dinov2"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/dinov2/LICENSE"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a><div class="reference-citation">Oquab et al. DINOv2: Learning Robust Visual Features without Supervision. arXiv:2304.07193, 2023. · <a href="https://arxiv.org/abs/2304.07193"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-dinov2-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-dinov2-ref-zh" role="doc-backlink">↩</a></div></li><li id="license-sam2"><strong>SAM 2 — Apache-2.0; cctorch: BSD-3-Clause</strong>. <span><span class="en">Native source and official checkpoints; cctorch carries an additional BSD notice. Ultralytics-converted files require checking their distributor terms.</span><span class="zh">原生源码与官方权重；cctorch 另附 BSD 声明。Ultralytics 转换文件还需核对分发方条款。</span></span> · <a href="https://github.com/facebookresearch/sam2/tree/2b90b9f5ceec907a1c18123530e92e794ad901a4"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/sam2/LICENSE"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a> · <a href="licenses/sam2/LICENSE_cctorch"><span class="en">License/notice 2</span><span class="zh">许可/声明 2</span></a><div class="reference-citation">Ravi et al. SAM 2: Segment Anything in Images and Videos. arXiv:2408.00714, 2024. · <a href="https://arxiv.org/abs/2408.00714"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-sam2-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-sam2-ref-zh" role="doc-backlink">↩</a></div></li><li id="license-sam3d"><strong>SAM 3D Objects — SAM License (custom)</strong>. <span><span class="en">Source and model materials follow the upstream custom agreement, including redistribution, attribution and use restrictions.</span><span class="zh">源码及模型材料遵循上游自定义协议，包括再分发、署名与使用限制。</span></span> · <a href="https://github.com/facebookresearch/sam-3d-objects/tree/f91db411c50efee93d8db7aeb323885650f6f722"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/sam3d/LICENSE"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a><div class="reference-citation">SAM 3D Team et al. SAM 3D: 3Dfy Anything in Images. arXiv:2511.16624, 2025. · <a href="https://arxiv.org/abs/2511.16624"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-sam3d-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-sam3d-ref-zh" role="doc-backlink">↩</a></div></li><li id="license-unipose9d"><strong>UniPose9D — Apache-2.0</strong>. <span><span class="en">Inference repository and its release; helper models retain their own terms.</span><span class="zh">推理仓库及其发布材料；辅助模型保留各自条款。</span></span> · <a href="https://github.com/qq456cvb/UniPose9D"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/unipose9d/LICENSE.txt"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a><div class="reference-citation">You et al. UniPose9D: Universal Category-Agnostic Object Pose Estimation. arXiv:2607.09985, 2026. · <a href="https://arxiv.org/abs/2607.09985"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-unipose9d-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-unipose9d-ref-zh" role="doc-backlink">↩</a></div></li><li id="license-roma"><strong>RoMa — MIT</strong>. <span><span class="en">Matching source; separately obtained checkpoints and dependencies retain upstream terms.</span><span class="zh">匹配源码；另行获取的权重与依赖保留上游条款。</span></span> · <a href="https://github.com/Parskatt/RoMa"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/roma/LICENSE.txt"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a><div class="reference-citation">Edstedt et al. RoMa: Robust Dense Feature Matching. CVPR 2024. · <a href="https://arxiv.org/abs/2305.15404"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-roma-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-roma-ref-zh" role="doc-backlink">↩</a></div></li><li id="license-qwen-vl-3b"><strong>Qwen2.5-VL-3B-Instruct — Qwen Research License (custom)</strong>. <span><span class="en">This exact 3B model permits non-commercial research/evaluation; commercial use requires permission from Alibaba Cloud. Do not infer its terms from other Qwen sizes.</span><span class="zh">本项目选用的 3B 模型限定非商业研究/评估；商业使用须向 Alibaba Cloud 申请。不能套用其他 Qwen 规格的许可。</span></span> · <a href="https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct"><span class="en">Original source</span><span class="zh">原始来源</span></a> · <a href="licenses/qwen-vl-3b/LICENSE.txt"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a><div class="reference-citation">Bai et al. Qwen2.5-VL Technical Report. arXiv:2502.13923, 2025. · <a href="https://arxiv.org/abs/2502.13923"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-qwen-vl-3b-ref-en" role="doc-backlink">↩</a></div></li><li id="license-ycbineoat-data"><strong>YCBInEOAT data — Not separately verified / 未单独核实</strong>. <span><span class="en">Tracking data permission must be checked at the original archive; the comparison code license does not establish the data license.</span><span class="zh">跟踪数据许可须在原始归档核实；对照代码的许可不能作为数据许可。</span></span> · <a href="https://github.com/NVlabs/FoundationPose#datasets"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="https://github.com/wenbowen123/iros20-6d-pose-tracking"><span class="en">GitHub</span><span class="zh">GitHub</span></a><div class="reference-citation">Wen et al. se(3)-TrackNet: Data-driven 6D Pose Tracking by Calibrating Image Residuals in Synthetic Domains. IROS 2020. Introduces YCBInEOAT. · <a href="https://doi.org/10.1109/IROS45743.2020.9341314"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-ycbineoat-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-ycbineoat-data-ref-zh" role="doc-backlink">↩</a></div></li><li id="reference-ycbv-data"><strong>YCB-Video (YCB-V)</strong> · <a href="https://bop.felk.cvut.cz/datasets/#YCB-V"><span class="en">Official BOP dataset page</span><span class="zh">BOP 官方数据页</span></a> · <a href="https://github.com/yuxng/PoseCNN"><span class="en">GitHub: PoseCNN</span><span class="zh">GitHub：PoseCNN</span></a><div class="reference-citation">Xiang et al. PoseCNN: A Convolutional Neural Network for 6D Object Pose Estimation in Cluttered Scenes. RSS 2018. · <a href="https://arxiv.org/abs/1711.00199"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#reference-ycbv-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#reference-ycbv-data-ref-zh" role="doc-backlink">↩</a></div></li></ol><p><span class="en">Model weights and dataset/task assets may have separate terms. WAPR's source license does not replace them.</span><span class="zh">模型权重、数据集与任务资源可能有独立条款；WAPR 源码许可不替代这些许可。</span></p></section><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="bottom"><a href="applications-taco.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></strong></a><a href="applications-robot.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Robot simulation</span><span class="zh">机器人仿真</span></strong></a></nav><footer class="site-author">© 2026 <a href="credits.html#authorship">Yulin Wang</a> · <span><span class="en">Code and website author</span><span class="zh">代码与网站作者</span></span></footer></main>
+</div>
+<script src="../assets/lang.js"></script>
+<script src="nav.js?v=34"></script>
+<script src="../assets/three.min.js"></script><script src="../assets/studio_grid.js?v=2"></script><script src="../assets/reconstruct.js?v=20261006-perf1"></script><script src="../assets/table-layout.js?v=1"></script></body>
+</html>

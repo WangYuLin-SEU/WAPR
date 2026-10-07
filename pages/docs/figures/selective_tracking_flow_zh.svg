@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1240" viewBox="0 0 1000 1240" role="img" aria-labelledby="title desc">
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#47718a"/></marker></defs>
+<style>text{font-family:Arial,"Noto Sans CJK SC",sans-serif;fill:#193e53}.title{font-size:28px;font-weight:700}.heading{font-size:23px;font-weight:700}.body{font-size:19px}.note{font-size:18px;fill:#567083}.edge{fill:none;stroke:#47718a;stroke-width:2;marker-end:url(#arrow)}</style>
+<rect width="1000" height="1240" rx="14" fill="#f8fbfd"/>
+<title id="title">单物体跟踪与 DINOv2 补救</title>
+<desc id="desc">示例 08   先完成常规更新，仅在观测到失效时搜索</desc>
+<text x="60" y="48" class="title">单物体跟踪与 DINOv2 补救</text>
+<text x="60" y="82" class="note">示例 08   先完成常规更新，仅在观测到失效时搜索</text>
+<rect x="60" y="110" width="880" height="120" rx="12" fill="#edf5fa" stroke="#c6d9e6" stroke-width="1.8"/>
+<text x="85" y="144" class="heading">准备模型并初始化目标</text>
+<text x="85" y="177" class="body">首帧预测掩码指定目标实例</text>
+<text x="85" y="210" class="body">计时前预热位姿更新与全部搜索组大小</text>
+<path class="edge" d="M500 230V255"/>
+<rect x="60" y="255" width="880" height="120" rx="12" fill="#edf5fa" stroke="#c6d9e6" stroke-width="1.8"/>
+<text x="85" y="289" class="heading">DINOv2 传播目标区域</text>
+<text x="85" y="322" class="body">每个原始 RGB 帧编码并更新匹配区域</text>
+<text x="85" y="355" class="body">到位姿更新帧读取传感器深度</text>
+<path class="edge" d="M500 375V400"/>
+<rect x="60" y="400" width="880" height="120" rx="12" fill="#edf5fa" stroke="#c6d9e6" stroke-width="1.8"/>
+<text x="85" y="434" class="heading">完成常规 WAPR / SAPR 更新</text>
+<text x="85" y="467" class="body">保留上一旋转，以区域深度调整平移</text>
+<text x="85" y="500" class="body">WBPS 的 within_group 从六个常规候选中选择</text>
+<path class="edge" d="M500 520V545"/>
+<rect x="60" y="545" width="880" height="120" rx="12" fill="#edf5fa" stroke="#c6d9e6" stroke-width="1.8"/>
+<text x="85" y="579" class="heading">判断是否需要搜索</text>
+<text x="85" y="612" class="body">区域缺失、深度偏差或面积骤缩</text>
+<text x="85" y="645" class="body">另检查完整候选组的 WBPS 组间误差是否大于零</text>
+<path class="edge" d="M500 665V690"/>
+<rect x="60" y="690" width="880" height="120" rx="12" fill="#f5f2fc" stroke="#c6d9e6" stroke-width="1.8"/>
+<text x="85" y="724" class="heading">触发后搜索局部和全图 DINOv2 图块</text>
+<text x="85" y="757" class="body">局部最多六个、全图最多六个，检查深度并按空间去重</text>
+<text x="85" y="790" class="body">保留上一旋转，批量修正全部平移起点</text>
+<path class="edge" d="M500 810V835"/>
+<rect x="60" y="835" width="880" height="120" rx="12" fill="#f5f2fc" stroke="#c6d9e6" stroke-width="1.8"/>
+<text x="85" y="869" class="heading">比较常规结果与修正后的搜索候选</text>
+<text x="85" y="902" class="body">WBPS 的 within_group 选择最终位姿</text>
+<text x="85" y="935" class="body">无搜索候选或搜索失败时保留常规结果</text>
+<path class="edge" d="M500 955V980"/>
+<rect x="60" y="980" width="880" height="120" rx="12" fill="#edf5fa" stroke="#c6d9e6" stroke-width="1.8"/>
+<text x="85" y="1014" class="heading">继续维护该轨迹自身状态</text>
+<text x="85" y="1047" class="body">图块补救提供位姿，不提供新的分割掩码</text>
+<text x="85" y="1080" class="body">选中搜索候选不等于已准确找回目标</text>
+<text x="60" y="1180" class="note">完整计入常规计算、搜索、修正、评分及状态写回</text>
+<text x="60" y="1210" class="note">真值只用于离线评价；补救不调用 2D 检测器</text>
+</svg>

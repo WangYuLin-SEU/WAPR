@@ -1,0 +1,97 @@
+/* GitHub Docs inspired typography and surfaces; retain content widths.
+   采用 GitHub Docs 风格的字体与界面层次，保留内容区宽度。 */
+body.project {
+  color: #1f2328;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+body.project a { color: #0969da; }
+body.project a:hover { text-decoration: underline; }
+body.project a:focus-visible, body.project button:focus-visible { outline: 2px solid #0969da; outline-offset: 3px; }
+body.project h1, body.project h2, body.project h3 { color: #1f2328; font-weight: 600; letter-spacing: -0.02em; }
+body.project h1 { font-size: 32px; line-height: 1.25; }
+body.project h2 { font-size: 24px; line-height: 1.35; }
+body.project h3 { font-size: 20px; }
+body.project .docs-top, body.project .mast .langbar { background: #f6f8fa; border-color: #d1d9e0; box-shadow: none; }
+body.project .docs-jump a, body.project .lang-switch button { border-radius: 6px; border-color: #d1d9e0; font-size: 14px; }
+body.project .lang-switch button[aria-pressed="true"] { background: #24292f; color: #fff; }
+body.project .docs-main { font-size: 16px; line-height: 1.65; }
+body.project .docs-main h1 { padding-bottom: 16px; border-bottom: 1px solid #d1d9e0; }
+body.project .docs-main h2 { padding-bottom: 8px; border-bottom: 1px solid #d1d9e0; }
+body.project .docs-main p, body.project .docs-main li { line-height: 1.65; }
+body.project .docs-nav a { color: #1f2328; border-radius: 6px; font-size: 14px; }
+body.project .docs-nav a:hover { background: #f6f8fa; text-decoration: none; }
+body.project .docs-nav a.active, body.project .docs-nav a[aria-current="page"] { color: #0969da; background: #ddf4ff; font-weight: 600; }
+body.project pre, body.project .nb-in { background: #f6f8fa; border-radius: 6px; }
+body.project pre, body.project code { font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace; }
+body.project .docs-main pre, body.project .nb-cell pre { font-size: 13px; line-height: 1.55; }
+body.project p code, body.project li code { background: #eff1f3; border-radius: 4px; }
+body.project table { border-color: #d1d9e0; font-size: 14px; }
+body.project th { background: #f6f8fa; color: #1f2328; }
+body.project td, body.project th { border-color: #d1d9e0; }
+body.project figcaption, body.project .nb-cap { color: #59636e; font-size: 13px; line-height: 1.6; }
+body.project .nb-cap, body.project .figure-notes { background: #f6f8fa; border: 1px solid #d1d9e0; border-radius: 6px; }
+body.project .nb-cell, body.project .doc-detail, body.project .method-note { border-color: #d1d9e0; border-radius: 6px; box-shadow: none; }
+body.project .license-notes, body.project .license-notes h2 { font-size: 12px; }
+body.project hr { border: 0; border-top: 1px solid #d1d9e0; background: none; height: 0; }
+@media (max-width: 640px) {
+  body.project h1 { font-size: 26px; }
+  body.project h2 { font-size: 22px; }
+  body.project .docs-main { font-size: 15px; }
+}
+body.project .block h2 { padding-top: 12px; border-color: #d1d9e0; }
+body.project .block h2::before, body.project .block h2::after { display: none; }
+body.project .sec-icon { color: #59636e; width: 24px; height: 24px; }
+
+/* Keep mobile navigation in two compact rows instead of squeezing labels.
+   移动端导航分成两行，避免挤压文字；语言按钮始终保持同尺寸。 */
+@media (max-width: 720px) {
+  html { -webkit-text-size-adjust: 100%; }
+  body.project { --mast-gutter: 12px; }
+  body.project .mast .langbar,
+  body.project .mast .docs-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding: 8px 12px;
+  }
+  body.project .mast-brand,
+  body.project .docs-home { grid-column: 1; grid-row: 1; font-size: 18px; }
+  body.project .mast .lang-switch {
+    grid-column: 2; grid-row: 1; margin-left: 0; gap: 6px;
+  }
+  body.project .mast .lang-switch button {
+    width: 48px; height: 34px; padding: 0; white-space: nowrap;
+    flex: none; font-size: 13px;
+  }
+  body.project .mast-jump,
+  body.project .docs-jump {
+    grid-column: 1 / -1; grid-row: 2;
+    display: flex; flex-wrap: wrap; gap: 6px; min-width: 0;
+  }
+  body.project .mast-jump a,
+  body.project .docs-jump a {
+    padding: 4px 12px; font-size: 13px; white-space: nowrap;
+    min-height: 28px; box-sizing: border-box;
+  }
+  body.project .pub { padding: 16px 16px 48px; }
+  body.project .hero h1 { font-size: 25px; line-height: 1.3; }
+  body.project .authors { font-size: 16px; line-height: 1.6; }
+  body.project .venue { font-size: 20px; margin: 12px 0; }
+  body.project .affil, body.project .equal { font-size: 14px; }
+  body.project .docs-shell, body.project .docs-main,
+  body.project .block, body.project .nb-cell { min-width: 0; }
+  body.project img, body.project video { max-width: 100%; }
+  body.project .docs-main p, body.project .docs-main li { overflow-wrap: anywhere; }
+}
+/* Long inline paths wrap on phones; code blocks retain local scrolling.
+   手机端行内长路径换行，完整代码块保留局部滚动。 */
+@media (max-width: 720px) {
+  body.project .docs-main { overflow-wrap: anywhere; }
+  body.project .docs-main code:not(pre code) { white-space: normal; overflow-wrap: anywhere; }
+}
+
+/* Share README colour icons without changing heading flow or mobile wrapping.
+   复用 README 彩色图标，保留标题流式排版及移动端换行。 */
+body.project img.sec-icon { display: inline-block; width: 24px; height: 24px; flex: none; vertical-align: -3px; object-fit: contain; margin-right: 8px; }

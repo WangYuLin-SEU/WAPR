@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+
+
+<!--
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>2D to 6D integrated pipeline — WAPR docs</title>
+<script>
+    (function () {
+      var lang = "en";
+      try { lang = localStorage.getItem("wapr-lang") === "zh" ? "zh" : "en"; } catch (e) {}
+      document.documentElement.setAttribute("data-lang", lang);
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    })();
+  </script>
+<link href="../assets/project.css?v=bar14" rel="stylesheet"/>
+<link href="docs.css?v=62" rel="stylesheet"/>
+<link href="../favicon.ico?v=11" rel="icon" type="image/x-icon"/>
+<link href="../assets/wapr-icon-32.png?v=11" rel="icon" sizes="32x32" type="image/png"/>
+<link href="../assets/wapr-icon-180.png?v=11" rel="apple-touch-icon" sizes="180x180"/>
+<link href="../assets/table-layout.css?v=1" rel="stylesheet"/><script src="section-routes.js?v=59"></script><link href="data-frame.html" rel="prev"/><link href="data-sixd-loc.html" rel="next"/><link rel="stylesheet" href="../assets/github-docs.css?v=3"/>
+<script src="../assets/site-runtime.js?v=1"></script>
+</head>
+<body class="project docs" data-title-en="2D to 6D integrated pipeline — WAPR docs" data-title-zh="2D 到 6D 一体化流程 — WAPR 文档">
+<div aria-hidden="true" class="mast-spacer"></div>
+<header class="mast">
+<a class="mast-hero-link" href="../index.html"><img alt="WAPR, wide-angle pose refinement" class="mast-hero" height="724" src="../assets/wapr-banner-1440.webp" srcset="../assets/wapr-banner-768.webp 768w, ../assets/wapr-banner-1440.webp 1440w, ../assets/wapr-banner-2172.webp 2172w" sizes="(max-width: 800px) 100vw, 1200px" fetchpriority="high" width="2172"/></a>
+<div aria-hidden="true" class="mast-scrim"></div>
+<div class="docs-top">
+<a class="docs-home" href="../index.html">WAPR</a>
+<nav aria-label="Site" class="docs-jump">
+<a href="../index.html"><span class="en">Home</span><span class="zh">主页</span></a>
+<a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"><span class="en">Paper</span><span class="zh">论文</span></a>
+<a href="https://github.com/WangYuLin-SEU/WAPR"><span class="en">Code</span><span class="zh">代码</span></a>
+</nav>
+<div class="lang-switch" role="group">
+<button data-set-lang="en" type="button">EN</button>
+<button data-set-lang="zh" type="button">中文</button>
+</div>
+</div>
+</header><script src="../assets/banner.js?v=18"></script>
+<div class="docs-shell">
+<nav aria-label="Documentation / 教程目录" class="docs-nav"><a href="index.html"><span class="en">Overview</span><span class="zh">概览</span></a><a class="sub" href="index-modules.html"><span class="en">How the modules work together</span><span class="zh">模块如何衔接</span></a><a class="sub" href="index-routes.html"><span class="en">Choose a route for your scene</span><span class="zh">根据场景选择入口</span></a><a class="sub" href="index-performance.html"><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></a><a class="sub" href="index-examples.html"><span class="en">Example overview</span><span class="zh">示例总览</span></a><a href="install.html"><span class="en">Installation</span><span class="zh">安装</span></a><a class="sub" href="install-guide.html"><span class="en">Installation guide</span><span class="zh">安装引导</span></a><a class="sub" href="install-core.html"><span class="en">Detection and pose setup</span><span class="zh">检测与位姿环境</span></a><a class="sub" href="install-extensions.html"><span class="en">Extension setup</span><span class="zh">扩展环境</span></a><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a><a class="sub" href="data-resources.html"><span class="en">Datasets and model resources</span><span class="zh">数据集与模型资源</span></a><a class="sub" href="data-bop-folder.html"><span class="en">Read the BOP sample</span><span class="zh">读取 BOP 示例数据</span></a><a class="sub" href="data-frame.html"><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></a><a aria-current="page" class="sub" href="data-bop.html"><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></a><a class="sub" href="data-sixd-loc.html"><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></a><a class="sub" href="data-own.html"><span class="en">Custom data</span><span class="zh">自定义数据</span></a><a href="det2d.html"><span class="en">2D detection and segmentation</span><span class="zh">2D 检测与分割</span></a><a class="sub" href="det2d-templates.html"><span class="en">CAD templates and feature encoding</span><span class="zh">CAD 模板与特征编码</span></a><a class="sub" href="det2d-call.html"><span class="en">Detector usage and evaluation</span><span class="zh">检测器使用与评估</span></a><a href="pose.html"><span class="en">6D pose tasks and interfaces</span><span class="zh">6D 位姿任务与接口</span></a><a class="sub" href="pose-one.html"><span class="en">One category, one instance</span><span class="zh">单类别、单实例</span></a><a class="sub" href="pose-loc.html"><span class="en">6D pose localization and detection</span><span class="zh">6D 位姿定位与检测</span></a><a class="sub" href="pose-track.html"><span class="en">6D pose tracking</span><span class="zh">6D 位姿跟踪</span></a><a class="sub" href="pose-backend-scaling.html"><span class="en">Inference and renderer scaling</span><span class="zh">推理与渲染后端性能</span></a><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a><a class="sub" href="applications-robi.html"><span class="en">ROBI detection experiments</span><span class="zh">ROBI 检测实验</span></a><a class="sub" href="applications-ycbineoat.html"><span class="en">YCBInEOAT single-object pose tracking</span><span class="zh">YCBInEOAT 单物体位姿跟踪</span></a><a class="sub" href="applications-taco.html"><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></a><a class="sub" href="applications-reconstruct.html"><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></a><a class="sub" href="applications-robot.html"><span class="en">Robot simulation</span><span class="zh">机器人仿真</span></a><a href="credits.html"><span class="en">Acknowledgments and references</span><span class="zh">致谢与参考资料</span></a></nav>
+<main class="docs-main"><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="top"><a href="data-frame.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></strong></a><a href="data-sixd-loc.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></strong></a></nav><nav aria-label="Breadcrumb / 章节路径" class="docs-breadcrumb"><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a></nav><h1 id="bop"><img class="sec-icon" src="../assets/readme/icons/multi.svg" width="24" height="24" alt="" aria-hidden="true"/> <span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></h1>
+<p class="en">All stages below use LM-O<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: LM-O data" href="#license-lmo-data" id="license-lmo-data-ref-en" role="doc-noteref">[3]</a></sup> scene 2, image 307: the <code>rgb</code>, <code>depth_m</code>, <code>K</code> and meter-scale <code>meshes</code> loaded in the preceding sections. Detection and segmentation supply candidate regions; pose estimation recovers the object-to-camera rigid transformation for each region. The WAPR detection route does not use supplied instance counts; the published-candidate comparison below sets explicit per-category caps. Later sections introduce localization with known identities and counts, detection without those priors, and tracking over successive frames, following the distinction between <a href="https://bop.felk.cvut.cz/tasks/">BOP localization and detection tasks</a>.</p>
+<p class="zh">以下各阶段共用上一节加载的 LM-O<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: LM-O data" href="#license-lmo-data" id="license-lmo-data-ref-zh" role="doc-noteref">[3]</a></sup> 场景 2 第 307 帧，包括 <code>rgb</code>、<code>depth_m</code>、<code>K</code> 和米制 <code>meshes</code>。2D 检测与分割提供候选区域，位姿估计为每个区域求解物体系到相机系的刚体变换。WAPR 检测输入不提供实例数量；下方公布候选的对照单独设置每类数量限制。后续分别介绍已知物体类别与数量的定位、不提供这些先验的检测，以及连续帧中的跟踪；定位与检测的区分参照 <a href="https://bop.felk.cvut.cz/tasks/">BOP 任务定义</a>。</p>
+<ol aria-label="Shared-frame pipeline / 同帧处理流程" class="pose-pipeline">
+<li><strong><span class="en">Prepare candidates</span><span class="zh">准备候选</span></strong><span class="en">RGB detector or published detections → regions</span><span class="zh">RGB 检测器或已公布检测 → 候选区域</span><code>obj_id · mask · score_2d</code></li>
+<li><strong><span class="en">Estimate and score poses</span><span class="zh">位姿估计与评分</span></strong><span class="en">Regions + depth + K + object meshes</span><span class="zh">候选区域 + 深度 + K + 物体网格模型</span><code>pose_4x4 · score_6d</code></li>
+<li><strong><span class="en">Select outputs</span><span class="zh">筛选输出</span></strong><span class="en">WBPS ordering + GPU silhouette NMS</span><span class="zh">WBPS 排序 + GPU 轮廓 NMS</span><span class="en">Retained poses</span><span class="zh">保留的位姿</span></li>
+</ol>
+<h2 data-inline-section="" id="1-detect-and-segment-candidate-regions"><span class="en">1. Prepare 2D candidates</span><span class="zh">1. 准备 2D 候选</span></h2><p class="en">Choose one of the two input sources below. Both produce <code>pose_inputs</code> for the shared 6D stage; they use the same RGB-D frame, camera intrinsics and CAD models.</p>
+<p class="zh">从下面两种来源中选择一种准备候选。两种方式都生成 <code>pose_inputs</code>，随后进入同一个 6D 步骤，共用同一帧 RGB-D、相机内参和 CAD 模型。</p>
+<h3 data-inline-section="" id="wapr-2d-candidates"><span class="en">A. WAPR detection and segmentation</span><span class="zh">A. WAPR 检测与分割</span></h3>
+<p class="en">The following code uses <code>WAPRDet2D</code> for detection and segmentation: GroundingDINO<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: GroundingDINO" href="#license-groundingdino" id="license-groundingdino-ref-en" role="doc-noteref">[1]</a></sup> proposes boxes, SAM segments them, and DINOv2<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: DINOv2" href="#license-dinov2" id="license-dinov2-ref-en" role="doc-noteref">[2]</a></sup> matches the regions to the eight CAD categories. <code>onboard_meshes</code> builds the template bank in GPU memory; set <code>template_path</code> only to save it for a later run. Each returned row contains <code>obj_id</code>, <code>score_2d</code>, a pixel <code>bbox</code>, and a visible COCO RLE <code>mask</code>. This recorded frame uses a 0.35 detection threshold, then selects ten candidates at or above 0.50 for pose estimation. The RTX 5090 detection median is 282.2 ms over 30 calls after 3 warmups; loading, template construction, and drawing are excluded. The figure shows all 48 boxes: 29 blue boxes at or above 0.40 and 19 red boxes below 0.40. See the <a href="det2d.html">detector guide</a> for the pipeline and <a href="det2d-templates.html">CAD templates and feature encoding</a>.</p>
+<p class="zh">下面的代码用 <code>WAPRDet2D</code> 完成检测和分割：GroundingDINO<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: GroundingDINO" href="#license-groundingdino" id="license-groundingdino-ref-zh" role="doc-noteref">[1]</a></sup> 提出包围盒，SAM 分割，DINOv2<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: DINOv2" href="#license-dinov2" id="license-dinov2-ref-zh" role="doc-noteref">[2]</a></sup> 将区域与八个 CAD 类别匹配。<code>onboard_meshes</code> 在显存中建立模板库；只有需要保存供后续运行使用时，才设置 <code>template_path</code>。每个返回项含 <code>obj_id</code>、<code>score_2d</code>、像素包围盒 <code>bbox</code> 和可见区域的 COCO RLE <code>mask</code>。这一帧以 0.35 阈值检测，再选择分数不低于 0.50 的十个候选估计位姿。RTX 5090 预热 3 次后测量 30 次，2D 中位数为 282.2 毫秒，不计加载、模板构建和绘图。图中展示全部 48 个框：29 个蓝框不低于 0.40，19 个红框低于 0.40。整体流程见<a href="det2d.html">检测器指南</a>，模板生成与编码见<a href="det2d-templates.html">CAD 模板与特征编码</a>。</p>
+<p class="en">The standalone detection script defaults to image 1 of LM-O scene 2. This page uses image 307 from the same sample pack. Set <code>image_path</code> to <code>test/000002/rgb/000307.png</code> under that root and <code>confidence = 0.35</code>, then filter the returned rows at 0.50 as shown below. Detecting directly at 0.50 uses a different timing protocol.</p>
+<p class="zh">独立检测脚本默认使用 LM-O 场景 2 的第 1 帧，本页使用同一数据包的第 307 帧。将 <code>image_path</code> 设为数据根目录下的 <code>test/000002/rgb/000307.png</code>，并设置 <code>confidence = 0.35</code>，再按下方代码以 0.50 过滤返回项。直接以 0.50 检测的计时口径不同。</p>
+<p class="en">The code fragment is from example 01, whose default RGB is LM-O scene 2, image 1. The independent image below uses image 307, with the thresholds described above; it is not example 01 stdout.</p><p class="zh">代码片段摘自示例 01，该脚本默认读取 LM-O 场景 2 第 1 帧。下方独立插图使用第 307 帧及上述阈值，不作为示例 01 的标准输出。</p>
+<div class="nb-cell">
+<div class="nb-in">
+<span class="nb-prompt">In [3]</span>
+<pre data-example="examples/01_one_rgb_detect_segment.py" data-example-lines="127:141"><code>with Image.open(image_path) as frame:
+    rgb = np.asarray(frame.convert('RGB'))
+# Detection returns all accepted boxes and masks; no depth or pose is used here.
+# 检测返回全部保留的框与掩码；此处不使用深度，也不估计位姿。
+detector = WAPRDet2D(template, device=device, backend=backend, dino=dino, grounding=grounding)
+torch.cuda.synchronize(device)
+setup_seconds = time.perf_counter() - setup_started
+# Warm the same image and confidence; reported inference excludes loading.
+# 在相同图像与置信度下预热，报告的推理时间不包含模型加载。
+warm_started = time.perf_counter()
+for _ in range(3):
+    detector.detect_many_categories_many_instances(rgb, confidence=confidence)
+torch.cuda.synchronize(device)
+warmup_seconds = time.perf_counter() - warm_started
+instances, timing = detector.detect_many_categories_many_instances(rgb, profile=True, confidence=confidence)</code></pre><p class="nb-source"><span class="en">Source: examples/01_one_rgb_detect_segment.py, lines 127–141</span><span class="zh">代码来源：examples/01_one_rgb_detect_segment.py，第 127–141 行</span></p></div>
+<div class="nb-out">
+<span class="nb-prompt">Out [3]</span>
+<div>
+<img decoding="async" loading="lazy" alt="WAPRDet2D boxes on LM-O scene 2 image 307, blue at or above 0.40 and red below; RTX 5090 median 0.282 seconds" src="figures/det2d_boxes.jpg?v=1"/>
+<p class="nb-cap"><span class="en">Same image, scene 2 image 307. The picture draws boxes at or above 0.35; each number is the detector <code>score_2d</code>. Blue denotes scores at or above 0.40, and red denotes scores below 0.40. The ten lines above pass the 0.50 pose-input filter after detection at 0.35. Returned rows also have masks. The RTX 5090 detection median is 282.2 ms over 30 calls after 3 warmups.</span><span class="zh">同为场景 2 第 307 帧。图中画出分数不低于 0.35 的框；每个数字是检测器的 <code>score_2d</code>。蓝色框的分数不低于 0.40，红色框低于 0.40。上面十行是在 0.35 检测之后通过 0.50 位姿输入阈值的候选。返回项还包含 mask。RTX 5090 预热 3 次后测量 30 次，检测中位数为 282.2 毫秒。</span></p>
+</div>
+</div>
+</div>
+<h3 data-inline-section="" id="alternative-input-published-2d-candidates"><span class="en">B. Read published 2D candidates</span><span class="zh">B. 读取已公布的 2D 候选</span></h3>
+<p class="en">Alternatively, read the published CNOS<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: CNOS" href="#reference-cnos" id="reference-cnos-ref-en" role="doc-noteref">[5]</a></sup>-FastSAM<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: FastSAM" href="#reference-fastsam" id="reference-fastsam-ref-en" role="doc-noteref">[4]</a></sup> detections (<a href="https://bop.felk.cvut.cz/method_info/370/">method 370</a>) for the same frame. The code below reads the included excerpt <code>samples/bop/lmo/cnos-fastsam_scene2_im307.json</code>. Of its 58 rows, this comparison recipe retains the highest-scoring candidate for each of the eight target categories with <code>score_thr = 0.0</code> and <code>max_per_class</code>. These caps belong to this comparison recipe. The WAPR input above uses a score threshold without per-category counts. For the full published file, set <code>use_full_published_json = True</code> in <code>examples/03_published_boxes_to_pose.py</code>; it downloads the file into <code>outputs/cache/bop_det/</code>.</p>
+<p class="zh">另一种方式是读取同一帧已公布的 CNOS<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: CNOS" href="#reference-cnos" id="reference-cnos-ref-zh" role="doc-noteref">[5]</a></sup>-FastSAM<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: FastSAM" href="#reference-fastsam" id="reference-fastsam-ref-zh" role="doc-noteref">[4]</a></sup> 检测（<a href="https://bop.felk.cvut.cz/method_info/370/">方法 370</a>）。下方代码使用随包提供的摘录 <code>samples/bop/lmo/cnos-fastsam_scene2_im307.json</code>，从 58 条候选中按 <code>score_thr = 0.0</code> 和 <code>max_per_class</code> 为八个目标类别各保留分数最高的一条。每类数量限制是本次对照的设置；上面的 WAPR 输入按分数阈值筛选，不指定每类数量。需要完整公布文件时，在 <code>examples/03_published_boxes_to_pose.py</code> 中设置 <code>use_full_published_json = True</code>，脚本会下载到 <code>outputs/cache/bop_det/</code>。</p>
+<div class="nb-cell">
+<div class="nb-in">
+<span class="nb-prompt">In [4]</span>
+<pre data-example="examples/03_published_boxes_to_pose.py" data-example-lines="142:157"><code>for scene_id, im_id in frames:
+    mesh_setup_seconds = 0.0
+    rgb, depth_m, K = load_bop_rgbd(bop_path, dataset, scene_id, im_id)
+    print(
+        "frame", int(scene_id), int(im_id),
+        "rgb", tuple(rgb.shape),
+        "depth_m", tuple(depth_m.shape),
+        "K", tuple(K.shape),
+        flush=True,
+    )
+    records = [
+        record for record in detections.get((int(scene_id), int(im_id)), [])
+        if int(record["obj_id"]) in wanted
+    ]
+    kept = keep_top_per_class(records, max_per_class)
+    print("kept", len(kept), "of", len(records), "obj_ids", sorted(wanted), flush=True)</code></pre><p class="nb-source"><span class="en">Source: examples/03_published_boxes_to_pose.py, lines 142–157</span><span class="zh">代码来源：examples/03_published_boxes_to_pose.py，第 142–157 行</span></p></div>
+<div class="nb-out">
+<span class="nb-prompt">Out [4]</span>
+<div>
+<pre class="nb-text" data-example-output="figures/example_03_stdout.txt">frame 2 307 rgb (480, 640, 3) depth_m (480, 640) K (3, 3)
+kept 8 of 58 obj_ids [1, 5, 6, 8, 9, 10, 11, 12]</pre><p class="nb-source"><span><span class="en">Captured stdout excerpt · </span><span class="zh">已保存标准输出摘录 · </span></span></p>
+<img decoding="async" loading="lazy" alt="CNOS-FastSAM boxes and masks on LM-O scene 2 image 307" src="figures/guide_lmo_cnos_masks.jpg?v=2"/>
+<p class="nb-cap"><span class="en">The published CNOS-FastSAM file on the same image, shown beside the <code>WAPRDet2D</code> boxes above. Rectangles are 2D boxes; filled regions are masks; labels give detection scores. One row is retained for each of the eight target categories.</span><span class="zh">同一帧的已公布 CNOS-FastSAM 检测，可与上方的 <code>WAPRDet2D</code> 框对照。矩形是 2D 框，填色区域是 mask，标签给出检测分数。八个目标类别各保留一条检测。</span></p>
+<p class="nb-cap"><span class="en">Keeping one row per category does not guarantee eight correct regions. These are predicted candidates; the shared 6D stage below estimates and scores their poses.</span><span class="zh">每类保留一条并不意味着八个区域都正确。这些仍是预测候选，接下来由统一的 6D 步骤估计位姿并评分。</span></p>
+</div>
+</div>
+</div>
+<h2 data-inline-section="" id="sixd"><span class="en">2. 6D pose estimation, scoring and selection</span><span class="zh">2. 6D 位姿估计、评分与筛选</span></h2>
+<p class="en">Whichever source you choose, pass its <code>pose_inputs</code> to one <code>estimate_many_categories_many_instances</code> call with RGB, depth, camera intrinsics and CAD models. Decode any RLE masks first; for a candidate with only a box, fill that box as its region mask. Rendering, WAPR/SAPR refinement and WBPS scoring batch all hypotheses, with an independent 12-hypothesis attention group per candidate. Finally, rank by <code>score_6d</code> and suppress overlapping rendered silhouettes within each CAD category. Annotated masks and poses do not enter inference or selection.</p>
+<p class="zh">无论选用哪一种来源，都将其 <code>pose_inputs</code> 与 RGB、深度、相机内参和 CAD 模型一次交给 <code>estimate_many_categories_many_instances</code>。先解码 RLE mask；只有包围盒的候选则以填充包围盒作为区域 mask。渲染、WAPR/SAPR 位姿修正和 WBPS 评分批量处理全部候选姿态，每个候选的 12 条候选姿态保持独立注意力组。最后按 <code>score_6d</code> 排序，在同一 CAD 类别内进行渲染轮廓重叠抑制。标注 mask 和位姿不进入推理或筛选。</p>
+<p class="en">The independent figure and timing record below use input A: ten WAPR candidates produce 120 hypotheses; silhouette suppression removes one duplicate can, leaving nine poses. The RTX 5090 record reports a 6D median of 0.134 s and a continuously timed detector + pose median of 0.419 s over 30 calls after three warmups. Input B instead passes eight CNOS-FastSAM candidates to the same code; its outputs and timings differ. The green reference is added only after prediction and selection.</p><p class="zh">下方独立可视化与计时记录对应输入 A：十个 WAPR 候选产生 120 条候选姿态，轮廓抑制去掉一个重复 can，保留九个位姿。RTX 5090 预热三次、测量三十次，记录的 6D 中位数为 0.134 秒，检测与位姿连续计时中位数为 0.419 秒。输入 B 则将八个 CNOS-FastSAM 候选送入同一段代码，输出和耗时不同。绿色对照只在预测和筛选完成后加入。</p><p class="en">The code and Out excerpt below use example 03 and its eight published CNOS-FastSAM masks (input B). The independent figure uses input A as described above.</p><p class="zh">下方代码与 Out 摘录对应示例 03 及其八块公布的 CNOS-FastSAM 掩码，即输入 B；独立插图仍采用上文所述的输入 A。</p>
+<div class="nb-cell">
+<div class="nb-in">
+<span class="nb-prompt">In [5]</span>
+<pre data-example="examples/03_published_boxes_to_pose.py" data-example-lines="183:211"><code>pose_instances = instances
+shape = (tuple(depth_m.shape), tuple(estimator.renderer.cached_mesh_id(item["mesh"]) for item in pose_instances))
+warmup_seconds = 0.0
+if pose_instances and shape not in warmed_shapes:
+    warmup_seconds = estimator.warmup_pose(rgb, depth_m, K, pose_instances)
+    warmed_shapes.add(shape)
+# Synchronize the complete batch; exclude mesh setup, warmup and drawing.
+# 同步完整批量调用；网格准备、预热和绘图均在预热后的计时外。
+torch.cuda.synchronize(estimator.device)
+pose_started = time.perf_counter()
+poses = estimator.estimate_many_categories_many_instances(rgb, depth_m, K, pose_instances)
+torch.cuda.synchronize(estimator.device)
+pose_hot_seconds = time.perf_counter() - pose_started
+print("POSE_TIMING", {"model_setup_seconds": estimator.model_setup_seconds,
+      "mesh_setup_seconds": mesh_setup_seconds, "warmup_seconds": warmup_seconds,
+      "pose_hot_seconds": pose_hot_seconds, "instances": len(instances)}, flush=True)
+rows = []
+for record, pose in zip(instances, poses):
+    print(
+        {
+            "scene_id": int(scene_id),
+            "im_id": int(im_id),
+            "obj_id": int(record["obj_id"]),
+            "score_2d": float(record["score_2d"]),
+            "score_6d": float(pose["score_6d"]),
+            "t_m": np.asarray(pose["t_m"]).reshape(3).tolist(),
+        },
+        flush=True,
+    )</code></pre><p class="nb-source"><span class="en">Source: examples/03_published_boxes_to_pose.py, lines 183–211</span><span class="zh">代码来源：examples/03_published_boxes_to_pose.py，第 183–211 行</span></p></div>
+<div class="nb-out">
+<span class="nb-prompt">Out [5]</span>
+<div>
+<pre class="nb-text" data-example-output="figures/example_03_stdout.txt">{'scene_id': 2, 'im_id': 307, 'obj_id': 1, 'score_2d': 0.5453650951385498, 'score_6d': 0.9718749523162842, 't_m': [0.08519824594259262, 0.05933931842446327, 0.7537625432014465]}
+{'scene_id': 2, 'im_id': 307, 'obj_id': 5, 'score_2d': 0.7412353754043579, 'score_6d': 0.9090625047683716, 't_m': [0.03579800948500633, -0.13113363087177277, 0.763190507888794]}</pre><p class="nb-source"><span><span class="en">Captured stdout excerpt · </span><span class="zh">已保存标准输出摘录 · </span></span></p>
+<img decoding="async" loading="lazy" alt="Saved RTX 5090 batched 6D poses from predicted WAPRDet2D masks on LM-O scene 2 image 307; median 0.134 seconds" src="figures/guide_lmo_pose307.jpg?v=1"/>
+<p class="nb-cap"><span class="en">Red is the prediction; green is the offline pose reference. Labels give <code>score_6d</code>; <code>t_m</code> is translation in meters. The two extra driller scores are 0.249 and 0.251. The footer reports the pose batch median, excluding detection and drawing.</span><span class="zh">红色是预测，绿色是事后位姿对照。标签为 <code>score_6d</code>，<code>t_m</code> 是米制平移。额外两条 driller 的分数为 0.249 和 0.251。页脚标出位姿批量计算中位数，不含检测与绘图。</span></p>
+</div>
+</div>
+</div>
+<section aria-label="References and licenses / 参考文献与许可" class="license-notes"><h2 data-inline-section="true"><span class="en">References and licenses</span><span class="zh">参考文献与许可</span></h2><ol><li id="license-groundingdino"><strong>GroundingDINO — Apache-2.0</strong>. <span><span class="en">Vendored detector source; original notices retained.</span><span class="zh">随包检测源码；保留原始声明。</span></span> · <a href="https://github.com/IDEA-Research/GroundingDINO"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/groundingdino/LICENSE"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a> · <a href="licenses/groundingdino/NOTICE"><span class="en">License/notice 2</span><span class="zh">许可/声明 2</span></a><div class="reference-citation">Liu et al. Grounding DINO: Marrying DINO with Grounded Pre-Training for Open-Set Object Detection. ECCV 2024. · <a href="https://arxiv.org/abs/2303.05499"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-groundingdino-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-groundingdino-ref-zh" role="doc-backlink">↩</a></div></li><li id="license-dinov2"><strong>DINOv2 — Apache-2.0</strong>. <span><span class="en">Code and official DINOv2 weights; retain copyright and license.</span><span class="zh">源码与官方 DINOv2 权重；保留版权和许可。</span></span> · <a href="https://github.com/facebookresearch/dinov2"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/dinov2/LICENSE"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a><div class="reference-citation">Oquab et al. DINOv2: Learning Robust Visual Features without Supervision. arXiv:2304.07193, 2023. · <a href="https://arxiv.org/abs/2304.07193"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-dinov2-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-dinov2-ref-zh" role="doc-backlink">↩</a></div></li><li id="license-lmo-data"><strong>LM-O data — CC-BY-SA-4.0</strong>. <span><span class="en">Data and model excerpt, not the loader code.</span><span class="zh">数据与模型摘录，不是读取代码。</span></span> · <a href="https://bop.felk.cvut.cz/datasets/#LM-O"><span class="en">Original source</span><span class="zh">原始来源</span></a> · <a href="https://github.com/thodan/bop_toolkit"><span class="en">GitHub: BOP toolkit</span><span class="zh">GitHub：BOP 工具集</span></a><div class="reference-citation">Brachmann et al. Learning 6D Object Pose Estimation Using 3D Object Coordinates. ECCV 2014. · <a href="https://doi.org/10.1007/978-3-319-10605-2_35"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-lmo-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-lmo-data-ref-zh" role="doc-backlink">↩</a></div></li><li id="reference-fastsam"><strong>FastSAM</strong> · <a href="https://github.com/CASIA-LMC-Lab/FastSAM"><span class="en">GitHub</span><span class="zh">GitHub</span></a><div class="reference-citation">Zhao et al. Fast Segment Anything. arXiv:2306.12156, 2023. · <a href="https://arxiv.org/abs/2306.12156"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#reference-fastsam-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#reference-fastsam-ref-zh" role="doc-backlink">↩</a></div></li><li id="reference-cnos"><strong>CNOS</strong> · <a href="https://github.com/nv-nguyen/cnos"><span class="en">GitHub</span><span class="zh">GitHub</span></a><div class="reference-citation">Nguyen et al. CNOS: A Strong Baseline for CAD-based Novel Object Segmentation. ICCV Workshops 2023. · <a href="https://openaccess.thecvf.com/content/ICCV2023W/R6D/papers/Nguyen_CNOS_A_Strong_Baseline_for_CAD-Based_Novel_Object_Segmentation_ICCVW_2023_paper.pdf"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#reference-cnos-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#reference-cnos-ref-zh" role="doc-backlink">↩</a></div></li></ol><p><span class="en">Model weights and dataset/task assets may have separate terms. WAPR's source license does not replace them.</span><span class="zh">模型权重、数据集与任务资源可能有独立条款；WAPR 源码许可不替代这些许可。</span></p></section><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="bottom"><a href="data-frame.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></strong></a><a href="data-sixd-loc.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></strong></a></nav><footer class="site-author">© 2026 <a href="credits.html#authorship">Yulin Wang</a> · <span><span class="en">Code and website author</span><span class="zh">代码与网站作者</span></span></footer></main>
+</div>
+<script src="../assets/lang.js"></script>
+<script src="nav.js?v=34"></script>
+<script src="../assets/three.min.js"></script>
+<script src="../assets/studio_grid.js?v=2"></script>
+<script src="own_view.js?v=20261006-perf1"></script>
+<script src="../assets/table-layout.js?v=1"></script></body>
+</html>

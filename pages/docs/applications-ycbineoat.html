@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<!--
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>WAPR vs FoundationPose: large-motion tracking — WAPR docs</title>
+<meta name="description" content="YCBInEOAT sequence-specific WAPR and FoundationPose comparisons: stride-32 mustard ADD recall and a separate sugar-box recovery example."/>
+<link rel="canonical" href="https://wangyulin-seu.github.io/WAPR/docs/applications-ycbineoat.html"/>
+<meta property="og:title" content="WAPR vs FoundationPose: large-motion tracking — WAPR docs"/>
+<meta property="og:description" content="YCBInEOAT sequence-specific WAPR and FoundationPose comparisons: stride-32 mustard ADD recall and a separate sugar-box recovery example."/>
+<meta property="og:url" content="https://wangyulin-seu.github.io/WAPR/docs/applications-ycbineoat.html"/>
+<meta property="og:type" content="website"/>
+
+<script>
+    (function () {
+      var lang = "en";
+      try { lang = localStorage.getItem("wapr-lang") === "zh" ? "zh" : "en"; } catch (e) {}
+      document.documentElement.setAttribute("data-lang", lang);
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    })();
+  </script>
+<link href="../assets/project.css?v=bar14" rel="stylesheet"/>
+<link href="docs.css?v=62" rel="stylesheet"/>
+<link href="../favicon.ico?v=11" rel="icon" type="image/x-icon"/>
+<link href="../assets/wapr-icon-32.png?v=11" rel="icon" sizes="32x32" type="image/png"/>
+<link href="../assets/wapr-icon-180.png?v=11" rel="apple-touch-icon" sizes="180x180"/>
+<link href="../assets/table-layout.css?v=1" rel="stylesheet"/><script src="section-routes.js?v=59"></script><link href="applications-robi.html" rel="prev"/><link href="applications-taco.html" rel="next"/><link rel="stylesheet" href="../assets/github-docs.css?v=3"/>
+<script src="../assets/site-runtime.js?v=1"></script>
+</head>
+<body class="project docs" data-title-en="WAPR vs FoundationPose: large-motion tracking — WAPR docs" data-title-zh="WAPR 与 FoundationPose：大运动跟踪对照 — WAPR 文档">
+<div aria-hidden="true" class="mast-spacer"></div>
+<header class="mast">
+<a class="mast-hero-link" href="../index.html"><img alt="WAPR, wide-angle pose refinement" class="mast-hero" height="724" src="../assets/wapr-banner-1440.webp" srcset="../assets/wapr-banner-768.webp 768w, ../assets/wapr-banner-1440.webp 1440w, ../assets/wapr-banner-2172.webp 2172w" sizes="(max-width: 800px) 100vw, 1200px" fetchpriority="high" width="2172"/></a>
+<div aria-hidden="true" class="mast-scrim"></div>
+<div class="docs-top">
+<a class="docs-home" href="../index.html">WAPR</a>
+<nav aria-label="Site" class="docs-jump">
+<a href="../index.html"><span class="en">Home</span><span class="zh">主页</span></a>
+<a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"><span class="en">Paper</span><span class="zh">论文</span></a>
+<a href="https://github.com/WangYuLin-SEU/WAPR"><span class="en">Code</span><span class="zh">代码</span></a>
+</nav>
+<div class="lang-switch" role="group">
+<button data-set-lang="en" type="button">EN</button>
+<button data-set-lang="zh" type="button">中文</button>
+</div>
+</div>
+</header><script src="../assets/banner.js?v=18"></script>
+<div class="docs-shell">
+<nav aria-label="Documentation / 教程目录" class="docs-nav"><a href="index.html"><span class="en">Overview</span><span class="zh">概览</span></a><a class="sub" href="index-modules.html"><span class="en">How the modules work together</span><span class="zh">模块如何衔接</span></a><a class="sub" href="index-routes.html"><span class="en">Choose a route for your scene</span><span class="zh">根据场景选择入口</span></a><a class="sub" href="index-performance.html"><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></a><a class="sub" href="index-examples.html"><span class="en">Example overview</span><span class="zh">示例总览</span></a><a href="install.html"><span class="en">Installation</span><span class="zh">安装</span></a><a class="sub" href="install-guide.html"><span class="en">Installation guide</span><span class="zh">安装引导</span></a><a class="sub" href="install-core.html"><span class="en">Detection and pose setup</span><span class="zh">检测与位姿环境</span></a><a class="sub" href="install-extensions.html"><span class="en">Extension setup</span><span class="zh">扩展环境</span></a><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a><a class="sub" href="data-resources.html"><span class="en">Datasets and model resources</span><span class="zh">数据集与模型资源</span></a><a class="sub" href="data-bop-folder.html"><span class="en">Read the BOP sample</span><span class="zh">读取 BOP 示例数据</span></a><a class="sub" href="data-frame.html"><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></a><a class="sub" href="data-bop.html"><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></a><a class="sub" href="data-sixd-loc.html"><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></a><a class="sub" href="data-own.html"><span class="en">Custom data</span><span class="zh">自定义数据</span></a><a href="det2d.html"><span class="en">2D detection and segmentation</span><span class="zh">2D 检测与分割</span></a><a class="sub" href="det2d-templates.html"><span class="en">CAD templates and feature encoding</span><span class="zh">CAD 模板与特征编码</span></a><a class="sub" href="det2d-call.html"><span class="en">Detector usage and evaluation</span><span class="zh">检测器使用与评估</span></a><a href="pose.html"><span class="en">6D pose tasks and interfaces</span><span class="zh">6D 位姿任务与接口</span></a><a class="sub" href="pose-one.html"><span class="en">One category, one instance</span><span class="zh">单类别、单实例</span></a><a class="sub" href="pose-loc.html"><span class="en">6D pose localization and detection</span><span class="zh">6D 位姿定位与检测</span></a><a class="sub" href="pose-track.html"><span class="en">6D pose tracking</span><span class="zh">6D 位姿跟踪</span></a><a class="sub" href="pose-backend-scaling.html"><span class="en">Inference and renderer scaling</span><span class="zh">推理与渲染后端性能</span></a><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a><a class="sub" href="applications-robi.html"><span class="en">ROBI detection experiments</span><span class="zh">ROBI 检测实验</span></a><a aria-current="page" class="sub" href="applications-ycbineoat.html"><span class="en">YCBInEOAT single-object pose tracking</span><span class="zh">YCBInEOAT 单物体位姿跟踪</span></a><a class="sub" href="applications-taco.html"><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></a><a class="sub" href="applications-reconstruct.html"><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></a><a class="sub" href="applications-robot.html"><span class="en">Robot simulation</span><span class="zh">机器人仿真</span></a><a href="credits.html"><span class="en">Acknowledgments and references</span><span class="zh">致谢与参考资料</span></a></nav>
+<main class="docs-main"><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="top"><a href="applications-robi.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">ROBI detection experiments</span><span class="zh">ROBI 检测实验</span></strong></a><a href="applications-taco.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></strong></a></nav><nav aria-label="Breadcrumb / 章节路径" class="docs-breadcrumb"><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a></nav><h1 id="ycbineoat"><img class="sec-icon" src="../assets/readme/icons/gallery.svg" width="24" height="24" alt="" aria-hidden="true"/> <span class="en">YCBInEOAT single-object pose tracking</span><span class="zh">YCBInEOAT 单物体位姿跟踪</span></h1>
+<p class="en">In the recorded large-motion mustard sequence <code>mustard_easy_00_02</code>, updating poses every 32 frames gives WAPR 100% ADD recall and 4.6 mm mean ADD, versus FoundationPose’s 68.2% and 36.3 mm. FoundationPose loses accurate tracking in parts of this comparison. Both methods start from the same predicted mask; neither reinitializes poses in this sequence. Recall uses ADD below 0.1 object diameter. These are sequence-specific results.</p>
+<p class="zh">在录制的大运动芥末瓶序列 <code>mustard_easy_00_02</code> 中，每 32 帧更新一次位姿，WAPR 的 ADD 达标率为 100%、平均 ADD 为 4.6 mm；FoundationPose 分别为 68.2% 和 36.3 mm，对照中部分帧出现跟踪失效。双方从同一预测掩码开始，该序列均不重新初始化位姿。达标阈值为物体直径的 0.1 倍；这些是此序列的结果。</p>
+<p class="en">Lost-track recovery is a separate optional workflow using DINOv2 candidate search and pose scoring. The sugar-box example retains failed predictions and demonstrates recovery behavior; it does not guarantee recovery for every sequence.</p>
+<p class="zh">跟踪丢失补救是单独的可选流程，使用 DINOv2 候选搜索及位姿评分。糖盒案例保留失败预测并展示补救表现，不保证所有序列都能恢复。</p>
+
+<p class="en">This case explains single-object tracking on YCBInEOAT<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: YCBInEOAT data" href="#license-ycbineoat-data" id="license-ycbineoat-data-ref-en" role="doc-noteref">[6]</a></sup>, with visual walkthroughs, accuracy and timing statistics. For initialization and batch updates, see <a href="pose-track.html">6D pose tracking</a>. Each comparison specifies whether its initial mask is predicted from RGB or supplied as an input.</p>
+<p class="zh">本案例介绍 YCBInEOAT<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: YCBInEOAT data" href="#license-ycbineoat-data" id="license-ycbineoat-data-ref-zh" role="doc-noteref">[6]</a></sup> 单物体跟踪，展示处理过程、精度与耗时。初始化与批量更新的使用方法见 <a href="pose-track.html">6D 位姿跟踪</a>。各项对照注明首帧掩码由 RGB 预测还是作为输入提供。</p>
+<h2 data-inline-section="" id="tracking-data-scope"><span class="en">Data and evaluation scope</span><span class="zh">数据与评测范围</span></h2>
+<p class="en">The batch update entry accepts several known tracks in one GPU call; the recorded YCBInEOAT example remains a single-instance workflow. Each reported YCBInEOAT run uses one sequence and one <code>obj_id</code>. The nine YCBInEOAT sequences on disk each store one 4×4 pose and one mask per frame: <code>cracker_box_reorient</code>, <code>cracker_box_yalehand0</code>, <code>sugar_box1</code>, <code>sugar_box_yalehand0</code>, <code>tomato_soup_can_yalehand0</code>, <code>mustard0</code>, <code>mustard_easy_00_02</code>, <code>bleach0</code>, <code>bleach_hard_00_03_chaitanya</code>. <code>cracker_box_reorient</code> also shows other objects on the table. Those objects are absent from <code>annotated_poses</code>. The tracker predicts its frame-0 mask with <code>WAPRDet2D</code>. The clips on the <a href="../index.html#tracking">project page</a> are three of these one-instance sequences, with warmed predicted-mask initialization for cracker and mustard. The selective sugar-box clip retains the shared supplied frame-0 mask and its separate full-path warm protocol.</p><p class="zh">批量更新入口可在一次 GPU 调用中处理多个身份已知的轨迹；现有 YCBInEOAT 示例仍是单实例流程。这里报告的 YCBInEOAT 结果每次对应一个序列和一个 <code>obj_id</code>。磁盘上的九段 YCBInEOAT 每一帧都保存一个 4×4 位姿矩阵和一块 mask：<code>cracker_box_reorient</code>、<code>cracker_box_yalehand0</code>、<code>sugar_box1</code>、<code>sugar_box_yalehand0</code>、<code>tomato_soup_can_yalehand0</code>、<code>mustard0</code>、<code>mustard_easy_00_02</code>、<code>bleach0</code>、<code>bleach_hard_00_03_chaitanya</code>。<code>cracker_box_reorient</code> 的桌子上还有别的物体。它们不在 <code>annotated_poses</code> 里。跟踪示例用 <code>WAPRDet2D</code> 预测第 0 帧 mask。<a href="../index.html#tracking">项目主页</a>上的三段就是这些单实例序列里的三段，其中饼干盒和芥末瓶使用预热后的预测掩码初始化记录；选择性糖盒片段保留共享的第 0 帧提供掩码，采用另行完整预热的协议。</p>
+<h2 data-inline-section="" id="tracking-compute-check"><span class="en">Batch-update compute checks</span><span class="zh">批量更新的计算检查</span></h2>
+<p class="en">RTX 5090 compute check on <code>wapr-test</code>: fourteen repeated predicted-pose inputs took a median 0.060 s in one batch versus 0.520 s serially (8.59×, three warmups and five timed calls). The largest pose difference was 0.096 mm and 0.179°; 6 of fourteen hypothesis indices differed. The 21- and 64-instance checks exercised chunk boundaries. A separate two-frame robot check verified one DINO encode per camera frame and batched updates of two tracks. These checks do not measure full-sequence accuracy or episode latency.</p><p class="zh"><code>wapr-test</code> 的 RTX 5090 计算检查：十四个重复预测位姿输入，一次批量计算中位数 0.060 秒，逐实例中位数 0.520 秒，约 8.59 倍加速；预热三次、测量五次。最大位姿差 0.096 mm、0.179°，十四个候选索引中 6 个不同。21 和 64 实例检查覆盖分块边界。另用机器人两帧检查确认，每相机帧只编码一次 DINO，两条轨迹批量更新。这些检查不代表完整序列精度或回合耗时。</p><h2 data-inline-section="" id="predicted-init-validation"><span class="en">Validation with predicted initial masks</span><span class="zh">预测掩码初始化对照</span></h2>
+<p class="en">This demonstration's WAPR initializer begins with twelve hypotheses, runs two masked updates, retains one in-plane hypothesis per view, then runs one masked update and two SAPR updates on four hypotheses. Normal updates use one mask-free WAPR step and two SAPR steps. FoundationPose<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: FoundationPose" href="#license-foundationpose" id="license-foundationpose-ref-en" role="doc-noteref">[4]</a></sup> uses two tracking iterations and five registration iterations, with its native scorer. These schedules differ from the three-refinement selective sugar reassociation experiment below. Warmup discards three to six calls per path; it removes cold calls but does not guarantee constant latency. The ordinary public initialization keeps all twelve hypotheses through its three WAPR and two SAPR updates.</p>
+<p class="zh">本演示的 WAPR 初始化从十二条候选姿态开始，带掩码更新两次后，每个视角保留一个面内候选，再对四条候选姿态执行一次带掩码更新与两次 SAPR；常规更新为一次不带掩码 WAPR 加两次 SAPR。FoundationPose<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: FoundationPose" href="#license-foundationpose" id="license-foundationpose-ref-zh" role="doc-noteref">[4]</a></sup> 跟踪迭代两次、注册迭代五次，仅用原有评分器。这与下方各修正三次的糖盒选择性重关联实验不同。每条路径丢弃三至六次预热调用，排除预热前的调用，但不保证延迟恒定。常规公共初始化则保留全部十二条候选姿态，执行三次 WAPR 与两次 SAPR。</p>
+<p class="en">Cracker and mustard initialize from masks predicted from RGB by WAPRDet2D, with a saved manual click specifying the instance. Sugar supplies a shared initial mask and independently searches DINOv2<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: DINOv2" href="#license-dinov2" id="license-dinov2-ref-en" role="doc-noteref">[2]</a></sup> candidates. Both methods use their own pose state and scorer; annotated poses do not enter inference.</p>
+<p class="zh">饼干盒与芥末瓶由 WAPRDet2D 根据 RGB 预测掩码，保存的人工点击点指定实例。糖盒共享给定初始掩码，并独立搜索 DINOv2<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: DINOv2" href="#license-dinov2" id="license-dinov2-ref-zh" role="doc-noteref">[2]</a></sup> 候选。双方使用各自的位姿状态和评分器，标注位姿不参与推理。</p>
+<div class="docs-table-wrap"><table>
+<thead><tr><th><span class="en">Sequence / stride</span><span class="zh">序列 / 步长</span></th><th class="table-numeric"><span class="en">WAPR recall</span><span class="zh">WAPR 召回率</span></th><th class="table-numeric"><span class="en">FoundationPose<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: FoundationPose" href="#license-foundationpose" id="license-foundationpose-ref-en-table-1" role="doc-noteref">[4]</a></sup> recall</span><span class="zh">FoundationPose<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: FoundationPose" href="#license-foundationpose" id="license-foundationpose-ref-zh-table-1" role="doc-noteref">[4]</a></sup> 召回率</span></th></tr></thead>
+<tbody>
+<tr><td>cracker_box_reorient / 1</td><td class="table-numeric">100%</td><td class="table-numeric">100%</td></tr>
+<tr><td>mustard_easy_00_02 / 32</td><td class="table-numeric">100%</td><td class="table-numeric">68.2%</td></tr>
+<tr><td>sugar_box1 / 32</td><td class="table-numeric">93.1% (27/29)</td><td class="table-numeric">93.1% (27/29)</td></tr>
+</tbody>
+</table></div>
+<p class="en">ADD recall uses sampled poses below 0.1 object diameter. In sugar_box1, both methods pass on 27/29 poses. WAPR selects search candidates on seven updates, FoundationPose on three. The video retains failures and shows measured RTX 5090 update times; DINOv2 region tracking is timed separately.</p>
+<p class="zh">ADD 达标率按采样位姿误差低于物体直径 0.1 倍统计。糖盒中双方均为 27/29 个位姿达标，WAPR 在七次更新中选中搜索候选，FoundationPose 为三次。视频保留失败，并显示 RTX 5090 的实测更新时间；DINOv2 区域跟踪另计。</p>
+<div id="tracking-implementation-notes">
+<p class="en">The script predicts the initial mask from RGB without reading <code>init_mask.png</code> or <code>gt_mask</code>. Each sequence has a manually selected point in <code>examples/08_ycbineoat_init_clicks.json</code>. Among predicted masks covering that point, the script selects the highest <code>score_2d</code> and saves the mask and score under <code>outputs/tracking_init/</code>. See the <a href="applications-ycbineoat.html#predicted-init-validation">predicted-mask comparison</a> above.</p><p class="zh">脚本从 RGB 预测初始化掩码，不读取 <code>init_mask.png</code> 或 <code>gt_mask</code>。每段序列的人工选点保存在 <code>examples/08_ycbineoat_init_clicks.json</code>；脚本在覆盖该点的预测掩码中选择 <code>score_2d</code> 最高者，将掩码与分数保存到 <code>outputs/tracking_init/</code>。结果见上方<a href="applications-ycbineoat.html#predicted-init-validation">预测掩码初始化对照</a>。</p><p class="en">The example uses the selected pose’s score from the six-candidate WBPS group. Recovery compares the tracked and re-estimated poses in a two-candidate group; WBPS requires <code>L&gt;1</code>. Sequence accuracy for this example’s grouped recovery configuration has not been measured.</p><p class="zh">示例使用六候选 WBPS 组中被选位姿的评分。恢复时，将跟踪位姿与重估位姿组成两候选组比较；WBPS 要求 <code>L&gt;1</code>。该示例的成组恢复配置尚未完成序列精度评测。</p>
+</div>
+<h3 data-inline-section="" id="predicted-init-cracker"><span class="en">Cracker box stride 1</span><span class="zh">饼干盒 步长 1</span></h3><figure class="docs-shot wide">
+<video preload="none" controls="" loop="" muted="" playsinline="" poster="../demo/tracking/predicted_init/track_cracker_box_reorient_s1.jpg?v=5090-20261003"><source data-src="../demo/tracking/predicted_init/track_cracker_box_reorient_s1.mp4?v=5090-20261003" type="video/mp4"/></video>
+<figcaption><span class="en">Cracker box, stride 1. Both methods refine their own previous pose after predicted-mask initialization.</span><span class="zh">饼干盒，步长 1。预测掩码初始化后，两种方法各自修正上一帧位姿。</span></figcaption>
+</figure>
+<h3 data-inline-section="" id="predicted-init-mustard"><span class="en">Mustard bottle stride 32</span><span class="zh">芥末瓶 步长 32</span></h3><figure class="docs-shot wide">
+<video preload="none" controls="" loop="" muted="" playsinline="" poster="../demo/tracking/predicted_init/track_mustard_easy_00_02_s32.jpg?v=5090-20261003"><source data-src="../demo/tracking/predicted_init/track_mustard_easy_00_02_s32.mp4?v=5090-20261003" type="video/mp4"/></video>
+<figcaption><span class="en">Mustard bottle, stride 32. DINOv2 regions and current depth initialize translation for both methods.</span><span class="zh">芥末瓶，步长 32。两种方法均使用 DINOv2 区域与当前深度设置起始平移。</span></figcaption>
+</figure>
+<h3 data-inline-section="" id="predicted-init-sugar"><span class="en">Sugar box recovery stride 32</span><span class="zh">糖盒补救 步长 32</span></h3><figure class="docs-shot wide">
+<video preload="none" controls="" loop="" muted="" playsinline="" poster="../demo/tracking/predicted_init/recover_sugar_box1_s32.jpg?v=dino-independent"><source data-src="../demo/tracking/predicted_init/recover_sugar_box1_s32.mp4?v=dino-independent" type="video/mp4"/></video>
+<figcaption><span class="en">Sugar box, stride 32 with recovery. Initialization uses the same predicted mask; each method uses its own recovery decision.</span><span class="zh">糖盒，步长 32，启用补救。两种方法使用同一预测掩码初始化，分别根据自身判据决定补救。</span></figcaption>
+</figure>
+<h2 data-inline-section="" id="track-selective"><span class="en">Selective reassociation and recovery experiment</span><span class="zh">选择性重关联与恢复实验</span></h2><p class="zh">预测掩码初始化对照：<a href="applications-ycbineoat.html#predicted-init-sugar">糖盒补救视频，步长 32</a></p><p class="en">Tracking with predicted initial masks: <a href="applications-ycbineoat.html#predicted-init-sugar">sugar-box recovery video, stride 32</a></p>
+<p class="en">This diagram describes the sugar-box experiment, which starts from a supplied frame-0 mask and updates poses every 32 frames. DINOv2 tracks the target region through the intervening frames. Each pose update uses valid region depth to seed translation, or retains the previous pose as its seed, then runs mask-free WAPR/SAPR and WBPS. Reassociation runs only when the normal WBPS raw between-group error is at least −50 and there is a missing region, depth mismatch, region collapse or abrupt error increase. Candidates are compared against the normal pose in the same scoring group; an accepted candidate must reduce that error. These raw errors can be negative and are different from the public higher-is-better <code>score_6d</code>.</p>
+<p class="zh">下图对应糖盒的选择性跟踪实验：使用提供的第 0 帧掩码，位姿更新步长为 32；DINOv2 在中间帧持续跟踪目标区域。每次更新用有效区域深度设置起始平移，否则以上一位姿为起点，再执行无掩码 WAPR/SAPR 修正与 WBPS 评分。仅当常规位姿的 WBPS 原始组间误差 ≥ −50，且存在区域缺失、深度不符、区域骤缩或误差突增时，才尝试重新关联。候选与常规位姿在同一组内评分，误差降低才接受。原始误差可以为负，与公开的、越高越好的 <code>score_6d</code> 不同。</p>
+<p class="en">DINOv2 propagates the target region through every raw frame. At pose-update frames, missing regions, unusable depth, front-surface depth disagreement over 0.18 m, depth-normalized area below 0.70 of the preceding valid region, or positive WAPR group error trigger search. Complete the normal update first. Search up to six local and six global depth-consistent patches, preserve the previous rotation, batch-refine the translation seeds, and compare them with the normal result using WBPS within_group. Search does not produce a replacement mask. No ground truth or 2D detection is used for recovery.</p>
+<p class="zh">DINOv2 在每个原始帧传播目标区域。位姿更新时，区域缺失、深度无效、前表面深度偏差超过 0.18 m、按深度归一化的面积低于上一有效区域的 0.70 倍，或 WAPR 组间误差为正时触发搜索。先完成常规更新，再从局部和全图各取最多六个深度一致的图块候选，保留上一旋转，批量修正平移起点，并与常规结果一起由 WBPS 的 within_group 选择。搜索不产生替代掩码；补救不用真值，也不调用 2D 检测。</p>
+<figure class="docs-shot wide diagram">
+<img decoding="async" alt="DINOv2 tracking and independent candidate recovery / DINOv2 跟踪与独立候选补救" class="en" height="1240" loading="lazy" src="figures/selective_tracking_flow_en.svg?v=dino-independent" width="1000"/>
+<img decoding="async" alt="DINOv2 tracking and independent candidate recovery / DINOv2 跟踪与独立候选补救" class="zh" height="1240" loading="lazy" src="figures/selective_tracking_flow_zh.svg?v=dino-independent" width="1000"/>
+<figcaption><span class="en">DINOv2 search follows the normal update; WBPS selects among the normal result and refined seeds.</span><span class="zh">常规更新后进行 DINOv2 搜索，WBPS 在常规结果与修正后的搜索起点中选择。</span></figcaption>
+</figure><div class="figure-notes"><p class="en">DINOv2 propagates the target region through every raw frame. At pose-update frames, missing regions, unusable depth, front-surface depth disagreement over 0.18 m, depth-normalized area below 0.70 of the preceding valid region, or positive WAPR group error trigger search. Complete the normal update first. Search up to six local and six global depth-consistent patches, preserve the previous rotation, batch-refine the translation seeds, and compare them with the normal result using WBPS within_group. Search does not produce a replacement mask. No ground truth or 2D detection is used for recovery.</p><p class="zh">DINOv2 在每个原始帧传播目标区域。位姿更新时，区域缺失、深度无效、前表面深度偏差超过 0.18 m、按深度归一化的面积低于上一有效区域的 0.70 倍，或 WAPR 组间误差为正时触发搜索。先完成常规更新，再从局部和全图各取最多六个深度一致的图块候选，保留上一旋转，批量修正平移起点，并与常规结果一起由 WBPS 的 within_group 选择。搜索不产生替代掩码；补救不用真值，也不调用 2D 检测。</p></div>
+<p class="en">For the same saved 480×640 YCB image and DINOv2-L CAD matcher, the hot 2D call took a median 220.7 ms with GroundingDINO<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: GroundingDINO" href="#license-groundingdino" id="license-groundingdino-ref-en" role="doc-noteref">[1]</a></sup> + SAM2<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: SAM 2" href="#license-sam2" id="license-sam2-ref-en" role="doc-noteref">[3]</a></sup> and 85.0 ms with FastSAM<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: FastSAM" href="#reference-fastsam" id="reference-fastsam-ref-en" role="doc-noteref">[7]</a></sup>-s on RTX 5090 (3 warmups, 12 timed calls). These calls stop after 2D matching: no 6D pose or video tracking is measured. The faster proposal path has not by itself established better pose accuracy or recovery.</p>
+<p class="zh">相同的 480×640 YCB 图像、相同 DINOv2-L CAD 匹配器下，RTX 5090 的热 2D 调用中位数为 GroundingDINO<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: GroundingDINO" href="#license-groundingdino" id="license-groundingdino-ref-zh" role="doc-noteref">[1]</a></sup> + SAM2<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: SAM 2" href="#license-sam2" id="license-sam2-ref-zh" role="doc-noteref">[3]</a></sup> 方案 220.7 ms、FastSAM<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: FastSAM" href="#reference-fastsam" id="reference-fastsam-ref-zh" role="doc-noteref">[7]</a></sup>-s 方案 85.0 ms（预热三次、计时十二次）。这些调用在 2D 匹配后结束，未测 6D 位姿或整段跟踪；更快的候选生成本身不能证明位姿精度或找回率更高。</p>
+<figure class="docs-shot wide diagram">
+<img decoding="async" alt="RTX 5090 hot 2D latency for GroundingDINO + SAM2 and FastSAM-s; no 6D pose / RTX 5090 上两种 2D 方案的预热后调用耗时，不含 6D 位姿。" height="620" loading="lazy" src="figures/fastsam_grounding_2d_latency.svg?v=5090-only" width="1000"/>
+<figcaption><span class="en">RTX 5090 warmed 2D latency; 6D pose estimation is excluded.</span><span class="zh">RTX 5090 预热后 2D 耗时，不含 6D 位姿估计。</span></figcaption>
+</figure><div class="figure-notes"><p class="en">One repeated frame, 12 timed calls after 3 warmups. Dark segments are proposal and segmentation; light segments are later DINOv2 encoding, CAD matching, and postprocessing. Full per-call results are in the research benchmark files.</p><p class="zh">同一帧预热 3 次后计时 12 次。深色为候选生成与分割，浅色为后续 DINOv2 编码、CAD 匹配及后处理；逐次结果见研究基准文件。</p></div>
+<p class="en">The number of regions sent to full pose initialization also affects recovery cost. The <a href="pose-backend-scaling.html">inference and renderer scaling experiment</a> measures the current grouped-WBPS path, with twelve hypotheses per instance and up to 1000 instances. It separates neural execution from rendering and varies CAD categories at a fixed total workload. These measurements cover full masked initialization, rather than routine mask-free tracking updates.</p>
+<p class="zh">送入完整位姿初始化的区域数量也会影响补救成本。<a href="pose-backend-scaling.html">推理与渲染后端扩展实验</a>测量当前成组 WBPS 路径，每实例十二个候选，规模覆盖至 1000 个实例；分别比较网络执行与渲染，并在固定总负载下改变 CAD 类别。该实验测量完整带掩码初始化，与常规无掩码跟踪更新的范围不同。</p>
+<h2 data-inline-section="" id="track-ycb"><span class="en">Single-instance timing and accuracy comparison</span><span class="zh">单实例耗时与精度对照</span></h2><p class="en">The sugar-box comparison uses stride 32 and the same supplied initial mask. Both methods maintain their own previous pose and DINOv2 region state. Missing regions, front-surface depth disagreement over 0.18 m or depth-normalized area below 0.70 of the preceding valid region trigger search independently. WAPR additionally checks whether the complete-group between_group maximum is positive. Each completes its normal update before comparing search candidates. Ground-truth poses are used only to evaluate the outputs.</p><p class="zh">糖盒对照采用步长 32，共享给定的初始掩码。两侧各自维护上一位姿和 DINOv2 区域状态，区域缺失、前表面深度偏差超过 0.18 m，或按深度归一化的面积低于上一有效区域的 0.70 倍时独立触发搜索。WAPR 还检查完整组 between_group 的最大值是否为正。双方先完成常规更新，再与搜索候选比较；真值位姿仅用于评价输出。</p><p class="en">DINOv2 returns up to six local and six global patch candidates, requiring similarity at least 0.35, depth difference at most 0.18 m and separation at least 25 pixels. The local radius is 0.55 projected object diameters. Each seed retains that method’s previous rotation and adjusts translation from sensor depth. WAPR batch-refines the seeds with one mask-free WAPR and two SAPR iterations, then ranks them with the normal result using WBPS within_group. FoundationPose batch-refines and ranks its own candidates with its own scorer. A selected search candidate is not necessarily an accurate recovered pose. No 2D detector is called.</p><p class="zh">DINOv2 从局部和全图各取最多六个图块候选，要求相似度至少 0.35、深度差不超过 0.18 m、候选间隔至少 25 像素；局部半径为投影物体直径的 0.55 倍。各起点保留对应方法的上一旋转，用传感器深度调整平移。WAPR 对搜索起点批量执行一次无掩码 WAPR 和两次 SAPR，再与常规结果一起由 WBPS 的 within_group 选择。FoundationPose 批量修正自身候选，并用自身评分器排序。选中搜索候选不等于准确恢复；补救不调用 2D 检测。</p><p class="en">Both methods pass on 27/29 sampled poses. Mean ADD, including failed poses, is 7.1 mm for WAPR and 70.1 mm for FoundationPose. WAPR searches on 12 updates and FoundationPose on 4. At frame 864 both fail; at 896 WAPR passes with ADD 18.4 mm, while FoundationPose remains inaccurate at 1158.2 mm. The ADD threshold is 19.8 mm. Failed poses remain in the table and video.</p><p class="zh">双方均为 27/29 个采样位姿达标。包含失败位姿的平均 ADD 为 WAPR 7.1 mm、FoundationPose 70.1 mm；分别在 12 次和 4 次更新中搜索。第 864 帧双方未达标；第 896 帧 WAPR 达标，ADD 为 18.4 mm，FoundationPose 仍为错误位姿，ADD 为 1158.2 mm。ADD 阈值为 19.8 mm；失败位姿保留在表格和视频中。</p><p class="en">After warmup on RTX 5090, normal-update medians are 27.8 ms for WAPR and 369.1 ms for FoundationPose. Full updates containing search take 64.6–172.5 ms and 420.0–445.5 ms; initialization takes 47.7 and 431.9 ms. CUDA-synchronized update times include loss checks, normal computation, patch search, seed construction, refinement, own scoring and state writes. DINOv2 encoding, matching and region propagation are measured separately at 6.74 and 6.69 ms per raw frame. Loading, I/O, offline evaluation and drawing are excluded. The video rounds each measured update upward to 0.1 s; these are not camera FPS.</p><p class="zh">RTX 5090 预热后，常规更新中位数为 WAPR 27.8 ms、FoundationPose 369.1 ms；含搜索的完整更新分别为 64.6–172.5 ms 和 420.0–445.5 ms，首帧初始化为 47.7、431.9 ms。CUDA 同步更新计时包含失效检查、常规计算、图块搜索、起点构造、修正、各自评分及状态写回。DINOv2 编码、匹配和区域传播另计，分别为 6.74、6.69 ms/原始帧；不含加载、文件读取、离线评价和绘图。视频将每次实测更新向上取整至 0.1 秒，这些时间不表示相机帧率。</p>
+<div class="score-wrap docs-table-wrap">
+<table class="score-table">
+<colgroup>
+<col class="c-name"/>
+<col class="c-method"/>
+<col span="4"/>
+</colgroup>
+<thead>
+<tr>
+<th><span class="en">Sequence</span><span class="zh">序列</span></th>
+<th><span class="en">Method</span><span class="zh">方法</span></th>
+<th class="num">ADD</th>
+<th class="num"><span class="en">Mean</span><span class="zh">平均</span><span class="unit">mm</span></th>
+<th class="num"><span class="en">First</span><span class="zh">首帧</span><span class="unit">ms</span></th>
+<th class="num"><span class="en">Later</span><span class="zh">之后</span><span class="unit">ms</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="seq" rowspan="2"><code>cracker_box_reorient</code><span class="sub"><span class="en">stride 1</span><span class="zh">步长 1</span></span></td>
+<td>WAPR</td>
+<td class="num table-numeric">100%</td>
+<td class="num table-numeric">6.0</td>
+<td class="num table-numeric">90.7</td>
+<td class="num table-numeric">69.6</td>
+</tr>
+<tr class="alt">
+<td>FoundationPose<sup class="license-reference"><a aria-label="Reference and license / 参考与许可: FoundationPose" href="#license-foundationpose" id="license-foundationpose-ref-en-table-2" role="doc-noteref">[4]</a></sup></td>
+<td class="num table-numeric">100%</td>
+<td class="num table-numeric">5.1</td>
+<td class="num table-numeric">552.0</td>
+<td class="num table-numeric">68.5</td>
+</tr>
+<tr class="group">
+<td class="seq" rowspan="2"><code>mustard_easy_00_02</code><span class="sub"><span class="en">stride 32</span><span class="zh">步长 32</span></span></td>
+<td>WAPR</td>
+<td class="num table-numeric">100%</td>
+<td class="num table-numeric">4.6</td>
+<td class="num table-numeric">87.4</td>
+<td class="num table-numeric">71.8</td>
+</tr>
+<tr class="alt">
+<td>FoundationPose</td>
+<td class="num table-numeric">68.2%</td>
+<td class="num table-numeric">36.3</td>
+<td class="num table-numeric">559.6</td>
+<td class="num table-numeric">73.2</td>
+</tr>
+<tr class="group">
+<td class="seq" rowspan="2"><code>sugar_box1</code><span class="sub"><span class="en">stride 32, DINOv2 recovery</span><span class="zh">步长 32，DINOv2 补救</span></span></td>
+<td>WAPR</td>
+<td class="num table-numeric">93.1%</td>
+<td class="num table-numeric">7.1</td>
+<td class="num table-numeric">47.7</td>
+<td class="num table-numeric">27.8 / 64.6–172.5</td>
+</tr>
+<tr class="alt">
+<td>FoundationPose</td>
+<td class="num table-numeric">93.1%</td>
+<td class="num table-numeric">70.1</td>
+<td class="num table-numeric">431.9</td>
+<td class="num table-numeric">369.1 / 420.0–445.5</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 data-inline-section="" id="sugar-initialization-time"><span class="en">Sugar-box first-frame initialization time</span><span class="zh">糖盒首帧初始化耗时</span></h3>
+<p class="en">WAPR first-frame initialization on RTX 5090 takes <strong>89.5 ms</strong>, the median of ten CUDA-synchronized calls after three discarded warmups, with a measured range of 43.8–180.4 ms. The measurement uses OpenGL and TensorRT<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: tensorrt-cu12" href="#license-package-tensorrt-cu12" id="license-package-tensorrt-cu12-ref-en" role="doc-noteref">[5]</a></sup> FP16, the original RGB-D frame, camera intrinsics, CAD mesh and supplied initial mask. It follows the initialization schedule used in the comparison: twelve initial candidates, two WAPR corrections, selection of one candidate per view (four retained), one further WAPR correction, two SAPR corrections and WBPS selection. It excludes model loading, mesh upload, disk I/O, detection, DINOv2 tracking and drawing; prepared observation tensors are reused after warmup.</p>
+<p class="zh">WAPR 在 RTX 5090 上的首帧初始化耗时为<strong>89.5 ms</strong>，为丢弃三次预热调用后，十次 CUDA 同步计时的中位数，实测范围为 43.8–180.4 ms。使用 OpenGL 与 TensorRT<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: tensorrt-cu12" href="#license-package-tensorrt-cu12" id="license-package-tensorrt-cu12-ref-zh" role="doc-noteref">[5]</a></sup> FP16，以及原实验的 RGB-D 帧、相机内参、CAD 网格和给定初始掩码。初始化流程为：十二个初始候选，先做两次 WAPR 修正，每个视角保留一个候选（剩余四个），再做一次 WAPR 修正、两次 SAPR 修正并由 WBPS 选择。不含模型加载、网格上传、磁盘读取、检测、DINOv2 跟踪与绘图；预热后复用已准备的观测张量。</p>
+<p class="en">Both frame-0 values in the table are synchronized, warmed initialization calls from the linked per-frame records. The final column shows the normal-update median followed by the range of complete recovery updates; the latter includes 2D detection and pose initialization. The raw records retain discarded warmup samples and prediction poses.</p>
+<p class="zh">表中两种方法的首帧数值均来自所链接逐帧记录中的同步、预热后初始化调用。最后一列先列常规更新中位数，再列完整恢复更新范围；后者包含 2D 检测与位姿初始化。原始记录同时保留丢弃的预热样本及预测位姿。</p>
+<h2 data-inline-section="" id="tracking-illustrations"><span class="en">Illustrated sequence comparisons</span><span class="zh">序列对照的图解过程</span></h2><p class="en">The In cells quote Example 08. Images and paired videos are separate experiment visualizations, not its console output. Example 08 uses six normal hypotheses and predicted initialization; the sugar comparison uses twelve normal WAPR hypotheses and a supplied initial mask. Both use DINOv2 search followed by their own pose scorer.</p><p class="zh">In 单元摘录示例 08 原文。图片与双方法视频是独立实验可视化，不是该脚本的控制台输出。示例 08 使用六个常规候选和预测初始化；糖盒对照使用十二个常规 WAPR 候选及给定初始掩码。二者均以 DINOv2 搜索候选，再由自身位姿评分器选择。</p>
+<p class="en">These pictures use the warmed RTX 5090 predicted-initialization validation for <code>cracker_box_reorient</code>, stride 1. Both methods share the frame-0 mask predicted by WAPRDet2D and selected with a saved manual click. Later each refines its own previous pose. DINOv2 tracks a target mask for illustration but does not reset either translation. Red is the estimate and green is the offline reference. The times shown belong to these recorded calls; they exclude detection, DINOv2 mask tracking and drawing. The public batch tracking interface is a separate workload.</p>
+<p class="zh">下图采用 RTX 5090 预热后的 <code>cracker_box_reorient</code> 步长 1 预测初始化验证。两种方法共用 WAPRDet2D 预测、由保存的人工点击选中的第 0 帧掩码；后续各自修正上一帧位姿。DINOv2 跟踪得到的目标掩码仅供观察，不重设两侧平移。红色是估计，绿色是离线参考。显示时间对应这些已记录调用，不含检测、DINOv2 掩码跟踪与绘图；公共批量跟踪接口是另一种负载。</p>
+<h3 data-inline-section="" id="initialize-from-frame-0"><span class="en">Initialize from frame 0</span><span class="zh">用首帧初始化位姿</span></h3>
+<p class="en">Left is WAPR; right is FoundationPose. Both initialize from the same predicted frame-0 mask selected by a saved manual click. The warmed frame-0 calls take 90.7 ms for WAPR and 552.0 ms for FoundationPose's <code>register</code>.</p>
+<p class="zh">左侧为 WAPR，右侧为 FoundationPose。两者用同一块由保存的人工点击选中的预测首帧 mask 初始化。预热后的第 0 帧调用分别为 WAPR 90.7 ms、FoundationPose <code>register</code> 552.0 ms。</p>
+<div class="nb-cell">
+<div class="nb-in">
+<span class="nb-prompt">In [1]</span>
+<pre data-example="examples/08_ycbineoat_one_instance.py" data-example-lines="360:372"><code>torch.cuda.synchronize(device)
+init_started = time.perf_counter()
+init = estimator.estimate_one_category_one_instance(
+    rgb, depth_m, K, mesh, float(diameter_m), mask=mask0,
+)
+torch.cuda.synchronize(device)
+init_hot_seconds = time.perf_counter() - init_started
+pose = np.asarray(init["pose_4x4"], dtype=np.float32)
+print(
+    {"frame": stem0, "kind": "init", "pose_hot_seconds": init_hot_seconds,
+     "t_m": pose[:3, 3].reshape(3).tolist()},
+    flush=True,
+)</code></pre><p class="nb-source"><span class="en">Source: examples/08_ycbineoat_one_instance.py, lines 360–372</span><span class="zh">代码来源：examples/08_ycbineoat_one_instance.py，第 360–372 行</span></p></div>
+<div class="nb-out">
+<span class="nb-prompt">Out [1]</span>
+<div>
+<img decoding="async" loading="lazy" alt="Predicted-mask initialization with warmed measured RTX 5090 calls" src="figures/guide_track_init.jpg?v=1"/>
+<p class="nb-cap"><span class="en">The two pose methods share the frame-0 mask. The bar values and pose outlines come from the same warmed RTX 5090 validation.</span><span class="zh">两种方法共用第 0 帧 mask。顶栏数值与位姿轮廓来自同一次 RTX 5090 预热后调用验证。</span></p>
+</div>
+</div>
+</div>
+<h3 data-inline-section="" id="propagate-the-target-region-to-the-next-frame"><span class="en">Track the target mask in the next frame</span><span class="zh">在下一帧跟踪目标掩码</span></h3>
+<p class="en">One frame later there is no new given mask. DINOv2 ViT-S/14 resizes the new RGB, takes one layer of patch tokens in FP16, and matches two sets into that grid: the patches of the previous frame, and the patches of frame 0. Attention is the GPU flash kernel. Each object patch keeps its nearest current patch when the cosine is high enough. The densest cluster of those matches is painted back as rectangles. That is why the yellow region on the right is blocky. The yellow region is a 2D mask, not a pose. The displayed next-frame region update is 7 ms on this RTX 5090; its sequence median is 6.1 ms. This stride-1 region update is a different workload from the selective sugar experiment's dense region stream.</p>
+<p class="zh">再过一帧，没有新的给定 mask。DINOv2 ViT-S/14 把新的 RGB 缩放后，用 FP16 取出一层图块特征，再把两组图块匹配到这一帧：上一帧的图块，和第 0 帧的图块。注意力用 GPU 的 flash 核。余弦够高时，每个物体图块留下当前帧上最近的图块。匹配最密的那一团涂回成矩形。所以右边的黄色区域是一块一块的。黄色区域是 2D mask，不是位姿。这台 RTX 5090 显示的下一帧区域更新为 7 毫秒，整段中位数为 6.1 毫秒；步长 1 区域更新与选择性糖盒实验的密集区域流负载不同。</p>
+<div class="nb-cell">
+<div class="nb-in">
+<span class="nb-prompt">In [2]</span>
+<pre data-example="examples/08_ycbineoat_one_instance.py" data-example-lines="403:412"><code>for frame_index, stem in enumerate(frame_stems(seq_dir)[1:], start=1):
+    rgb, depth_m = read_rgbd(seq_dir, stem)
+    last_rgb = rgb
+    tokens, grid = dino_tokens(dino, rgb, device, dino_short_side=dino_short_side, dino_patch=dino_patch)
+    z_prev = max(float(pose[2, 3]), 0.05)
+    diameter_px = float(diameter_m) * float(K[0, 0]) / z_prev
+    propagated = propagate_one_instance_region(
+        prev_tokens, prev_patch, template_tokens, template_patch, tokens, grid, diameter_px,
+        cosine_min=cosine_min, min_matches=min_matches, dino_patch=dino_patch,
+    )</code></pre><p class="nb-source"><span class="en">Source: examples/08_ycbineoat_one_instance.py, lines 403–412</span><span class="zh">代码来源：examples/08_ycbineoat_one_instance.py，第 403–412 行</span></p></div>
+<div class="nb-out">
+<span class="nb-prompt">Out [2]</span>
+<div>
+<img decoding="async" loading="lazy" alt="DINOv2 region on the init and next frame, shown separately from pose updates" src="figures/guide_track_dino.jpg?v=1"/>
+<p class="nb-cap"><span class="en">Left is frame 0. The yellow fill is the predicted initial mask, and the bar rounds 5.7 ms to 6 ms. Right is the next frame. The yellow rectangles are the matched ViT-S patches, and the bar reads 7 ms. Both times are this 5090, after warmup.</span><span class="zh">左边是第 0 帧。黄色填充是预测的初始 mask，顶栏将 5.7 毫秒取整显示为 6 毫秒。右边是下一帧，黄色矩形是匹配到的 ViT-S 图块，顶栏 7 毫秒。两个时间都是这台 5090，预热之后。</span></p>
+</div>
+</div>
+</div>
+<h3 data-inline-section="" id="compare-pose-updates-on-the-same-frame"><span class="en">Compare pose updates on the same frame</span><span class="zh">比较同一帧的位姿更新</span></h3>
+<p class="en">Both methods now update on the same next frame from their own previous pose. WAPR applies one <code>wapr_wo_mask</code> step followed by two SAPR steps; FoundationPose applies <code>track_one</code>. Neither method takes a new mask or resets translation from the yellow DINOv2 region at stride 1. This recorded next-frame call takes 18.4 ms for WAPR and 24.0 ms for FoundationPose; these individual calls differ from the sequence medians.</p>
+<p class="zh">下一帧，两种方法都从各自上一帧位姿更新。WAPR 执行一次 <code>wapr_wo_mask</code> 和两次 SAPR 修正；FoundationPose 调用 <code>track_one</code>。步长 1 时两者都不接收新 mask，也不用黄色 DINOv2 区域重设平移。记录的这一下一帧调用分别为 WAPR 18.4 ms、FoundationPose 24.0 ms；单次调用不同于整段中位数。</p>
+<div class="nb-cell">
+<div class="nb-in">
+<span class="nb-prompt">In [3]</span>
+<pre data-example="examples/08_ycbineoat_one_instance.py" data-example-lines="445:457"><code>center_pose = pose.copy()
+if translation is not None:
+    center_pose[:3, 3] = translation
+# Finish the normal update first; it remains a search comparison candidate.
+# 先完成常规更新，保留其结果与搜索候选比较；不使用真值触发或筛选。
+tracked = track_many_categories_many_instances(estimator, rgb, depth_m, K,
+    [{"track_id": sequence_name, "mesh": mesh, "diameter_m": float(diameter_m),
+      "pose_4x4": previous_pose, "center_pose_4x4": center_pose}])[0]
+pose = np.asarray(tracked["pose_4x4"], dtype=np.float32)
+kind = HYPOTHESES[int(tracked["hypothesis_index"])]
+score = float(tracked["between_group"])
+if score &gt; recover_between_group:
+    reasons.append("wbps_quality")</code></pre><p class="nb-source"><span class="en">Source: examples/08_ycbineoat_one_instance.py, lines 445–457</span><span class="zh">代码来源：examples/08_ycbineoat_one_instance.py，第 445–457 行</span></p></div>
+<div class="nb-out">
+<span class="nb-prompt">Out [3]</span>
+<div>
+<img decoding="async" loading="lazy" alt="Next frame, both WAPR and FoundationPose refine their previous poses" src="figures/guide_track_next.jpg?v=1"/>
+<p class="nb-cap"><span class="en">The next tracking frame. Both estimates begin from the preceding pose; the yellow region is not used to initialize either update. The displayed times are measured warm calls from this trace.</span><span class="zh">跟踪的下一帧。两种估计都从前一帧位姿出发，黄色区域不参与这次位姿更新的初始化。显示时间为该轨迹中实测的预热后调用。</span></p>
+</div>
+</div>
+</div>
+<h3 data-inline-section="" id="initialize-the-same-sequence-with-2d-detection"><span class="en">Initialize the same sequence with 2D detection</span><span class="zh">用 2D 检测初始化同一序列</span></h3>
+<p class="en">This example initializes tracking with a mask predicted from frame-0 RGB. <code>WAPRDet2D</code> uses the known cracker-box CAD template bank. A saved manual click specifies the target instance; the highest <code>score_2d</code> among predicted masks covering that click is selected. Annotated masks and poses are reserved for evaluation. On RTX 5090 with Python 3.10, detection takes a median 278.3 ms over ten synchronized calls after three warmups. The displayed initial pose takes 90.7 ms in its warmed frame-0 call. Later frames in this stride-1 clip refine the preceding pose without another detection.</p>
+<p class="zh">本例使用首帧 RGB 预测的掩码初始化跟踪。<code>WAPRDet2D</code> 使用已知饼干盒的 CAD 模板库；保存的人工点击点指定目标实例，在覆盖该点的预测掩码中选择 <code>score_2d</code> 最高者。标注掩码和位姿仅用于评估。Python 3.10、RTX 5090 上，检测预热三次后同步计时十次，中位数为 278.3 ms；图中首帧位姿估计来自预热后的一次调用，耗时 90.7 ms。这个步长为 1 的片段在后续帧直接修正上一帧位姿，不重复检测。</p>
+<div class="nb-cell">
+<div class="nb-in">
+<span class="nb-prompt">In [4]</span>
+<pre data-example="examples/08_ycbineoat_one_instance.py" data-example-lines="316:329"><code>detections, timing = detector.detect_many_categories_many_instances(rgb, profile=True)
+if not detections:
+    raise RuntimeError("No frame-0 detection for %s / 第 0 帧没有检测候选" % stem0)
+clicked_detections = []
+for detection in detections:
+    visible = np.asarray(mask_utils.decode(detection["mask"])) &gt; 0
+    if visible.shape != rgb.shape[:2]:
+        raise RuntimeError("Detection mask shape / 检测掩码尺寸错误")
+    if visible[click_v, click_u] and int(np.count_nonzero(visible)) &gt;= min_region_px:
+        clicked_detections.append((detection, visible))
+if not clicked_detections:
+    raise RuntimeError("No detector mask covers the saved click / 没有检测掩码覆盖保存的点击点")
+top, visible = max(clicked_detections, key=lambda item: float(item[0]["score_2d"]))
+mask0 = visible.astype(np.uint8) * 255</code></pre><p class="nb-source"><span class="en">Source: examples/08_ycbineoat_one_instance.py, lines 316–329</span><span class="zh">代码来源：examples/08_ycbineoat_one_instance.py，第 316–329 行</span></p></div>
+<div class="nb-out">
+<span class="nb-prompt">Out [4]</span>
+<div>
+<img decoding="async" loading="lazy" alt="RTX 5090 frame-0 predicted mask and detection box on the left, WAPR pose initialized from that mask on the right" height="524" src="figures/guide_track_det2d.jpg?v=5090-20261003" width="1280"/>
+<p class="nb-cap"><span class="en">Left: the selected predicted mask and its white detection box, with <code>score_2d</code> 0.805. Right: the initial pose estimated from that mask. Red denotes the estimate; green denotes ground truth. The detector label is a repeated-call median; the pose label is the displayed frame's measured call.</span><span class="zh">左侧为选中的预测掩码与白色检测框，<code>score_2d</code> 为 0.805；右侧为该掩码初始化得到的位姿。红色表示估计，绿色表示真值。检测时间是多次调用的中位数，位姿时间是图中这一帧的实测调用时间。</span></p>
+</div>
+</div>
+</div>
+<div class="nb-cell">
+<div class="nb-in">
+<span class="nb-prompt">In [5]</span>
+<pre data-example="examples/08_ycbineoat_one_instance.py" data-example-lines="483:497"><code>print(
+    {
+        "frame": stem,
+        "kind": kind,
+        "matches": int(nmatch),
+        "between_group": score,
+        "recovery_trigger": reasons,
+        "candidate_count": candidate_count,
+        "recovery_accepted": recovery_accepted,
+        "search_ms": search_ms,
+        "pose_hot_seconds": pose_hot_seconds,
+        "t_m": pose[:3, 3].reshape(3).tolist(),
+    },
+    flush=True,
+)</code></pre><p class="nb-source"><span class="en">Source: examples/08_ycbineoat_one_instance.py, lines 483–497</span><span class="zh">代码来源：examples/08_ycbineoat_one_instance.py，第 483–497 行</span></p></div>
+<div class="nb-out">
+<span class="nb-prompt">Out [5]</span>
+<div>
+<img decoding="async" loading="lazy" alt="RTX 5090 next frame: DINOv2 tracked target mask on the left and WAPR refinement of the previous pose on the right" height="480" src="figures/guide_track_det2d_next.jpg?v=5090-20261003" width="1280"/>
+<p class="nb-cap"><span class="en">Left: DINOv2 tracks the predicted initial target mask, shown in yellow. Right: WAPR refines its own previous pose without resetting translation from the region. Both labels are measured on RTX 5090 for this frame; the 18.4 ms update is distinct from the sequence median of 69.6 ms. There is no second detection.</span><span class="zh">左侧为 DINOv2 跟踪得到的目标掩码，以黄色标出；右侧为 WAPR 直接修正自身上一帧位姿，不根据该区域重设平移。两侧均为这一帧的 RTX 5090 实测时间；18.4 ms 是本帧更新耗时，区别于整个序列的 69.6 ms 中位数。此帧不再次检测。</span></p>
+</div>
+</div>
+</div>
+<h2 data-inline-section="" id="ycb-data"><span class="en">Recorded tracking stills</span><span class="zh">已记录跟踪静帧</span></h2><p class="en">The stills below use the same warm records as the project videos: predicted initialization for cracker and mustard, and the supplied-initial-mask reassociation experiment for sugar. They do not measure the public batch interface. Sequence inputs and download links are listed in <a href="data-resources.html#ycb-data">Data and examples</a>.</p><p class="zh">下方静帧采用与主页视频相同的预热后调用记录：饼干盒与芥末瓶为预测初始化，糖盒为提供初始掩码的重关联实验；不能作为公共批量计算接口的测速。序列输入与下载链接统一见<a href="data-resources.html#ycb-data">数据与示例</a>。</p><h3 data-inline-section="" id="ycb-data-three-sequences"><span class="en">Three recorded sequences</span><span class="zh">三段记录序列</span></h3><figure class="docs-shot" id="ycb-data-cracker">
+<img decoding="async" loading="lazy" alt="WAPR tracking from its previous pose on cracker_box_reorient" src="../demo/tracking/predicted_init/track_cracker_box_reorient_s1.jpg?v=1"/>
+<figcaption><span class="en">One frame of cracker_box_reorient. The complete <a href="applications-ycbineoat.html#predicted-init-cracker">predicted-mask validation video</a> is included above.</span><span class="zh">cracker_box_reorient 的一帧。上方提供完整的<a href="applications-ycbineoat.html#predicted-init-cracker">预测掩码初始化验证视频</a>。</span></figcaption>
+</figure><figure class="docs-shot" id="ycb-data-mustard">
+<img decoding="async" loading="lazy" alt="WAPR pose using the shared DINOv2 region on mustard_easy_00_02" src="../demo/tracking/predicted_init/track_mustard_easy_00_02_s32.jpg?v=1"/>
+<figcaption><span class="en">mustard_easy_00_02, one tracked frame.</span><span class="zh">mustard_easy_00_02，跟踪中的一帧。</span></figcaption>
+</figure><figure class="docs-shot" id="ycb-data-sugar">
+<video preload="none" controls="" height="592" loop="" muted="" playsinline="" poster="../demo/tracking/recover_sugar_box1_s32.jpg?v=dino-independent" width="1280"><source data-src="../demo/tracking/recover_sugar_box1_s32.mp4?v=dino-independent" type="video/mp4"/></video>
+<figcaption><span class="en">Independent DINOv2 recovery. Left WAPR, right FoundationPose; each follows its own measured update clock. Red is the estimate; green is offline ground truth. At frame 896 WAPR passes ADD, while FoundationPose does not.</span><span class="zh">DINOv2 独立补救。左侧 WAPR，右侧 FoundationPose，各按自身实测更新时钟播放。红色为预测，绿色为离线真值；第 896 帧 WAPR 的 ADD 达标，FoundationPose 未达标。</span></figcaption>
+</figure><div class="figure-notes"><p class="en">Both methods pass on 27/29 sampled poses. Mean ADD, including failed poses, is 7.1 mm for WAPR and 70.1 mm for FoundationPose. WAPR searches on 12 updates and FoundationPose on 4. At frame 864 both fail; at 896 WAPR passes with ADD 18.4 mm, while FoundationPose remains inaccurate at 1158.2 mm. The ADD threshold is 19.8 mm. Failed poses remain in the table and video.</p><p class="zh">双方均为 27/29 个采样位姿达标。包含失败位姿的平均 ADD 为 WAPR 7.1 mm、FoundationPose 70.1 mm；分别在 12 次和 4 次更新中搜索。第 864 帧双方未达标；第 896 帧 WAPR 达标，ADD 为 18.4 mm，FoundationPose 仍为错误位姿，ADD 为 1158.2 mm。ADD 阈值为 19.8 mm；失败位姿保留在表格和视频中。</p></div><section aria-label="References and licenses / 参考文献与许可" class="license-notes"><h2 data-inline-section="true"><span class="en">References and licenses</span><span class="zh">参考文献与许可</span></h2><ol><li id="license-groundingdino"><strong>GroundingDINO — Apache-2.0</strong>. <span><span class="en">Vendored detector source; original notices retained.</span><span class="zh">随包检测源码；保留原始声明。</span></span> · <a href="https://github.com/IDEA-Research/GroundingDINO"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/groundingdino/LICENSE"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a> · <a href="licenses/groundingdino/NOTICE"><span class="en">License/notice 2</span><span class="zh">许可/声明 2</span></a><div class="reference-citation">Liu et al. Grounding DINO: Marrying DINO with Grounded Pre-Training for Open-Set Object Detection. ECCV 2024. · <a href="https://arxiv.org/abs/2303.05499"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-groundingdino-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-groundingdino-ref-zh" role="doc-backlink">↩</a></div></li><li id="license-dinov2"><strong>DINOv2 — Apache-2.0</strong>. <span><span class="en">Code and official DINOv2 weights; retain copyright and license.</span><span class="zh">源码与官方 DINOv2 权重；保留版权和许可。</span></span> · <a href="https://github.com/facebookresearch/dinov2"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/dinov2/LICENSE"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a><div class="reference-citation">Oquab et al. DINOv2: Learning Robust Visual Features without Supervision. arXiv:2304.07193, 2023. · <a href="https://arxiv.org/abs/2304.07193"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-dinov2-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-dinov2-ref-zh" role="doc-backlink">↩</a></div></li><li id="license-sam2"><strong>SAM 2 — Apache-2.0; cctorch: BSD-3-Clause</strong>. <span><span class="en">Native source and official checkpoints; cctorch carries an additional BSD notice. Ultralytics-converted files require checking their distributor terms.</span><span class="zh">原生源码与官方权重；cctorch 另附 BSD 声明。Ultralytics 转换文件还需核对分发方条款。</span></span> · <a href="https://github.com/facebookresearch/sam2/tree/2b90b9f5ceec907a1c18123530e92e794ad901a4"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/sam2/LICENSE"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a> · <a href="licenses/sam2/LICENSE_cctorch"><span class="en">License/notice 2</span><span class="zh">许可/声明 2</span></a><div class="reference-citation">Ravi et al. SAM 2: Segment Anything in Images and Videos. arXiv:2408.00714, 2024. · <a href="https://arxiv.org/abs/2408.00714"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-sam2-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-sam2-ref-zh" role="doc-backlink">↩</a></div></li><li id="license-foundationpose"><strong>FoundationPose — NVIDIA custom source license</strong>. <span><span class="en">Comparison method source has a custom license; do not describe it as MIT or presume weights share the same grant.</span><span class="zh">对照方法源码使用自定义许可；不能标为 MIT，也不能推定权重有相同授权。</span></span> · <a href="https://github.com/NVlabs/FoundationPose"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/foundationpose/LICENSE.txt"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a><div class="reference-citation">Wen et al. FoundationPose: Unified 6D Pose Estimation and Tracking of Novel Objects. CVPR 2024. · <a href="https://openaccess.thecvf.com/content/CVPR2024/html/Wen_FoundationPose_Unified_6D_Pose_Estimation_and_Tracking_of_Novel_Objects_CVPR_2024_paper.html"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-foundationpose-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-foundationpose-ref-en-table-1" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-foundationpose-ref-en-table-2" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-foundationpose-ref-zh" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-foundationpose-ref-zh-table-1" role="doc-backlink">↩</a></div></li><li id="license-package-tensorrt-cu12"><strong>tensorrt-cu12 — Other/Proprietary License</strong>. <span><span class="en">Runtime dependency; dependencies and model/data assets retain their own licenses.</span><span class="zh">运行依赖；依赖及模型/数据资源保留各自许可。</span></span> · <a href="https://github.com/nvidia/tensorrt"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/package-tensorrt-cu12/LICENSE.txt"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a> <a aria-label="Back to mention / 返回正文" href="#license-package-tensorrt-cu12-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-package-tensorrt-cu12-ref-zh" role="doc-backlink">↩</a></li><li id="license-ycbineoat-data"><strong>YCBInEOAT data — Not separately verified / 未单独核实</strong>. <span><span class="en">Tracking data permission must be checked at the original archive; the comparison code license does not establish the data license.</span><span class="zh">跟踪数据许可须在原始归档核实；对照代码的许可不能作为数据许可。</span></span> · <a href="https://github.com/NVlabs/FoundationPose#datasets"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="https://github.com/wenbowen123/iros20-6d-pose-tracking"><span class="en">GitHub</span><span class="zh">GitHub</span></a><div class="reference-citation">Wen et al. se(3)-TrackNet: Data-driven 6D Pose Tracking by Calibrating Image Residuals in Synthetic Domains. IROS 2020. Introduces YCBInEOAT. · <a href="https://doi.org/10.1109/IROS45743.2020.9341314"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-ycbineoat-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-ycbineoat-data-ref-zh" role="doc-backlink">↩</a></div></li><li id="reference-fastsam"><strong>FastSAM</strong> · <a href="https://github.com/CASIA-LMC-Lab/FastSAM"><span class="en">GitHub</span><span class="zh">GitHub</span></a><div class="reference-citation">Zhao et al. Fast Segment Anything. arXiv:2306.12156, 2023. · <a href="https://arxiv.org/abs/2306.12156"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#reference-fastsam-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#reference-fastsam-ref-zh" role="doc-backlink">↩</a></div></li></ol><p><span class="en">Model weights and dataset/task assets may have separate terms. WAPR's source license does not replace them.</span><span class="zh">模型权重、数据集与任务资源可能有独立条款；WAPR 源码许可不替代这些许可。</span></p></section><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="bottom"><a href="applications-robi.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">ROBI detection experiments</span><span class="zh">ROBI 检测实验</span></strong></a><a href="applications-taco.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></strong></a></nav><footer class="site-author">© 2026 <a href="credits.html#authorship">Yulin Wang</a> · <span><span class="en">Code and website author</span><span class="zh">代码与网站作者</span></span></footer></main>
+</div>
+<script src="../assets/lang.js"></script>
+<script src="nav.js?v=34"></script>
+<script src="media.js?v=20261006-perf1"></script><script src="../assets/table-layout.js?v=1"></script></body>
+</html>
