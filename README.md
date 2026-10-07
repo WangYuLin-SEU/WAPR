@@ -10,6 +10,8 @@
 
 <p align="center"><strong><code>ECCV 2026</code></strong></p>
 
+<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=en">Project page</a></p>
+
 <h3 align="center">A foundation model for unseen-object 6D pose estimation</h3>
 
 <p align="center">
@@ -25,7 +27,7 @@
 
 ---
 
-WAPR estimates and refines 6D poses of objects unseen during pose-model training, without per-object fine-tuning. Supply **RGB-D, camera intrinsics, a metric mesh, and a mask or box**; the optional 2D front end can find candidate regions first.
+WAPR refines the 6D pose of an object absent from pose-model training. Provide RGB-D, camera intrinsics, a metric mesh, and a mask or box. Training covers candidate rotation errors up to 90°. The default recipe uses 12 hypotheses, three WAPR updates, two SAPR updates, and WBPS ranking. A metric mesh is still required at inference.
 
 <a id="awards"></a>
 

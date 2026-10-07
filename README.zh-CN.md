@@ -10,6 +10,8 @@
 
 <p align="center"><strong><code>ECCV 2026</code></strong></p>
 
+<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=zh">项目宣传页</a></p>
+
 <h3 align="center">面向未见物体 6D 位姿估计的基础模型</h3>
 
 <p align="center">
@@ -25,7 +27,7 @@
 
 ---
 
-WAPR 无需逐物体微调，即可估计和修正位姿模型训练时未见过的物体的 6D 位姿。输入为 **RGB-D、相机内参、米制网格，以及 mask 或包围盒**；也可先用可选的 2D 前端寻找候选区域。
+WAPR 修正位姿模型训练时未见过的物体的 6D 位姿。输入为 RGB-D、相机内参、米制网格，以及 mask 或框。训练覆盖高达 90° 的候选旋转误差。默认流程使用 12 个候选、三次 WAPR 更新、两次 SAPR 更新，再由 WBPS 排序。推理时仍需提供米制网格。
 
 <a id="awards"></a>
 
