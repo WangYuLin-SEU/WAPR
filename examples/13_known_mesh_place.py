@@ -39,6 +39,8 @@ import subprocess
 import sys
 import time
 
+import cv2
+import trimesh
 import numpy as np
 import torch
 
@@ -169,7 +171,6 @@ def write_known_meshes(out_dir):
         - diameter_m: 包围球直径，单位米。
 
 """
-    import trimesh
 
     os.makedirs(out_dir, exist_ok=True)
     bottle = trimesh.creation.cylinder(
@@ -203,7 +204,6 @@ def make_env():
     ensure_optional("robot")
     import gymnasium as gym
     import sapien
-    import torch
     from transforms3d.euler import euler2quat
 
     import mani_skill.envs  # noqa: F401
@@ -763,8 +763,6 @@ def estimate_snapshot(path):
         载入位姿网络，写出物体到相机的位姿，然后退出。
 
 """
-    import cv2
-    import trimesh
 
     from wapr import WAPREstimator
 
@@ -825,8 +823,6 @@ def estimate_sequence(path):
         位姿网络只载入一次，然后估计列表里的每一帧。
 
 """
-    import cv2
-    import trimesh
 
     from wapr import WAPREstimator
 
@@ -1243,7 +1239,6 @@ def draw_axes(image, extrinsic_cv, K, world_pose_4x4, length_m):
         X 红，Y 绿，Z 蓝。
 
 """
-    import cv2
 
     canvas = image.copy()
     origin = project_point(
@@ -1278,7 +1273,6 @@ def paste_inset(image, inset):
     # 第三人称画面左上角贴上手上相机的画面。
 
 """
-    import cv2
 
     canvas = image.copy()
     thumb = cv2.resize(inset, (240, 180), interpolation=cv2.INTER_AREA)
@@ -1649,7 +1643,6 @@ def compose_flow(folder):
     # 桌上的位姿、手里的位姿，以及两种放完的结果，拼成一张。
 
 """
-    import cv2
 
     labels = (
         ("table_pose.png", "Table camera: initial pose"),
@@ -1723,7 +1716,6 @@ def write_rgb(path, rgb):
     # 写出一张 RGB uint8 图。
 
 """
-    import cv2
 
     bgr = cv2.cvtColor(np.ascontiguousarray(rgb[..., :3]), cv2.COLOR_RGB2BGR)
     if not cv2.imwrite(path, bgr):
@@ -1739,7 +1731,6 @@ def read_rgb(path):
     # 读一张图，得到 RGB uint8。
 
 """
-    import cv2
 
     bgr = cv2.imread(path, cv2.IMREAD_COLOR)
     if bgr is None:
@@ -1772,7 +1763,6 @@ def save_track_row(track_dir, index, env, view, attached, meshes):
         桌上排瓶子和盒子。
 
 """
-    import cv2
 
     frame_dir = os.path.join(track_dir, "frames")
     os.makedirs(frame_dir, exist_ok=True)
@@ -2053,7 +2043,6 @@ def scale_rgb_K(rgb, K, width, height):
         K 仍是像素，y 向下。
 
 """
-    import cv2
 
     src_h, src_w = rgb.shape[:2]
     scaled = cv2.resize(rgb, (int(width), int(height)), interpolation=cv2.INTER_AREA)
@@ -2099,7 +2088,6 @@ def silhouette_mask(mesh, pose_cam, K, height, width):
         - pose_cam: 物体到相机，米。
 
 """
-    import cv2
 
     pose = np.asarray(pose_cam, dtype=np.float64).reshape(4, 4)
     intrinsic = np.asarray(K, dtype=np.float64).reshape(3, 3)
@@ -2129,7 +2117,6 @@ def draw_largest_contour(canvas, mask, color, thickness):
 
 
     """
-    import cv2
 
     contours, _hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if not contours:
@@ -2267,7 +2254,6 @@ def draw_dashed_segment(canvas, start_xy, end_xy, color, thickness, dash_px, gap
 
     一条虚线，像素。空段留下原来的画面。
     """
-    import cv2
 
     start = np.asarray(start_xy, dtype=np.float64)
     end = np.asarray(end_xy, dtype=np.float64)
@@ -2304,7 +2290,6 @@ def draw_view_volume(image, render_ext, render_K, cam_ext, cam_K, width, height,
     The far face is the window that camera is shooting. The four sides are the volume.
     远处那个面是它正在拍的窗口。四条棱是这段视野的空间。
     """
-    import cv2
 
     canvas = np.ascontiguousarray(image[..., :3].copy())
     corners_w = frustum_corners_world(cam_ext, cam_K, width, height, near_m, far_m)
@@ -2504,7 +2489,6 @@ def draw_grasp_fork(canvas, extrinsic, camera_k, bottle_world):
 
     蓝色实线，这一路相机感知到的瓶子上的侧面抓取。
     """
-    import cv2
 
     if bottle_world is None:
         return
@@ -2851,7 +2835,6 @@ def recompose_tracking():
     # 用已经存下的画面和估计结果把视频再画一遍。
 
 """
-    import trimesh
 
     track_dir = os.path.join(OUT_DIR, "tracking")
     with open(os.path.join(track_dir, "rows.json"), "r", encoding="utf-8") as stream:

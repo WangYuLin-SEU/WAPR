@@ -26,12 +26,12 @@ import numpy as np
 import torch
 import trimesh
 from PIL import Image
-from pycocotools import mask as mask_utils
 
 # Import the release-local package beside this example.
 # 从本示例旁的 release 根目录导入项目内包。
 release_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, release_dir)
+from wapr.bootstrap import ensure_optional
 from wapr.det2d import WAPRDet2D, onboard_meshes
 from wapr.download_assets import check_and_fetch_pack
 from wapr.resources import samples_dir
@@ -95,6 +95,11 @@ def prepare_custom_cads():
 
 
 if __name__ == '__main__':
+    # Prepare optional detection before importing its mask codec.
+    # 先准备可选检测功能，成功后再导入它的掩码编解码器。
+    ensure_optional('det2d')
+    from pycocotools import mask as mask_utils
+
     if os.path.abspath(input_root) == sample_root:
         check_and_fetch_pack('lmo')
     if not os.path.isfile(image_path):

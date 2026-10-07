@@ -19,10 +19,12 @@ The arm grasps the first-frame estimate. The mask is the red cube, not a simulat
 手臂抓第 0 帧估计到的位置。mask 是红色方块，不是仿真器编号。
 """
 
+import json
 import importlib
 import os
 import sys
 
+import trimesh
 import numpy as np
 
 
@@ -119,8 +121,6 @@ def redraw():
 
     使用保存的方块帧重绘，不重新仿真或估计。
     """
-    import json
-    import trimesh
 
     folder = os.path.join(OUT_DIR, "cube")
     with open(os.path.join(folder, "rows.json"), "r", encoding="utf-8") as stream:
@@ -138,8 +138,6 @@ if __name__ == "__main__":
     if len(sys.argv) >= 2 and sys.argv[1] == "redraw":
         redraw()
         sys.exit(0)
-    import json
-    import trimesh
 
     # 1. Create a known cube CAD and xArm6/Robotiq joint-control simulation.
     # 1. 创建已知方块 CAD 与 xArm6/Robotiq 关节控制仿真。

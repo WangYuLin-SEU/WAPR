@@ -24,6 +24,8 @@ import json
 import os
 import sys
 
+import cv2
+import trimesh
 import numpy as np
 
 
@@ -101,7 +103,6 @@ def draw_segments(canvas, segments, extrinsic, camera_k, color):
 
     把世界线段投到图像上再画出来。
     """
-    import cv2
 
     world_to_cam = np.asarray(extrinsic, dtype=np.float64).reshape(4, 4)
     intrinsic = np.asarray(camera_k, dtype=np.float64).reshape(3, 3)
@@ -122,8 +123,6 @@ def draw_segments(canvas, segments, extrinsic, camera_k, color):
 
 
 if __name__ == "__main__":
-    import cv2
-    import trimesh
     # This case visualizes grasps from saved WAPR poses; physical execution is in 13–15.
     # 本例基于保存的 WAPR 位姿绘制虚拟抓取，实际机械臂执行流程在 13–15 中。
     root = os.path.join(RELEASE_DIR, "outputs")

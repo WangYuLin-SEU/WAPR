@@ -23,11 +23,14 @@
 # Predicted meshes go under the resource cache's outputs/reconstruct_object/<object>/prediction/.
 # 预测模型写入资源缓存中的 outputs/reconstruct_object/<object>/prediction/。
 # Page assets are not rewritten. / 不改写页面现成资源。
+import importlib
 import hashlib
 import json
 import os
 import sys
 
+import cv2
+import torch
 import numpy as np
 
 RELEASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -134,7 +137,6 @@ def query_mask(rgb, row):
 
 """
     if SENTENCE:
-        import importlib
 
         language_case = importlib.import_module("language_prompt")
         box, reply = language_case.qwen_box(rgb, SENTENCE)
@@ -181,7 +183,6 @@ def build_mesh(rgb, mask, name):
         - 烘焙路径在返回前会放开 SAM3D 会话。
 
 """
-    import torch
 
     # Use the same native compatibility boundary as the package bootstrap.
     # 与包内准备入口使用相同原生兼容边界；不在旧位姿 Torch 中导入 SAM 烘焙模块。
@@ -344,9 +345,6 @@ def choose_size(estimator, rgb, depth_m, mask, k, mesh, row):
 if __name__ == "__main__":
     # Run the script stages directly in the entry block.
     # 在入口块中直接执行脚本各阶段。
-    import json
-    import cv2
-    import torch
     from wapr.estimator import WAPREstimator
 
     # Fetch the selected built-in sequence; preserve custom frame paths.

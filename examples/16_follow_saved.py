@@ -33,6 +33,9 @@ import shutil
 import sys
 import time
 
+import cv2
+import torch
+import trimesh
 import numpy as np
 
 
@@ -82,7 +85,6 @@ def read_rgb_depth(job):
 
     一帧存下来的画面。RGB 是 uint8，深度是米。
     """
-    import cv2
 
     bgr = cv2.imread(job["rgb"], cv2.IMREAD_COLOR)
     if bgr is None:
@@ -153,7 +155,6 @@ def warm_tracking_path(estimator, runtime, dino, jobs, states, meshes, mesh_ids)
 
     丢弃完整更新，不推进任何持久跟踪状态。
     """
-    import torch
 
     rgb, depth_m, K = read_rgb_depth(jobs[0])
     height, width = depth_m.shape
@@ -223,7 +224,6 @@ def prepare_one_mesh(path):
 
     给修正网络的居中网格，以及给平移用的原始顶点。
     """
-    import trimesh
 
     raw = trimesh.load(path, force="mesh", process=False)
     vertices = np.asarray(raw.vertices, dtype=np.float64).copy()
@@ -237,7 +237,6 @@ def track_stream(estimator, runtime, dino, jobs, init_pose, mesh, center, diamet
 
     一个物体，一路相机。返回位姿行，以及后面每一帧的毫秒数。
     """
-    import torch
 
     pose = np.asarray(init_pose, dtype=np.float64).reshape(4, 4).copy()
     rgb, depth_m, camera_k = read_rgb_depth(jobs[0])
@@ -247,7 +246,6 @@ def track_stream(estimator, runtime, dino, jobs, init_pose, mesh, center, diamet
     )
     region, region_source = visible_region(rendered_depth[0], depth_m)
     if int(region.sum()) < min_region_px:
-        import cv2
 
         mask = cv2.imread(jobs[0]["mask"], cv2.IMREAD_GRAYSCALE)
         region = np.asarray(mask) > 0
@@ -300,7 +298,6 @@ def _follow_later_frames(
 
     第一帧之后。这一条的匹配门槛已经设好。
     """
-    import torch
 
     for step, job in enumerate(jobs[1:], start=1):
         rgb, depth_m, camera_k = read_rgb_depth(job)
@@ -453,8 +450,6 @@ def _track_camera_frames(estimator, runtime, dino, frames, init_poses, meshes, m
     Region association keeps the existing per-track gate and depth policy.
     区域关联保留原来的逐轨迹门槛和深度规则。
     """
-    import cv2
-    import torch
 
     states = {}
     written = []
@@ -622,8 +617,6 @@ def follow_overview(estimator, runtime, dino, mesh_ids, folder, mesh_name):
 
 
 if __name__ == "__main__":
-    import cv2
-    import torch
 
     # 1. Load networks once. Initialize each stream with the verified predictions from 13–15.
     # 1. 网络仅载入一次，各序列使用 13–15 已核验的预测结果初始化。

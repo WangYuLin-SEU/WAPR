@@ -53,7 +53,9 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
-          git merge-base --is-ancestor HEAD origin/main
+          # Preserved release tags remain valid after branch history consolidation.
+          # 分支历史整理后，保留的正式发行标签仍有效；检出内容必须与标签一致。
+          test "$(git rev-parse HEAD)" = "$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")"
           # A manual retry must refer to an already published formal Release.
           # 手工重试只能引用已发布正式 Release；不能借此发布任意源码或标签。
           gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" \

@@ -199,16 +199,16 @@ WBPS 在每个实例的组内选位姿；公开分数取该完整组的 `(100 - 
 <a id="start"></a>
 ## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg?v=color1" width="26" height="26" alt=""/> 快速开始
 
-复用兼容的 Linux 或 Windows NVIDIA GPU 环境及支持 CUDA 的 PyTorch。OGL 需要 CUDA toolkit 和 C++ 编译器；Windows 还需准备 MSVC C++ 构建工具。安装 WAPR 0.0.4、准备核心依赖，再导出随包示例：
+复用兼容的 Linux 或 Windows NVIDIA GPU 环境及支持 CUDA 的 PyTorch。OGL 需要 CUDA toolkit 和 C++ 编译器；Windows 还需准备 MSVC C++ 构建工具。安装 WAPR 0.0.5、准备核心依赖，再导出随包示例：
 
 ```bash
-python -m pip install -U wapr==0.0.4
+python -m pip install -U wapr==0.0.5
 python -m wapr.bootstrap
 python -c "from wapr.bootstrap import export_examples; export_examples('wapr_examples')"
 python wapr_examples/02_one_category_one_instance.py
 ```
 
-Windows 未安装 TensorRT 时使用 PyTorch 后端；TensorRT 后端需要 TensorRT 10。macOS 不支持 NVIDIA CUDA 推理。检测、重建和机器人功能按需单独准备；随包 SAM3D 环境方案与机器人依赖面向 Linux。SAM3D 可能需要独立环境及用户自己的模型访问权限；准备过程更换已有依赖前需确认。系统前提与源码使用见[安装引导](https://wangyulin-seu.github.io/WAPR/docs/install-guide.html?lang=zh)，扩展功能见[可选功能说明](https://wangyulin-seu.github.io/WAPR/docs/install-extensions.html?lang=zh)。资源默认使用用户缓存；运行前设置绝对路径 `WAPR_CACHE_DIR` 可更换位置。示例 02 使用给定掩码，不需要自动 2D 检测；位姿叠加图默认开启，可通过 `wapr/recipe.py` 中的 `visualize` 开关控制。
+Windows 未安装 TensorRT 时使用 PyTorch 后端；TensorRT 后端需要 TensorRT 10。macOS 不支持 NVIDIA CUDA 推理。检测、重建和机器人功能在首次使用时准备，仅导入示例不会安装这些功能。示例 01、08、09、12 会先准备检测依赖，再使用对应库；Ultralytics 不属于基础安装依赖。随包 SAM3D 环境方案与机器人依赖面向 Linux。SAM3D 可能需要独立环境及用户自己的模型访问权限；准备过程更换已有依赖前需确认。系统前提与源码使用见[安装引导](https://wangyulin-seu.github.io/WAPR/docs/install-guide.html?lang=zh)，扩展功能见[可选功能说明](https://wangyulin-seu.github.io/WAPR/docs/install-extensions.html?lang=zh)。资源默认使用用户缓存；运行前设置绝对路径 `WAPR_CACHE_DIR` 可更换位置。示例 02 使用给定掩码，不需要自动 2D 检测；位姿叠加图默认开启，可通过 `wapr/recipe.py` 中的 `visualize` 开关控制。
 
 | 你的任务 | 建议入口 |
 | --- | --- |

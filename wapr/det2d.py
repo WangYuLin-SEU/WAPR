@@ -60,6 +60,9 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+from wapr.bootstrap import ensure_optional
+from wapr.installation import prepare_optional
+from wapr.recipe import resolve_backend
 from wapr.resources import weights_dir, resource_root, source_checkout
 
 
@@ -849,7 +852,6 @@ def prepare_det2d_weights(weights_dir, dino='vitl14', grounding='swinb'):
         - 返回已发布资源的标识，或 None。
 
 """
-    from wapr.bootstrap import ensure_optional
     ensure_optional('det2d')
     weights_dir = os.path.abspath(os.fspath(weights_dir))
     os.makedirs(weights_dir, exist_ok=True)
@@ -1494,8 +1496,6 @@ class NativeDino:
             - dino_repo: 本地 DINOv2 源码目录。默认是 default_dino_repo。它必须包含 hubconf.py。hub 加载使用 pretrained False，然后以 strict True 载入 state dict。
             - dino: vits14、vitb14 或 vitl14。默认是 vitl14。patch 大小必须是 14。embed 宽度必须和目录行一致。
         """
-        from wapr.bootstrap import ensure_optional
-        from wapr.installation import prepare_optional
         if os.path.abspath(dino_repo) == os.path.abspath(default_dino_repo):
             ensure_optional('dinov2')
         else:
@@ -2105,7 +2105,6 @@ class GroundingSAM:
             - grounding: swinb 或 swint。默认是 swinb。权重的键若超出允许的 position-id 和 label-encoder 键，就抛出 RuntimeError。
 
 """
-        from wapr.bootstrap import ensure_optional
         ensure_optional('det2d')
         from groundingdino.models import build_model
         from groundingdino.util.slconfig import SLConfig
@@ -2527,13 +2526,15 @@ class WAPRDet2D:
             - 返回 None。
             - loading_s: 加载耗时，单位秒。last_evidence 初始为 None。没有返回值。
         """
-        from wapr.recipe import resolve_backend
         backend = resolve_backend(backend)
         if backend not in ['trt', 'torch']:
             raise ValueError('backend must be trt or torch')
         self.device = torch.device(device)
         if self.device.type != 'cuda':
             raise ValueError('The released accuracy recipe requires a CUDA GPU')
+        # Direct detector construction prepares dependencies even with cached assets.
+        # 直接构造检测器时先准备依赖，已有缓存资源也不能跳过可选环境检查。
+        ensure_optional('det2d')
         self.backend = backend
         self.dino = str(dino)
         self.grounding = str(grounding)

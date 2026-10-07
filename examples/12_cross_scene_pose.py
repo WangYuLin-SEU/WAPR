@@ -21,7 +21,6 @@ import time
 import cv2
 import numpy as np
 import torch
-from pycocotools import mask as mask_utils
 
 RELEASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "11_reconstruct_object")
@@ -36,24 +35,26 @@ from pose_frame_align import load_viewer_mesh  # noqa: E402
 from step01_point_mask import mesh_diameter_m, project_silhouette  # noqa: E402
 from step04_dino_pose import dino_model, dino_cosine  # noqa: E402
 from cross_scene_mustard import mask_iou  # noqa: E402
+import wapr.det2d as detector_module
 from wapr import recipe  # noqa: E402
+from wapr.bootstrap import ensure_optional
 from wapr.det2d import WAPRDet2D, onboard_meshes  # noqa: E402
+from wapr.download_assets import check_and_fetch_pack
 from wapr.estimator import (  # noqa: E402
     WAPREstimator, center_from_mesh, guess_translation, make_view_rots,
     poses_original_to_centered,
 )
 from wapr.ogl import depth2xyzmap_batch, make_crop_pair  # noqa: E402
+from wapr.resources import resource_root, samples_dir
 
 # Author-approved default follows example 11's cracker reconstruction.
 # 作者确认的默认值沿用示例 11 的饼干盒重建结果，此入口不重新建模。
 OBJECT_NAME = "cracker"
-from wapr.resources import resource_root
 # Consume example 11's writable output without writing into the installed package.
 # 读取示例 11 的可写输出，不向安装包目录写文件。
 MESH_STEM = os.path.join(resource_root(), "outputs", "reconstruct_object", OBJECT_NAME, "prediction", "mesh")
 # External BOP data; the camera file supplies K and millimeter depth scale.
 # 外部 BOP 数据；相机文件提供内参及毫米深度缩放。
-from wapr.resources import samples_dir
 BOP_ROOT = os.path.join(samples_dir(), "bop")
 SCENE_ID = 50
 IM_ID = 1130
@@ -72,8 +73,12 @@ REFERENCE_MASK_PATH = None
 WITHIN_MIN = 0.0
 
 if __name__ == "__main__":
+    # Prepare optional detection before importing its mask codec.
+    # 先准备可选检测功能，成功后再导入它的掩码编解码器。
+    ensure_optional("det2d")
+    from pycocotools import mask as mask_utils
+
     if BOP_ROOT == os.path.join(samples_dir(), "bop"):
-        from wapr.download_assets import check_and_fetch_pack
         check_and_fetch_pack("ycbv")
     # 1. Reuse the independent reconstruction from Scene A, including its texture.
     # 1. 读取 A 场景独立重建出的米制网格与贴图，不读取 B 场景的参考 CAD 或位姿。
@@ -111,7 +116,6 @@ if __name__ == "__main__":
     # 3. 为 A 场景的重建网格生成 CAD 模板库；网格、贴图和类别编号不变时复用缓存。
     # A changed encoder implementation selects another cache without overwriting earlier banks.
     # 编码实现变化时使用另一份缓存；保留此前的模板库，不覆盖已有用户文件。
-    import wapr.det2d as detector_module
     with open(detector_module.__file__, "rb") as stream:
         encoder_source_hash = hashlib.sha256(stream.read()).hexdigest()
     bank_path = os.path.join(OUT_DIR, "templates_" + encoder_source_hash + ".pt")

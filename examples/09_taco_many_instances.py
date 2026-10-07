@@ -29,10 +29,10 @@ release_dir = os.path.dirname(script_dir)
 # Prefer this source checkout's public package. / 优先使用当前源码中的公开包。
 sys.path.insert(0, release_dir)
 from wapr import WAPREstimator, recipe
+from wapr.bootstrap import ensure_optional
 from wapr.download_assets import check_and_fetch_pack
 from wapr.resources import samples_dir
 from wapr.det2d import default_weights_dir
-from ultralytics import SAM
 from wapr.estimator import center_from_mesh
 from wapr.region_tracking import (
     load_tracker_dino, dino_tokens, one_instance_mask_to_patches,
@@ -134,6 +134,11 @@ def mesh_counters(estimator):
 
 
 if __name__ == "__main__":
+    # Ultralytics SAM belongs to the optional detection stack, not the base wheel.
+    # Ultralytics SAM 属于可选检测环境，不属于基础 wheel 依赖。
+    ensure_optional("det2d")
+    from ultralytics import SAM
+
     check_and_fetch_pack("taco")
     # Input preparation and decoding precede every GPU timing interval.
     # 输入准备和解码先于所有 GPU 计时区间。

@@ -30,6 +30,8 @@ import subprocess
 import sys
 import time
 
+import cv2
+import trimesh
 import numpy as np
 import torch
 
@@ -187,7 +189,6 @@ def make_planner(env):
     """
     import sapien
     import xml.etree.ElementTree as ET
-    import trimesh
 
     from mani_skill.examples.motionplanning.panda.motionplanner import PandaArmMotionPlanningSolver
 
@@ -252,7 +253,6 @@ def load_source_mesh(source_name):
 
     运动物体的碰撞网格，米，物体坐标系。
     """
-    import trimesh
 
     path = os.path.join(BRIDGE_ROOT, "custom", "models", source_name, "collision.obj")
     if not os.path.isfile(path):
@@ -346,7 +346,6 @@ def color_mask(rgb, key):
     These cuts are the lit appearance of each task object. They are not actor ids.
     这些阈值是每个任务物体在光照下的样子。不是物体编号。
     """
-    import cv2
 
     image = np.asarray(rgb)
     if image.ndim == 4:
@@ -395,7 +394,6 @@ def record_frame(camera, folder, index, source, target, mesh_path, diameter_m, j
 
     存下总览。颜色 mask 够大时，排一次位姿。
     """
-    import cv2
 
     camera.camera.scene.update_render()
     rgb, depth_m, intrinsic, extrinsic = capture_overview(camera)
@@ -483,8 +481,6 @@ def estimate_sequence(path):
 
     子进程入口。位姿网络载入一次，然后估计排进来的每一帧。
     """
-    import cv2
-    import trimesh
 
     from wapr import WAPREstimator
 
@@ -774,7 +770,6 @@ def redraw_saved(task):
 
     用已经存下的画面重写中文和英文标题。不开仿真。
     """
-    import trimesh
 
     folder = os.path.join(OUT_DIR, task["key"])
     with open(os.path.join(folder, "rows.json"), "r", encoding="utf-8") as stream:
