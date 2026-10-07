@@ -189,19 +189,16 @@ WBPS 在每个实例的组内选位姿；公开分数取该完整组的 `(100 - 
 <a id="start"></a>
 ## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg?v=color1" width="26" height="26" alt=""/> 快速开始
 
-本仓库提供 WAPR 推理源码与使用示例。模型权重和样本输入另行获取，TensorRT 引擎在目标 GPU 上生成。运行环境和安装步骤见安装文档。
-
-本地 wheel 构建步骤与发行条件见 [wheel 构建说明](wheel_build/README.md)。PyPI 包尚未发布。
-
-源码运行先按 **[安装引导](https://wangyulin-seu.github.io/WAPR/docs/install-guide.html?lang=zh)** 和 **[2D 检测与 6D 位姿环境](https://wangyulin-seu.github.io/WAPR/docs/install-core.html?lang=zh)** 准备。参考环境为 Linux、Python 3.10 和 CUDA toolkit 12.8。GPU 包按设备环境选择；安装脚本保留现有 torch/torchvision 版本，不固定普通依赖版本，其他环境需验证。源码环境与引擎准备好后，从单物体示例开始：
+复用兼容的 Linux NVIDIA GPU 环境及支持 CUDA 的 PyTorch。安装 WAPR 0.0.3、准备核心依赖，再导出随包示例：
 
 ```bash
-python examples/02_one_category_one_instance.py
+python -m pip install -U wapr==0.0.3
+python -m wapr.bootstrap
+python -c "from wapr.bootstrap import export_examples; export_examples('wapr_examples')"
+python wapr_examples/02_one_category_one_instance.py
 ```
 
-权重与小样通过[统一的路径登记](https://wangyulin-seu.github.io/WAPR/docs/install-core.html?lang=zh#resource-paths)读取，也可复用其他磁盘上的已有资源。
-
-结合[首个位姿说明](https://wangyulin-seu.github.io/WAPR/docs/pose-one.html?lang=zh)阅读该脚本，无需先运行示例 01。在 [`wapr/recipe.py`](wapr/recipe.py) 中设置 `visualize = True`，即可保存该示例的位姿叠加图。示例 02 使用给定的标注可见掩码，不执行自动 2D 检测。
+检测、重建和机器人功能按需单独准备。SAM3D 可能需要独立环境及用户自己的模型访问权限；准备过程更换已有依赖前需确认。系统前提与源码使用见[安装引导](https://wangyulin-seu.github.io/WAPR/docs/install-guide.html?lang=zh)，扩展功能见[可选功能说明](https://wangyulin-seu.github.io/WAPR/docs/install-extensions.html?lang=zh)。资源默认使用用户缓存；运行前设置绝对路径 `WAPR_CACHE_DIR` 可更换位置。示例 02 使用给定掩码，不需要自动 2D 检测。
 
 | 你的任务 | 建议入口 |
 | --- | --- |
