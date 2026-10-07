@@ -6,7 +6,9 @@
 // Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
 
 #include "asset_manager.h"
+#ifndef _WIN32
 #include <EGL/egl.h>
+#endif
 #include <GL/gl.h>
 #include <algorithm>
 #include <cstdlib>

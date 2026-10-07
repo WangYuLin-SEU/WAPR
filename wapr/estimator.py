@@ -860,7 +860,7 @@ class WAPREstimator:
 """
         setup_started = time.perf_counter()
         self.device = device
-        use_engine = str(recipe.backend) == "trt"
+        use_engine = recipe.resolve_backend() == "trt"
         if not source_checkout:
             # A wheel keeps large assets in the user cache. Only a missing pack or
             # engine starts setup; ordinary construction performs local file checks.
@@ -902,7 +902,7 @@ class WAPREstimator:
                     )
         loaded = {name: self.nets[name].engine is not None for name in self.nets}
         batch_score_path = os.path.join(os.path.dirname(os.fspath(recipe.engine_file("wbps"))), "wbps_batch.engine")
-        print("WAPR_POSE", {"backend": str(recipe.backend), "fp16_engine": loaded,
+        print("WAPR_POSE", {"backend": recipe.resolve_backend(), "fp16_engine": loaded,
                             "batch_score_engine_present": use_engine and os.path.isfile(batch_score_path)}, flush=True)
         # Context, shaders, and one warmup tile. Object meshes arrive later, with the first render of each mesh.
         # 上下文、着色器和一次预热绘制。物体网格要到每份网格第一次渲染时才上传。

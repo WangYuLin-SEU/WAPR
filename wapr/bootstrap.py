@@ -10,6 +10,7 @@ import argparse
 import importlib.util
 import json
 import os
+import platform
 import re
 import shutil
 import subprocess
@@ -23,11 +24,39 @@ from urllib.request import ProxyHandler, Request, build_opener
 _prepared_optional = set()
 
 
+def _find_nvcc():
+    """Locate nvcc on PATH, a CUDA toolkit, or the pip CUDA package.
+
+    在 PATH、CUDA 工具包或 pip 的 CUDA 包里找 nvcc。
+    """
+    nvcc = shutil.which("nvcc")
+    if nvcc:
+        return nvcc
+    candidates = ["/usr/local/cuda/bin/nvcc"]
+    for variable in ("CUDA_HOME", "CUDA_PATH"):
+        toolkit = os.environ.get(variable, "").strip()
+        if toolkit:
+            candidates.extend(os.path.join(toolkit, "bin", name) for name in ("nvcc.exe", "nvcc"))
+    nvidia_root = os.path.join(sys.prefix, "Lib", "site-packages", "nvidia")
+    if os.path.isdir(nvidia_root):
+        for entry in os.listdir(nvidia_root):
+            candidates.append(os.path.join(nvidia_root, entry, "bin", "nvcc.exe"))
+    for candidate in candidates:
+        if candidate and os.path.isfile(candidate):
+            return candidate
+    return None
+
+
 def check_runtime():
     """Inspect the existing core environment without installing anything.
 
     只检查当前核心环境，不安装包、不编译、不下载权重。
     """
+    if sys.platform == "darwin":
+        return {"feature": "core", "python": sys.version.split()[0], "executable": sys.executable,
+                "platform": sys.platform, "machine": platform.machine(), "status": "blocked",
+                "reason": "macOS cannot run this pose runtime: no NVIDIA CUDA, OGL is WGL on Windows and EGL on Linux"
+                          " / macOS 无法运行此位姿运行时：没有 NVIDIA CUDA，OGL 在 Windows 上是 WGL、在 Linux 上是 EGL"}
     from importlib import metadata
     versions = {}
     for name in ("torch", "torchvision", "torchaudio", "numpy", "trimesh", "kornia", "onnx"):
@@ -41,13 +70,18 @@ def check_runtime():
         import torch
         result.update(torch_cuda=torch.version.cuda, cuda_available=torch.cuda.is_available())
         if torch.cuda.is_available():
-            result.update(gpu=torch.cuda.get_device_name(0), gpu_memory_gb=round(
-                torch.cuda.get_device_properties(0).total_memory / 1024 ** 3, 2))
-        result["nvcc"] = shutil.which("nvcc") or (
-            "/usr/local/cuda/bin/nvcc" if os.path.isfile("/usr/local/cuda/bin/nvcc") else None)
-        if sys.platform != "linux" or not torch.cuda.is_available():
-            result.update(status="blocked", reason="OGL requires Linux and working CUDA / OGL 需要 Linux 与可用 CUDA")
-        elif all(versions[name] is not None for name in ("numpy", "trimesh", "kornia")) and result["nvcc"]:
+            ordinal = cuda_device_index()
+            result.update(cuda_device=ordinal, gpu=torch.cuda.get_device_name(ordinal), gpu_memory_gb=round(
+                torch.cuda.get_device_properties(ordinal).total_memory / 1024 ** 3, 2))
+        result["nvcc"] = _find_nvcc()
+        from wapr.ogl import selected_renderer
+        result["renderer"] = selected_renderer()
+        if not torch.cuda.is_available():
+            result.update(status="blocked", reason="Working CUDA is required / 需要可用的 CUDA")
+        elif result["renderer"] == "ogl" and not result["nvcc"]:
+            result.update(status="blocked", reason="OGL requires nvcc / OGL 需要 nvcc")
+        elif all(versions[name] is not None for name in ("numpy", "trimesh", "kornia")) and (
+                result["renderer"] == "nvdiffrast" or result["nvcc"]):
             result["status"] = "dependencies_present"
             result["note"] = "Presence is not inference validation / 依赖存在不等于推理验证通过"
     except (ImportError, OSError) as error:
@@ -193,17 +227,46 @@ def ensure_optional(feature):
     return result
 
 
+def cuda_device_index():
+    """Return the CUDA device index selected for this process.
+
+    返回本进程选用的 CUDA 设备编号。
+    设置了 WAPR_CUDA_DEVICE 就用该整数，超出 device_count 则拒绝。
+    未设置时用 torch.cuda.current_device()，该值遵守 CUDA_VISIBLE_DEVICES。
+    """
+    import torch
+    chosen = os.environ.get("WAPR_CUDA_DEVICE", "").strip()
+    if not chosen:
+        return torch.cuda.current_device()
+    try:
+        index = int(chosen)
+    except ValueError:
+        raise RuntimeError("WAPR_CUDA_DEVICE must be an integer / WAPR_CUDA_DEVICE 必须是整数: " + chosen) from None
+    count = torch.cuda.device_count()
+    if index < 0 or index >= count:
+        raise RuntimeError("WAPR_CUDA_DEVICE is out of range / WAPR_CUDA_DEVICE 超出设备范围: "
+                           + "%s (device_count=%d)" % (chosen, count))
+    return index
+
+
 def prepare_runtime(allow_replacement=None):
     """Install missing pose dependencies and compile for the existing CUDA.
 
     安装缺失的位姿依赖，按当前 CUDA 编译；默认保留已有库，更换须明确同意。
+    默认编译 OGL。Linux 用 EGL，Windows 用 WGL。只有 WAPR_RENDERER=nvdiffrast 才准备 CUDA 光栅器。
     """
-    if sys.platform != "linux":
-        raise RuntimeError("This native renderer requires Linux / 本地渲染器需要 Linux")
+    if sys.platform == "darwin":
+        raise RuntimeError(
+            "macOS cannot run this pose runtime: no NVIDIA CUDA, OGL is WGL on Windows and EGL on Linux, "
+            "Docker cannot provide Darwin"
+            " / macOS 无法运行此位姿运行时：没有 NVIDIA CUDA，OGL 在 Windows 上是 WGL、在 Linux 上是 EGL，Docker 不能提供 Darwin")
+    from wapr.ogl import selected_renderer
+    renderer = selected_renderer()
     import torch
     from importlib import metadata
     if not torch.cuda.is_available():
-        raise RuntimeError("Existing PyTorch cannot use CUDA / 已有 PyTorch 无法使用 CUDA")
+        raise RuntimeError("Existing PyTorch cannot use CUDA / 已有 PyTorch 无法使用 CUDA"
+                           " (platform=%s, machine=%s)" % (sys.platform, platform.machine()))
     original_torch = torch.__version__
     original_cuda = torch.version.cuda
     missing = []
@@ -217,55 +280,105 @@ def prepare_runtime(allow_replacement=None):
         pass
     for module, package in [("numpy", "numpy"), ("scipy", "scipy"), ("trimesh", "trimesh"), ("PIL", "Pillow"),
                             ("huggingface_hub", "huggingface-hub"), ("kornia", "kornia"),
-                            ("cv2", opencv_package), ("pybind11", "pybind11>=2.10")]:
+                            ("cv2", opencv_package)]:
         if importlib.util.find_spec(module) is None:
             missing.append(package)
     # TensorRT provides separate CUDA families. Select from the existing torch
     # CUDA runtime; its own packages are downloaded rather than bundled here.
     # TensorRT 分 CUDA 家族发行；按已有 torch 的 CUDA 运行时选包，不打进本 wheel。
+    from wapr.recipe import resolve_backend
+    use_trt = resolve_backend() == "trt"
     cuda_major = int(original_cuda.split(".")[0])
-    if cuda_major not in (11, 12, 13):
-        raise RuntimeError("Unverified TensorRT CUDA family / 未验证的 TensorRT CUDA 家族")
-    if importlib.util.find_spec("tensorrt") is None:
-        missing.append("tensorrt-cu%d>=10,<11" % cuda_major)
-    if importlib.util.find_spec("onnx") is None:
+    if renderer == "ogl":
+        if use_trt and cuda_major not in (11, 12, 13):
+            raise RuntimeError("Unverified TensorRT CUDA family / 未验证的 TensorRT CUDA 家族")
+        if use_trt and importlib.util.find_spec("tensorrt") is None:
+            missing.append("tensorrt-cu%d>=10,<11" % cuda_major)
+        if importlib.util.find_spec("pybind11") is None:
+            missing.append("pybind11>=2.10")
+        cmake_path = shutil.which("cmake") or os.path.join(sys.prefix, "Scripts", "cmake.exe")
+        cmake_version = (0, 0)
+        if os.path.isfile(cmake_path):
+            cmake_output = subprocess.check_output([cmake_path, "--version"], encoding="utf-8", errors="replace")
+            cmake_match = re.search(r"version (\d+)\.(\d+)", cmake_output)
+            if cmake_match is not None:
+                cmake_version = tuple(int(value) for value in cmake_match.groups())
+        if cmake_version < (3, 18):
+            missing.append("cmake>=3.18")
+        if sys.platform == "win32":
+            ninja_path = shutil.which("ninja") or os.path.join(sys.prefix, "Scripts", "ninja.exe")
+            if not os.path.isfile(ninja_path):
+                missing.append("ninja")
+    if importlib.util.find_spec("onnx") is None and use_trt:
         missing.append("onnx")
-    cmake_path = shutil.which("cmake")
-    cmake_version = (0, 0)
-    if cmake_path is not None:
-        cmake_output = subprocess.check_output([cmake_path, "--version"], text=True)
-        cmake_match = re.search(r"version (\d+)\.(\d+)", cmake_output)
-        if cmake_match is not None:
-            cmake_version = tuple(int(value) for value in cmake_match.groups())
-    if cmake_version < (3, 18):
-        missing.append("cmake>=3.18")
     print("WAPR_TARGET", {"python": sys.version.split()[0], "executable": sys.executable,
                           "torch": original_torch, "torch_cuda": original_cuda,
-                          "gpu": torch.cuda.get_device_name(0), "missing": missing}, flush=True)
+                          "gpu": torch.cuda.get_device_name(cuda_device_index()), "missing": missing}, flush=True)
     if missing:
         from wapr.installation import install_requirements
         dependency_result = install_requirements(missing, allow_replacement=allow_replacement)
         if dependency_result.get("status") not in ("ready", "installed"):
             raise RuntimeError("Core preparation stopped / 核心环境准备已停止: " + json.dumps(dependency_result, ensure_ascii=False))
-    # Missing EGL/GL development headers are system prerequisites, not wheel contents.
-    # EGL/GL 开发头文件是系统前置条件，不打进 wheel；缺项才安装。
-    system_packages = []
-    for header, package in [("/usr/include/EGL/egl.h", "libegl1-mesa-dev"),
-                             ("/usr/include/GL/gl.h", "libgl1-mesa-dev")]:
-        if not os.path.isfile(header):
-            system_packages.append(package)
-    if shutil.which("g++") is None:
-        system_packages.append("g++")
-    if system_packages:
-        if os.geteuid() != 0 or shutil.which("apt-get") is None:
-            raise RuntimeError("Install system prerequisites / 请安装系统前置依赖: " + " ".join(system_packages))
-        subprocess.check_call(["apt-get", "update"])
-        subprocess.check_call(["apt-get", "install", "-y"] + system_packages)
+    if renderer == "ogl" and sys.platform == "linux":
+        # Missing EGL/GL development headers are system prerequisites, not wheel contents.
+        # EGL/GL 开发头文件是系统前置条件，不打进 wheel；缺项才安装。Windows 用系统自带的 opengl32。
+        system_packages = []
+        for header, package in [("/usr/include/EGL/egl.h", "libegl1-mesa-dev"),
+                                 ("/usr/include/GL/gl.h", "libgl1-mesa-dev")]:
+            if not os.path.isfile(header):
+                system_packages.append(package)
+        if shutil.which("g++") is None:
+            system_packages.append("g++")
+        if system_packages:
+            if not hasattr(os, "geteuid") or os.geteuid() != 0 or shutil.which("apt-get") is None:
+                raise RuntimeError("Install system prerequisites / 请安装系统前置依赖: " + " ".join(system_packages))
+            subprocess.check_call(["apt-get", "update"])
+            subprocess.check_call(["apt-get", "install", "-y"] + system_packages)
     if metadata.version("torch") != original_torch:
         raise RuntimeError("Restart Python after an approved PyTorch replacement / 同意更换 PyTorch 后，请重启 Python 再准备运行环境")
-    from wapr.ogl import ensure_ogl
-    ensure_ogl()
-    print("WAPR_RUNTIME_READY", {"torch": original_torch, "torch_cuda": original_cuda}, flush=True)
+    if renderer == "ogl":
+        from wapr.ogl import ensure_ogl
+        ensure_ogl()
+    else:
+        from wapr.source_setup import prepare_raster_source
+        prepare_raster_source(allow_replacement=allow_replacement)
+    print("WAPR_RUNTIME_READY", {"torch": original_torch, "torch_cuda": original_cuda, "renderer": renderer}, flush=True)
+
+
+def ensure_cuda_build_stack():
+    """Install the pip CUDA compiler pieces that match this PyTorch, when they are missing.
+
+    缺 nvcc 或 pip 工具包缺 CCCL 头时，按当前 PyTorch 的 CUDA 主版本补齐。
+    系统里的完整 CUDA 不重装；更换已有包仍通过安装器征得同意。
+    """
+    nvcc = _find_nvcc()
+    import torch
+    cuda_major = int(torch.version.cuda.split(".")[0])
+    if cuda_major not in (11, 12, 13):
+        raise RuntimeError("Unsupported CUDA compiler package family / 不支持的 CUDA 编译器包家族: " + str(cuda_major))
+    suffix = "-cu%d" % cuda_major if cuda_major < 13 else ""
+    version_range = ">=%d,<%d" % (cuda_major, cuda_major + 1)
+    if nvcc is None:
+        package = "nvidia-cuda-nvcc" + suffix + version_range
+        print("WAPR_CUDA_COMPILER", {"action": "install", "package": package}, flush=True)
+        from wapr.installation import install_requirements
+        result = install_requirements([package])
+        if result.get("status") not in ("ready", "installed"):
+            raise RuntimeError("CUDA compiler preparation stopped / CUDA 编译器准备已停止: " + json.dumps(result, ensure_ascii=False))
+        nvcc = _find_nvcc()
+    if not nvcc or not os.path.isfile(nvcc):
+        raise RuntimeError("CUDA compiler nvcc is missing / 缺少 CUDA 编译器 nvcc")
+    cuda_root = os.path.dirname(os.path.dirname(nvcc))
+    # The pip NVIDIA layout tells CMake to include this directory. A system toolkit already has it.
+    # pip 的 NVIDIA 目录会让 CMake 包含这个路径。系统 CUDA 工具包本身已经带齐。
+    if "site-packages" in cuda_root.replace("\\", "/").lower() and not os.path.isdir(os.path.join(cuda_root, "include", "cccl")):
+        package = "nvidia-cuda-cccl" + suffix + version_range
+        print("WAPR_CUDA_COMPILER", {"action": "install", "package": package}, flush=True)
+        from wapr.installation import install_requirements
+        result = install_requirements([package])
+        if result.get("status") not in ("ready", "installed"):
+            raise RuntimeError("CUDA headers preparation stopped / CUDA 头文件准备已停止: " + json.dumps(result, ensure_ascii=False))
+    return nvcc
 
 
 def native_build_options():
@@ -275,19 +388,20 @@ def native_build_options():
     """
     import torch
     from importlib import metadata
-    nvcc = shutil.which("nvcc") or "/usr/local/cuda/bin/nvcc"
-    if not os.path.isfile(nvcc):
-        raise RuntimeError("CUDA compiler nvcc is missing / 缺少 CUDA 编译器 nvcc")
-    version_output = subprocess.check_output([nvcc, "--version"], text=True)
+    nvcc = ensure_cuda_build_stack()
+    version_output = subprocess.check_output([nvcc, "--version"], encoding="utf-8", errors="replace")
     match = re.search(r"release (\d+)\.(\d+)", version_output)
     if match is None:
         raise RuntimeError("Cannot determine CUDA compiler version / 无法确定 CUDA 编译器版本")
     compiler_version = tuple(int(value) for value in match.groups())
-    targets_output = subprocess.check_output([nvcc, "--list-gpu-code"], text=True)
+    targets_output = subprocess.check_output([nvcc, "--list-gpu-code"], encoding="utf-8", errors="replace")
     supported = sorted({int(value) for value in re.findall(r"sm_(\d+)", targets_output)})
-    major, minor = torch.cuda.get_device_capability(0)
+    major, minor = torch.cuda.get_device_capability(cuda_device_index())
     target_sm = major * 10 + minor
-    supported_sm = max(value for value in supported if value <= target_sm)
+    usable = [value for value in supported if value <= target_sm]
+    if not usable:
+        raise RuntimeError("CUDA compiler has no target for this GPU / CUDA 编译器没有适合当前 GPU 的目标: " + str(target_sm))
+    supported_sm = max(usable)
     architecture = str(target_sm) if target_sm in supported else str(supported_sm) + "-virtual"
     # Pybind11 resolves its CMake package using the active interpreter.
     # pybind11 的 CMake 包使用当前解释器定位；CUDA 不依赖 torch 扩展的 ABI。
@@ -295,7 +409,10 @@ def native_build_options():
                                 "torch_cuda": torch.version.cuda, "gpu_sm": target_sm,
                                 "cmake_architecture": architecture,
                                 "pybind11": metadata.version("pybind11")}, flush=True)
-    return ["-DCMAKE_CUDA_COMPILER=" + nvcc, "-DCMAKE_CUDA_ARCHITECTURES=" + architecture]
+    options = ["-DCMAKE_CUDA_COMPILER=" + nvcc, "-DCMAKE_CUDA_ARCHITECTURES=" + architecture]
+    if sys.platform == "win32":
+        options.append("-DCUDAToolkit_ROOT=" + os.path.dirname(os.path.dirname(nvcc)))
+    return options
 
 
 def export_examples(destination):

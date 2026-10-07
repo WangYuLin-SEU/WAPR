@@ -77,7 +77,7 @@ def _select_python_mirror(environment):
     command = [sys.executable, "-m", "uv", "python", "list", SAM3D_PYTHON_VERSION,
                "--only-downloads", "--output-format", "json"]
     try:
-        listed = subprocess.run(command, env=environment, capture_output=True, text=True,
+        listed = subprocess.run(command, env=environment, capture_output=True, encoding="utf-8", errors="replace",
                                 check=False, timeout=30)
         entries = json.loads(listed.stdout)
         entry = next(item for item in entries if item["implementation"] == "cpython"
@@ -118,7 +118,7 @@ def _run_preparation_worker(mode, path, environment, worker_file=None):
     environment = _worker_cache_environment(environment)
     worker_file = os.path.abspath(__file__) if worker_file is None else worker_file
     completed = subprocess.Popen([SAM3D_PYTHON, worker_file, mode, path],
-                                 env=environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+                                 env=environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="utf-8", errors="replace")
     recent = []
     final_line = ""
     previous_printed = None
@@ -232,7 +232,7 @@ def prepare_environment(allow_replacement=None, check_only=False):
                                           "custom_mirror": bool(environment.get("UV_PYTHON_INSTALL_MIRROR")),
                                           "timeout_seconds": 180}, flush=True)
             created = subprocess.Popen(command, env=environment, stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT, text=True, start_new_session=True)
+                                       stderr=subprocess.STDOUT, encoding="utf-8", errors="replace", start_new_session=True)
             # A hard stage bound prevents silent multi-hour GitHub retries.
             # 整个阶段有超时上限，避免 GitHub 重试静默持续数小时。
             timer = threading.Timer(180, os.killpg, args=(created.pid, signal.SIGKILL))
@@ -389,7 +389,7 @@ def _prepare_cuda_toolchain(check_only=False):
         compiler = os.path.join(directory, "bin", "nvcc")
         if not os.path.isfile(compiler):
             continue
-        version = subprocess.run([compiler, "--version"], capture_output=True, text=True, check=False)
+        version = subprocess.run([compiler, "--version"], capture_output=True, encoding="utf-8", errors="replace", check=False)
         if version.returncode == 0 and "release " + str(cuda_version) + "," in version.stdout:
             selected = directory
             break
@@ -436,7 +436,7 @@ def _prepare_cuda_toolchain(check_only=False):
         if not os.path.lexists(lib64) and os.path.isdir(os.path.join(cached_root, "lib")):
             os.symlink("lib", lib64)
         compiler = os.path.join(cached_root, "bin", "nvcc")
-        version = subprocess.run([compiler, "--version"], capture_output=True, text=True, check=False)
+        version = subprocess.run([compiler, "--version"], capture_output=True, encoding="utf-8", errors="replace", check=False)
         if version.returncode != 0 or "release " + str(cuda_version) + "," not in version.stdout:
             raise RuntimeError("Downloaded CUDA compiler failed its probe / 下载的 CUDA 编译器探针失败")
         selected = cached_root
@@ -497,7 +497,7 @@ def glibcxx_max(libstdcpp_path):
     # strings(1) is the same check used on the eight servers.
     # strings(1) 与八台服务器上的核查方式相同。
     try:
-        completed = subprocess.run(["strings", libstdcpp_path], capture_output=True, text=True, check=False)
+        completed = subprocess.run(["strings", libstdcpp_path], capture_output=True, encoding="utf-8", errors="replace", check=False)
     except FileNotFoundError:
         return ""
     versions = []
@@ -521,7 +521,7 @@ def probe_sam3d_environment():
         return {"status": "missing", "python": SAM3D_PYTHON, "reason": "SAM3D interpreter is absent / 缺少 SAM3D 解释器"}
     completed = subprocess.run(
         [SAM3D_PYTHON, os.path.abspath(__file__), "check"],
-        capture_output=True, text=True, check=False,
+        capture_output=True, encoding="utf-8", errors="replace", check=False,
     )
     if not completed.stdout.strip():
         return {

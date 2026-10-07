@@ -145,7 +145,7 @@ if __name__ == "__main__":
             raise RuntimeError("Could not match each retained pose to its 2D detection")
         preview_detections = sorted(preview_detections, key=lambda row: -float(row["score_2d"]))[:preview_top_k]
         print("2d_preview", len(preview_detections), "retained of", len(detections), "raw detections", flush=True)
-        visualize_2d_detection(rgb, preview_detections, names=object_names, image=True, filename="6d_localization_det.jpg")
+        visualize_2d_detection(rgb, preview_detections, names=object_names, image=True, filename="2d_localization.jpg")
     for pose in poses:
         print(
             {

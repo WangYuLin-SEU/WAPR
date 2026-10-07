@@ -132,7 +132,7 @@ if __name__ == "__main__":
     if visualize_det:
         preview_detections = sorted(detections, key=lambda row: -float(row["score_2d"]))[:preview_top_k]
         print("2d_preview", len(preview_detections), "of", len(detections), flush=True)
-        visualize_2d_detection(rgb, preview_detections, names=object_names, image=True, filename="6d_detection_det.jpg")
+        visualize_2d_detection(rgb, preview_detections, names=object_names, image=True, filename="2d_detection.jpg")
     for pose in poses:
         print(
             {

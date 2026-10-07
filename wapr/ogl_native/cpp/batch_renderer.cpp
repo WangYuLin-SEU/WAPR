@@ -12,7 +12,9 @@
 #include <GL/gl.h>
 #include <cuda_gl_interop.h>
 #include <cuda_runtime.h>
+#ifndef _WIN32
 #include <EGL/egl.h>
+#endif
 #include <algorithm>
 #include <cmath>
 #include <cstring>

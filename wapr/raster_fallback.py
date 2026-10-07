@@ -11,6 +11,7 @@
 # 输出与 GL 路径一致：rgb (N, tile, tile, 3)，范围 0-1；depth (N, tile, tile)，米。
 from collections import OrderedDict
 import hashlib
+import weakref
 from typing import cast
 
 import numpy as np
@@ -332,6 +333,7 @@ class NvRuntime:
         self._glctx = dr.RasterizeCudaContext(self._dev)
         self._cache = OrderedDict()
         self._meshes = {}
+        self._mesh_by_obj = {}
         self._next_id = 1
         self._cache_limit = 8
         self._packed_tiles = None
@@ -416,7 +418,21 @@ class NvRuntime:
         while len(self._cache) > int(self._cache_limit):
             old = self._cache.popitem(last=False)
             self._meshes.pop(int(old[1]), None)
+        try:
+            self._mesh_by_obj[id(mesh)] = (weakref.ref(mesh), mesh_id)
+        except TypeError:
+            pass
         return mesh_id
+
+    def cached_mesh_id(self, mesh):
+        """Return an already uploaded mesh id. A missing entry must be prepared again.
+
+        返回已经上传的网格编号。没有记录时需要重新准备。
+        """
+        found = self._mesh_by_obj.get(id(mesh))
+        if found is None or found[0]() is not mesh or int(found[1]) not in self._meshes:
+            raise RuntimeError("Mesh is not resident; call estimator.prepare_meshes before timing")
+        return int(found[1])
 
     def _cache_key(self, upload):
         """

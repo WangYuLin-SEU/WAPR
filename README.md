@@ -199,18 +199,18 @@ Generated-mesh alignment defaults to gray geometry for WAPR/SAPR refinement and 
 <a id="start"></a>
 ## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg?v=color1" width="26" height="26" alt=""/> Get started
 
-Use an existing compatible Linux NVIDIA GPU environment with CUDA-enabled PyTorch. Install WAPR 0.0.3, prepare the core dependencies, and export the bundled examples:
+Use an existing compatible Linux or Windows NVIDIA GPU environment with CUDA-enabled PyTorch. OGL needs a CUDA toolkit and a C++ compiler; on Windows, prepare the MSVC C++ build tools. Install WAPR 0.0.4, prepare the core dependencies, and export the bundled examples:
 
 ```bash
-python -m pip install -U wapr==0.0.3
+python -m pip install -U wapr==0.0.4
 python -m wapr.bootstrap
 python -c "from wapr.bootstrap import export_examples; export_examples('wapr_examples')"
 python wapr_examples/02_one_category_one_instance.py
 ```
 
-Optional detection, reconstruction and robot features are prepared separately when needed. SAM3D may require an independent environment and your own model access. Package preparation requests approval before replacing existing dependencies. See the [installation guide](https://wangyulin-seu.github.io/WAPR/docs/install-guide.html?lang=en) for prerequisites and source usage, and [optional features](https://wangyulin-seu.github.io/WAPR/docs/install-extensions.html?lang=en). Resources use the user cache by default; set an absolute `WAPR_CACHE_DIR` before running to choose another location.
+Windows uses the PyTorch backend when TensorRT is not installed. The TensorRT backend requires TensorRT 10. NVIDIA CUDA inference is not supported on macOS. Optional detection, reconstruction and robot features are prepared separately when needed. The supplied SAM3D environment recipe and robot dependencies target Linux; SAM3D may require an independent environment and your own model access. Package preparation requests approval before replacing existing dependencies. See the [installation guide](https://wangyulin-seu.github.io/WAPR/docs/install-guide.html?lang=en) for prerequisites and source usage, and [optional features](https://wangyulin-seu.github.io/WAPR/docs/install-extensions.html?lang=en). Resources use the user cache by default; set an absolute `WAPR_CACHE_DIR` before running to choose another location.
 
-Read [the first-pose walkthrough](https://wangyulin-seu.github.io/WAPR/docs/pose-one.html?lang=en) alongside this script; example 01 is not a prerequisite. Set `visualize = True` in [`wapr/recipe.py`](wapr/recipe.py) to save the example's pose overlay. Example 02 uses a supplied annotated visible mask, not automatic 2D detection.
+Read [the first-pose walkthrough](https://wangyulin-seu.github.io/WAPR/docs/pose-one.html?lang=en) alongside this script; example 01 is not a prerequisite. The example's pose overlay is enabled by default; use `visualize` in [`wapr/recipe.py`](wapr/recipe.py) to enable or disable it. Example 02 uses a supplied annotated visible mask, not automatic 2D detection.
 
 | Your task | Start here |
 | --- | --- |

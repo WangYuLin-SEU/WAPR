@@ -7,6 +7,7 @@
 """
 
 import os
+import time
 import posixpath
 import re
 import importlib
@@ -39,6 +40,105 @@ NVDIFFRAST_REVISION = "253ac4fcea7de5f396371124af597e6cc957bfae"  # Official v0.
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+def _env_value(env, name):
+    """Read an environment value on Windows, where key case is not significant.
+
+    Windows 环境变量名不区分大小写。
+    """
+    for key, value in env.items():
+        if key.lower() == name.lower():
+            return value
+    return ""
+
+
+def _set_env_value(env, name, value):
+    """Update an environment value without creating a second key of another case.
+
+    按已有键的大小写写回，避免同时留下 Path 和 PATH。
+    """
+    for key in list(env):
+        if key.lower() == name.lower():
+            env[key] = value
+            return
+    env[name] = value
+
+
+def _windows_compiler_env(base):
+    """Put MSVC and nvcc on PATH when building native code on Windows.
+
+    Windows 上编译 OGL 或可选光栅器时，把 MSVC 和 nvcc 放进 PATH。Linux 原样返回。
+    """
+    env = dict(base)
+    if sys.platform != "win32":
+        return env
+    if shutil.which("cl", path=_env_value(env, "PATH")) is None:
+        vswhere = os.path.join(os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)"),
+                               "Microsoft Visual Studio", "Installer", "vswhere.exe")
+        install = ""
+        if os.path.isfile(vswhere):
+            try:
+                install = subprocess.check_output(
+                    [vswhere, "-latest", "-products", "*", "-requires",
+                     "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+                     "-property", "installationPath"], encoding="utf-8", errors="replace").strip()
+            except (OSError, subprocess.CalledProcessError):
+                install = ""
+        vcvars = os.path.join(install, "VC", "Auxiliary", "Build", "vcvars64.bat") if install else ""
+        if os.path.isfile(vcvars):
+            # cmd.exe strips one pair of quotes from /c. Pass a raw command line so
+            # list2cmdline does not escape the path that contains spaces.
+            # cmd.exe 会剥掉 /c 的一层引号。这里直接传命令行，避免带空格的路径被转义。
+            # cmd.exe prints `set` in the ANSI code page, not UTF-8.
+            # cmd.exe 的 set 输出是 ANSI 代码页，不是 UTF-8。
+            output = subprocess.check_output('cmd /s /c "call "%s" >nul && set"' % vcvars, encoding="mbcs", errors="replace")
+            for line in output.splitlines():
+                if "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                _set_env_value(env, key, value)
+    if shutil.which("nvcc", path=_env_value(env, "PATH")) is None:
+        cuda_path = _env_value(env, "CUDA_PATH")
+        candidates = []
+        if cuda_path:
+            candidates.append(os.path.join(cuda_path, "bin", "nvcc.exe"))
+        nvidia_root = os.path.join(sys.prefix, "Lib", "site-packages", "nvidia")
+        if os.path.isdir(nvidia_root):
+            for entry in os.listdir(nvidia_root):
+                candidates.append(os.path.join(nvidia_root, entry, "bin", "nvcc.exe"))
+        for candidate in candidates:
+            if os.path.isfile(candidate):
+                cuda_home = os.path.dirname(os.path.dirname(candidate))
+                _set_env_value(env, "CUDA_PATH", cuda_home)
+                _set_env_value(env, "CUDA_HOME", cuda_home)
+                _set_env_value(env, "PATH", os.path.dirname(candidate) + os.pathsep + _env_value(env, "PATH"))
+                break
+    scripts = os.path.join(sys.prefix, "Scripts")
+    if os.path.isdir(scripts):
+        _set_env_value(env, "PATH", scripts + os.pathsep + _env_value(env, "PATH"))
+    missing = []
+    if shutil.which("cl", path=_env_value(env, "PATH")) is None:
+        missing.append("Visual Studio C++ (cl.exe)")
+    if shutil.which("nvcc", path=_env_value(env, "PATH")) is None:
+        missing.append("CUDA toolkit nvcc")
+    if missing:
+        hint = ""
+        if "Visual Studio C++ (cl.exe)" in missing:
+            hint = (" Install Visual Studio 2022 Build Tools with the C++ workload. "
+                    "安装 Visual Studio 2022 生成工具并勾选 C++ 工作负载："
+                    "winget install --id Microsoft.VisualStudio.2022.BuildTools -e --override "
+                    "\"--quiet --wait --norestart --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended\"")
+        raise RuntimeError("Windows native build needs " + " and ".join(missing)
+                           + " / Windows 上编译本地渲染器需要：" + "、".join(missing) + hint)
+    # Torch cpp_extension refuses an already-activated VC prompt when these are unset.
+    # 已激活的 VC 环境里，Torch 的 cpp_extension 缺少这两个变量就会拒绝编译。
+    if shutil.which("cl", path=_env_value(env, "PATH")) is not None:
+        if not _env_value(env, "DISTUTILS_USE_SDK"):
+            _set_env_value(env, "DISTUTILS_USE_SDK", "1")
+        if not _env_value(env, "MSSdk"):
+            _set_env_value(env, "MSSdk", "1")
+    return env
+
+
 def prepare_raster_source(allow_replacement=None):
     """Build the pinned CUDA rasterizer against the current PyTorch, on first use.
 
@@ -48,12 +148,13 @@ def prepare_raster_source(allow_replacement=None):
     from wapr.installation import install_requirements
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA rasterizer requires working existing PyTorch CUDA / CUDA 光栅器要求已有 PyTorch 可使用 CUDA")
+    _windows_compiler_env(os.environ.copy())
     preparation = install_requirements(["setuptools>=64", "wheel", "ninja"],
                                        allow_replacement=allow_replacement)
     if preparation.get("status") not in ("ready", "installed"):
         raise RuntimeError("Raster build tools not prepared / 光栅编译工具未准备: " + json.dumps(preparation, ensure_ascii=False))
     source = _checkout("nvdiffrast", "https://github.com/NVlabs/nvdiffrast.git", NVDIFFRAST_REVISION)
-    build_env = os.environ.copy()
+    build_env = _windows_compiler_env(os.environ.copy())
     build_env.setdefault("MAX_JOBS", "2")
     # The current GPU uniquely determines the default native architecture.
     # 当前显卡唯一确定默认本地编译架构；保留用户显式设置的架构列表。
@@ -112,6 +213,48 @@ def prepare_raster_source(allow_replacement=None):
                                 "python": sys.executable, "torch": torch.__version__,
                                 "torch_cuda": torch.version.cuda,
                                 "architectures": build_env["TORCH_CUDA_ARCH_LIST"]}, flush=True)
+    if sys.platform == "win32":
+        # ATen includes these math headers. Pip nvcc does not ship them; they are not wheel dependencies.
+        # ATen 会包含这些数学库头。pip 的 nvcc 不自带，也不写入 wheel 依赖。只在编译可选光栅器时补齐。
+        nvcc_path = shutil.which("nvcc", path=_env_value(build_env, "PATH"))
+        cuda_include = os.path.join(os.path.dirname(os.path.dirname(nvcc_path)), "include") if nvcc_path else ""
+        header_names = ("cusparse.h", "cublas_v2.h", "cusolverDn.h")
+
+        def missing_headers(directory):
+            if not directory:
+                return list(header_names)
+            return [name for name in header_names if not os.path.isfile(os.path.join(directory, name))]
+
+        if missing_headers(cuda_include):
+            cuda_major = int(torch.version.cuda.split(".")[0])
+            if cuda_major not in (11, 12, 13):
+                raise RuntimeError("Unsupported CUDA header package family / 不支持的 CUDA 头文件包家族: " + str(cuda_major))
+            suffix = "-cu%d" % cuda_major if cuda_major < 13 else ""
+            requirements = ["nvidia-" + name + suffix for name in ("cusparse", "cublas", "cusolver")]
+            print("WAPR_RASTER_CUDA_HEADERS", {"action": "install",
+                                              "packages": requirements}, flush=True)
+            result = install_requirements(requirements, allow_replacement=allow_replacement)
+            if result.get("status") not in ("ready", "installed"):
+                raise RuntimeError("CUDA math headers preparation stopped / CUDA 数学头文件准备已停止: " + json.dumps(result, ensure_ascii=False))
+            nvidia_root = os.path.join(sys.prefix, "Lib", "site-packages", "nvidia")
+            include_dirs = [os.path.join(nvidia_root, "cu%d" % cuda_major, "include")]
+            if os.path.isdir(nvidia_root):
+                include_dirs.extend(os.path.join(nvidia_root, name, "include") for name in os.listdir(nvidia_root))
+            if missing_headers(cuda_include):
+                missing = [name for name in header_names if not any(os.path.isfile(os.path.join(directory, name)) for directory in include_dirs)]
+                if missing:
+                    raise RuntimeError(
+                        "CUDA math headers still missing / CUDA 数学头文件仍然缺失: "
+                        + ", ".join(missing) + " (nvcc include: " + (cuda_include or "missing") + ")")
+                # MSVC reads INCLUDE. CPATH covers the other include search.
+                # MSVC 读取 INCLUDE。CPATH 覆盖另一条头文件搜索路径。
+                for variable in ("INCLUDE", "CPATH"):
+                    current = _env_value(build_env, variable)
+                    paths = [item for item in current.split(os.pathsep) if item]
+                    for directory in include_dirs:
+                        if os.path.isdir(directory) and directory not in paths:
+                            paths.insert(0, directory)
+                    _set_env_value(build_env, variable, os.pathsep.join(paths))
     with tempfile.TemporaryDirectory(prefix="wapr-raster-wheel-") as output:
         # Build without isolation so torch headers/ABI come from this interpreter.
         # 不隔离构建，确保 torch 头文件与 ABI 来自当前解释器；不解析或下载 torch。
@@ -168,7 +311,10 @@ def prepare_ycbineoat(sequence):
                     continue
                 if not member.isfile():
                     raise RuntimeError("Sequence link/special file rejected / 拒绝序列链接及特殊文件")
-                relative = str(Path(*parts))
+                # Store archive-relative names with forward slashes. Path() on Windows
+                # would write rgb\frame.png, and the rgb/ depth/ pairing check would see nothing.
+                # 归档内相对路径用正斜杠。Windows 上 Path() 会写成反斜杠，rgb/ 与 depth/ 的配对检查会落空。
+                relative = "/".join(parts)
                 destination = Path(staging) / relative
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 with archive.extractfile(member) as source, destination.open("wb") as output:
@@ -388,7 +534,7 @@ def _checkout(name, url, revision, compatibility=""):
         if os.path.exists(git_marker) and shutil.which("git") is not None:
             current = subprocess.run(
                 ["git", "-C", path, "rev-parse", "HEAD"],
-                capture_output=True, text=True, check=False,
+                capture_output=True, encoding="utf-8", errors="replace", check=False,
             )
             print("WAPR_SOURCE_EXISTING", name, current.stdout.strip() or "unknown", path, flush=True)
         else:
@@ -420,19 +566,19 @@ def _checkout(name, url, revision, compatibility=""):
                 # 仅获取指定版本，避免先 clone HEAD 再拉固定版本的重复传输。
                 subprocess.run(
                     git + ["init", candidate],
-                    env=environment, check=True, capture_output=True, text=True, timeout=60,
+                    env=environment, check=True, capture_output=True, encoding="utf-8", errors="replace", timeout=60,
                 )
                 subprocess.run(
                     git + ["-C", candidate, "remote", "add", "origin", url],
-                    env=environment, check=True, capture_output=True, text=True, timeout=60,
+                    env=environment, check=True, capture_output=True, encoding="utf-8", errors="replace", timeout=60,
                 )
                 subprocess.run(
                     git + ["-C", candidate, "fetch", "--depth", "1", "origin", revision],
-                    env=environment, check=True, capture_output=True, text=True, timeout=180,
+                    env=environment, check=True, capture_output=True, encoding="utf-8", errors="replace", timeout=180,
                 )
                 subprocess.run(
                     ["git", "-C", candidate, "checkout", "--detach", revision],
-                    env=environment, check=True, capture_output=True, text=True, timeout=60,
+                    env=environment, check=True, capture_output=True, encoding="utf-8", errors="replace", timeout=60,
                 )
                 break
             except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
@@ -445,7 +591,7 @@ def _checkout(name, url, revision, compatibility=""):
                     archive_fetched = True
                     break
                 print("WAPR_SOURCE_RETRY_DIRECT", name, flush=True)
-        current = revision if archive_fetched else subprocess.check_output(["git", "-C", candidate, "rev-parse", "HEAD"], text=True).strip()
+        current = revision if archive_fetched else subprocess.check_output(["git", "-C", candidate, "rev-parse", "HEAD"], encoding="utf-8", errors="replace").strip()
         if current != revision:
             raise RuntimeError("Source commit mismatch / 源码 commit 不匹配: " + name)
 
@@ -466,17 +612,37 @@ def _checkout(name, url, revision, compatibility=""):
             # An archive has no .git; never discover an unrelated parent repository.
             # 归档没有 .git，禁止发现无关的上级仓库。
             patch_environment["GIT_CEILING_DIRECTORIES"] = staging
-            subprocess.run(["git", "-C", candidate, "apply", "--check", patch], env=patch_environment, check=True, capture_output=True, text=True)
-            subprocess.run(["git", "-C", candidate, "apply", patch], env=patch_environment, check=True, capture_output=True, text=True)
+            subprocess.run(["git", "-C", candidate, "apply", "--check", patch], env=patch_environment, check=True, capture_output=True, encoding="utf-8", errors="replace")
+            subprocess.run(["git", "-C", candidate, "apply", patch], env=patch_environment, check=True, capture_output=True, encoding="utf-8", errors="replace")
         # Rename only an absent destination; concurrent/existing source stays intact.
+        # Windows can deny the rename while a scanner still holds a file. Copy after that.
         # 仅移动到缺失位置；保留并发生成或已有源码。
-        try:
-            os.rename(candidate, path)
-        except OSError:
-            if not os.path.isdir(path):
-                raise
-            print("WAPR_SOURCE_CONCURRENT", name, "Existing directory retained / 保留已有目录", flush=True)
-            return os.path.abspath(path)
+        # Windows 上扫描程序占用文件时 rename 会拒绝访问，这时改为复制。
+        last_error = None
+        moved = False
+        for _ in range(8):
+            if os.path.isdir(path):
+                print("WAPR_SOURCE_CONCURRENT", name, "Existing directory retained / 保留已有目录", flush=True)
+                return os.path.abspath(path)
+            try:
+                os.rename(candidate, path)
+                moved = True
+                break
+            except OSError as error:
+                last_error = error
+                time.sleep(0.5)
+        if not moved and sys.platform == "win32":
+            try:
+                for directory, _, filenames in os.walk(candidate):
+                    os.chmod(directory, 0o700)
+                    for filename in filenames:
+                        os.chmod(os.path.join(directory, filename), 0o700)
+                shutil.copytree(candidate, path)
+                moved = True
+            except OSError as error:
+                last_error = error
+        if not moved:
+            raise last_error
         print("WAPR_SOURCE_PIN", name, revision, "Runtime compatibility unverified / 运行兼容性未验证", flush=True)
         return os.path.abspath(path)
     finally:

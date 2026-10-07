@@ -118,8 +118,8 @@ if __name__ == "__main__":
         11: "glue",
         12: "holepuncher",
     }
-    # This script writes the pose overlay. The default in recipe.py stays False.
-    # 这个脚本写出位姿叠图。recipe.py 里的默认值仍是 False。
+    # Explicitly keep this lesson's pose overlay enabled.
+    # 显式开启本课的位姿叠图。
     recipe.visualize = True
     if not bop_path:
         check_and_fetch_pack(dataset)

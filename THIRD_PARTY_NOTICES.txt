@@ -339,8 +339,11 @@ Unmodified regular and bold Sans fonts for portable figures. Original terms reta
 未修改的常规和粗体 Sans 字体，用于可迁移的图示；保留原始条款。
 
 Bundled notices / 随附资源声明
-GroundingDINO adaptation: wapr/tools/compat/LICENSE
-SAM-derived reconstruction integration: examples/11_reconstruct_object/fast_sam3d/LICENSE
+Khronos OpenGL headers (MIT): wapr/ogl_native/third_party/LICENSE_KHRONOS
+Windows OGL compilation uses only glext.h and khrplatform.h; original notices are retained.
+Windows OGL 编译仅使用 glext.h 与 khrplatform.h，保留原始版权与许可声明。
+GroundingDINO adaptation: wapr/runtime_assets/groundingdino/LICENSE
+SAM-derived reconstruction integration (repository examples / 仓库示例): examples/11_reconstruct_object/fast_sam3d/LICENSE
 DejaVu fonts: wapr/fonts/LICENSE_DEJAVU
 WenQuanYi font: wapr/fonts/wqy-microhei-copyright.txt, wapr/fonts/Apache-2.0.txt
 External dependencies provide their licenses in their own distributions.

@@ -15,8 +15,12 @@ from __future__ import annotations
 # UV 的 V 只翻转一次：图像上方的 V 变成渲染器的 V。各块之间不互相遮挡。
 # The first inference compiles OGL when its library is missing, then loads it.
 # 第一次推理时，如果 OGL 库还没编出来，就先编译再载入。
-# Rendering stays on OGL. EGL/GL failing does not switch rasterizers.
-# 渲染固定用 OGL。EGL/GL 起不来时不换光栅器。
+# Both platforms default to OGL. Linux creates the context with EGL.
+# Windows creates the same OpenGL 4.3 context with WGL, because this driver has no EGL runtime.
+# Set WAPR_RENDERER=nvdiffrast to use raster_fallback.NvRuntime instead.
+# 两个平台默认都用 OGL。Linux 用 EGL 建上下文。
+# Windows 驱动没有 EGL 运行库，所以用 WGL 建同一个 OpenGL 4.3 上下文。
+# 设置 WAPR_RENDERER=nvdiffrast 才改用 raster_fallback.NvRuntime。
 from dataclasses import dataclass
 from typing import Any, Optional, Tuple, Union
 
@@ -1681,15 +1685,69 @@ def _find_so(native_dir):
         - 返回 Path，或 None。
 
 """
-    found = list(native_dir.glob("_gpu_render*.so"))
-    if found:
-        return found[0]
-    build = native_dir / "build"
-    if build.is_dir():
-        found = list(build.rglob("_gpu_render*.so"))
+    patterns = ("_gpu_render*.so", "_gpu_render*.pyd", "_gpu_render*.dll")
+    for pattern in patterns:
+        found = list(native_dir.glob(pattern))
         if found:
             return found[0]
+    build = native_dir / "build"
+    if build.is_dir():
+        for pattern in patterns:
+            found = list(build.rglob(pattern))
+            if found:
+                return found[0]
     return None
+
+
+def selected_renderer():
+    """Return ogl unless WAPR_RENDERER overrides it.
+
+    默认 ogl。WAPR_RENDERER 可设为 ogl 或 nvdiffrast。
+    """
+    override = os.environ.get("WAPR_RENDERER", "").strip().lower()
+    if override in ("ogl", "nvdiffrast"):
+        return override
+    if override:
+        raise ValueError("WAPR_RENDERER must be ogl or nvdiffrast / WAPR_RENDERER 只能是 ogl 或 nvdiffrast")
+    return "ogl"
+
+
+def _load_cudart():
+    """Load the CUDA runtime used to copy GL buffers. Linux uses libcudart.so.
+
+    载入拷贝 GL 缓冲所用的 CUDA 运行库。Linux 使用 libcudart.so，Windows 使用 cudart64_*.dll。
+    """
+    import ctypes
+
+    # macOS has no NVIDIA CUDA runtime to load. This OGL path is WGL or EGL.
+    # macOS 没有可加载的 NVIDIA CUDA 运行库。这条 OGL 路径是 WGL 或 EGL。
+    if sys.platform == "darwin":
+        raise OSError(
+            "macOS cannot run this pose runtime: no NVIDIA CUDA, OGL is WGL on Windows and EGL on Linux, "
+            "Docker cannot provide Darwin"
+            " / macOS 无法运行此位姿运行时：没有 NVIDIA CUDA，OGL 在 Windows 上是 WGL、在 Linux 上是 EGL，Docker 不能提供 Darwin")
+    names = []
+    if sys.platform != "win32":
+        names.append("libcudart.so")
+    else:
+        nvidia_root = os.path.join(sys.prefix, "Lib", "site-packages", "nvidia")
+        if os.path.isdir(nvidia_root):
+            for entry in os.listdir(nvidia_root):
+                bin_dir = os.path.join(nvidia_root, entry, "bin")
+                if not os.path.isdir(bin_dir):
+                    continue
+                for dirpath, _, files in os.walk(bin_dir):
+                    for filename in files:
+                        if filename.lower().startswith("cudart") and filename.lower().endswith(".dll"):
+                            names.append(os.path.join(dirpath, filename))
+        names.extend(("cudart64_13.dll", "cudart64_12.dll", "cudart64_110.dll"))
+    last_error = None
+    for name in names:
+        try:
+            return ctypes.CDLL(name)
+        except OSError as error:
+            last_error = error
+    raise OSError("Cannot load CUDA runtime / 无法载入 CUDA 运行库: " + ", ".join(names)) from last_error
 
 
 def ensure_ogl():
@@ -1740,6 +1798,8 @@ def ensure_ogl():
         # generated libraries. Rebuild stale outputs, keeping the source files.
         # 安装源码 wheel 时 pip 不清理生成库；源码或编译配置变化后重建生成文件。
         digest = hashlib.sha256(sys.implementation.cache_tag.encode("ascii"))
+        digest.update(torch.__version__.encode("ascii"))
+        digest.update(sys.platform.encode("ascii"))
         digest.update(str(torch.version.cuda).encode("ascii"))
         digest.update(str(torch.cuda.get_device_capability()).encode("ascii"))
         for source_path in sorted(native_dir.rglob("*")):
@@ -1769,16 +1829,26 @@ def ensure_ogl():
         print("OGL library missing, compiling now. / 没有 OGL 库，现在编译。", flush=True)
         build = build_root / "build"
         from wapr.bootstrap import native_build_options
+        from wapr.source_setup import _windows_compiler_env
         compiler_options = native_build_options()
-        subprocess.check_call(
-            [
-                "cmake", "-S", str(native_dir), "-B", str(build),
-                "-DCMAKE_BUILD_TYPE=Release",
-                "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=%s" % build,
-                "-DPython3_EXECUTABLE=%s" % sys.executable,
-            ] + compiler_options
-        )
-        subprocess.check_call(["cmake", "--build", str(build), "-j", "4"])
+        build_env = _windows_compiler_env(os.environ.copy())
+        scripts = os.path.join(sys.prefix, "Scripts")
+        cmake = os.path.join(scripts, "cmake.exe")
+        if not os.path.isfile(cmake):
+            cmake = shutil.which("cmake", path=build_env.get("PATH", "")) or "cmake"
+        configure = [
+            cmake, "-S", str(native_dir), "-B", str(build),
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=%s" % build,
+            "-DPython3_EXECUTABLE=%s" % sys.executable,
+        ]
+        if sys.platform == "win32":
+            # Ninja plus the MSVC environment uses the bundled nvcc. The Visual Studio
+            # generator looks for a CUDA toolset this pip toolkit does not install.
+            # Ninja 配合 MSVC 环境使用随包 nvcc。Visual Studio 生成器要找的 CUDA 工具集，这个 pip 工具包没有。
+            configure[1:1] = ["-G", "Ninja"]
+        subprocess.check_call(configure + compiler_options, env=build_env)
+        subprocess.check_call([cmake, "--build", str(build), "-j", "4"], env=build_env)
         so = _find_so(build_root)
     if so is None:
         raise RuntimeError("ogl")
@@ -2661,7 +2731,7 @@ class GpuRenderRuntime:
         # 每次绘制一对新缓冲，下一次绘制复用 GL 缓冲之前先拷完。
         depth = torch.empty((n, h, w), device=dev, dtype=torch.float32)
         rgb = torch.empty((n, h, w, 3), device=dev, dtype=torch.float32)
-        cudart = ctypes.CDLL("libcudart.so")
+        cudart = _load_cudart()
         cuda_memcpy = cudart.cudaMemcpy
         cuda_memcpy.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t, ctypes.c_int]
         cuda_memcpy.restype = ctypes.c_int
@@ -2706,11 +2776,16 @@ def runtime_for(device):
 """
     ordinal = parse_cuda_device(device)
     if ordinal not in _RUNTIMES:
-        native = ensure_ogl()
-        torch.cuda.set_device(ordinal)
-        shader = str(_native_dir() / "shaders")
-        _RUNTIMES[ordinal] = GpuRenderRuntime(native, ordinal, shader)
-        print("renderer: ogl / 渲染器：ogl", flush=True)
+        if selected_renderer() == "nvdiffrast":
+            from wapr.raster_fallback import NvRuntime
+            _RUNTIMES[ordinal] = NvRuntime(ordinal)
+            print("renderer: nvdiffrast / 渲染器：nvdiffrast", flush=True)
+        else:
+            torch.cuda.set_device(ordinal)
+            native = ensure_ogl()
+            shader = str(_native_dir() / "shaders")
+            _RUNTIMES[ordinal] = GpuRenderRuntime(native, ordinal, shader)
+            print("renderer: ogl / 渲染器：ogl", flush=True)
     return _RUNTIMES[ordinal]
 
 

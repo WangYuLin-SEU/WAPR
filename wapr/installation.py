@@ -3,6 +3,7 @@
 """Plan optional installations in the current environment. / 在当前环境规划可选安装。"""
 import importlib
 import importlib.metadata as metadata
+import importlib.util
 import json
 import os
 import re
@@ -69,6 +70,36 @@ def _installed_requirements_healthy(requirements):
         return False
 
 
+def _replacement_approved(allow_replacement, replacements, prompt):
+    """Approve a replacement plan without hanging a non-interactive install.
+
+    非交互安装不挂起；任何已有包的更换都须明确同意。
+    """
+    if allow_replacement is True:
+        return True
+    if allow_replacement is False:
+        return False
+    env_value = os.environ.get("WAPR_ALLOW_REPLACEMENT", "").strip().lower()
+    if env_value in ("1", "true", "yes", "y", "同意"):
+        return True
+    if env_value in ("0", "false", "no", "n"):
+        return False
+    interactive = False
+    try:
+        interactive = bool(sys.stdin.isatty() and sys.stdout.isatty())
+    except (AttributeError, ValueError):
+        interactive = False
+    if interactive:
+        try:
+            answer = input(prompt).strip().lower()
+        except EOFError:
+            answer = ""
+        return answer in ("y", "yes", "同意")
+    print("WAPR_REPLACEMENT_BLOCKED / 非交互拒绝更换",
+          json.dumps([item["name"] for item in replacements], ensure_ascii=False), flush=True)
+    return False
+
+
 def install_requirements(requirements, allow_replacement=None, check_only=False):
     """Resolve before installation; ask before replacing existing packages.
 
@@ -106,15 +137,14 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
         print("WAPR_REPLACEMENT_PLAN / 已有包更换计划", json.dumps([pip_change], ensure_ascii=False), flush=True)
         if check_only:
             return result
-        approved = allow_replacement is True
-        if allow_replacement is None and sys.stdin.isatty():
-            answer = input("Allow this pip update? [y/N] / 同意此次 pip 更新吗？[y/N] ").strip().lower()
-            approved = answer in ("y", "yes", "同意")
+        approved = _replacement_approved(
+            allow_replacement, [pip_change],
+            "Allow this pip update? [y/N] / 同意此次 pip 更新吗？[y/N] ")
         if not approved:
             result["status"] = "declined"
             return result
         completed = subprocess.run([sys.executable, "-m", "pip", "install", "--no-deps", "pip==" + planning_pip],
-                                   env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                   env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if completed.returncode != 0:
             result.update(status="failed", exit_code=completed.returncode,
                           reason=re.sub(r"(?:https?|git\+https?)://\S+", "[download URL omitted / 下载地址已隐藏]", completed.stdout))
@@ -144,17 +174,17 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
         command = [sys.executable, "-m", "pip", "install", "--dry-run", "--report", report_path,
                    "--timeout", "120", "--retries", "5"] + index_args + build_args
         constrained = subprocess.run(command + ["-c", constraint_path] + requirements,
-                                     env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                     env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         use_constraints = constrained.returncode == 0
         resolution = constrained
         if not use_constraints:
             with open(constraint_path, "w", encoding="utf-8") as stream:
                 stream.write("\n".join(protected) + "\n")
             resolution = subprocess.run(command + ["-c", constraint_path] + requirements,
-                                        env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                        env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             use_constraints = resolution.returncode == 0
         if not use_constraints:
-            resolution = subprocess.run(command + requirements, text=True,
+            resolution = subprocess.run(command + requirements, encoding="utf-8", errors="replace",
                                         env=subprocess_environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if resolution.returncode != 0 and pypi_route.get("reason") == "measured" and pypi_route.get("name") != "official":
             print("WAPR_DOWNLOAD_ROUTE", {"kind": "pypi", "reason": "index_failed_use_official"}, flush=True)
@@ -163,17 +193,17 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
             command = [sys.executable, "-m", "pip", "install", "--dry-run", "--report", report_path,
                        "--timeout", "120", "--retries", "5", "--index-url", "https://pypi.org/simple"] + build_args
             constrained = subprocess.run(command + ["-c", constraint_path] + requirements,
-                                         env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                         env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             use_constraints = constrained.returncode == 0
             resolution = constrained
             if not use_constraints:
                 with open(constraint_path, "w", encoding="utf-8") as stream:
                     stream.write("\n".join(protected) + "\n")
                 resolution = subprocess.run(command + ["-c", constraint_path] + requirements,
-                                            env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                            env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 use_constraints = resolution.returncode == 0
             if not use_constraints:
-                resolution = subprocess.run(command + requirements, text=True,
+                resolution = subprocess.run(command + requirements, encoding="utf-8", errors="replace",
                                             env=subprocess_environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 use_constraints = resolution.returncode == 0
         if resolution.returncode != 0:
@@ -237,10 +267,9 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
         if check_only:
             return result
         if result["replace"]:
-            approved = allow_replacement is True
-            if allow_replacement is None and sys.stdin.isatty():
-                answer = input("Allow these package replacements? [y/N] / 同意上述包更换吗？[y/N] ").strip().lower()
-                approved = answer in ("y", "yes", "同意")
+            approved = _replacement_approved(
+                allow_replacement, result["replace"],
+                "Allow these package replacements? [y/N] / 同意上述包更换吗？[y/N] ")
             if not approved:
                 result["status"] = "declined"
                 return result
@@ -259,7 +288,7 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
             # 卸载可用 cv2 之前先准备恢复文件；下载失败不会改变环境。
             staged = subprocess.run([sys.executable, "-m", "pip", "download", "--no-deps", "--only-binary=:all:",
                                      "--dest", staged_directory] + requested_wheels,
-                                    env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                    env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             if staged.returncode != 0:
                 result.update(status="failed", exit_code=staged.returncode,
                               reason="OpenCV replacement/rollback download failed; existing provider retained / OpenCV 替换或恢复包下载失败，保留已有发行")
@@ -280,10 +309,10 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
                         restore_wheels.append(matches[0])
                         remove_names.append(name)
             removed = subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y"] + remove_names,
-                                     env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                     env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             if removed.returncode != 0:
                 restored = subprocess.run([sys.executable, "-m", "pip", "install", "--no-deps", "--force-reinstall"] + restore_wheels,
-                                          env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                          env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 result.update(status="failed", exit_code=removed.returncode, restore_exit_code=restored.returncode,
                               reason="OpenCV uninstall failed; attempted restoration / OpenCV 卸载失败，已尝试恢复")
                 return result
@@ -292,7 +321,7 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
         install_command = [sys.executable, "-m", "pip", "install", "--no-deps", "--timeout", "120", "--retries", "5"]
         if use_constraints:
             install_command += ["-c", constraint_path]
-        completed = subprocess.run(install_command + build_args + targets, text=True,
+        completed = subprocess.run(install_command + build_args + targets, encoding="utf-8", errors="replace",
                                    env=subprocess_environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         result["status"] = "installed" if completed.returncode == 0 else "failed"
         result["exit_code"] = completed.returncode
@@ -313,9 +342,9 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
         if completed.returncode != 0:
             if restore_wheels:
                 subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y"] + switched_names,
-                               env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                               env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 restored = subprocess.run([sys.executable, "-m", "pip", "install", "--no-deps", "--force-reinstall"] + restore_wheels,
-                                          env=subprocess_environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                          env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 result["restore_exit_code"] = restored.returncode
             result["reason"] = re.sub(r"(?:https?|git\+https?)://\S+", "[download URL omitted / 下载地址已隐藏]", completed.stdout)
         return result
@@ -336,14 +365,17 @@ def prepare_optional(feature, allow_replacement=None, check_only=False, source_r
     elif feature == "det2d":
         # The adapted BERT wrapper uses Transformers 4 attention/head-mask methods.
         # 适配的 BERT 包装调用 Transformers 4 的 attention/head-mask 方法。
-        transformers_requirement = "transformers<5"
+        # 4.36+ ships a Windows wheel for tokenizers. 4.12 pulls tokenizers 0.10,
+        # which has no Windows wheel and tries to compile Rust.
+        # 4.36 起 tokenizers 带 Windows wheel。4.12 会拉 tokenizers 0.10，Windows 上没有 wheel，会去编译 Rust。
+        transformers_requirement = "transformers>=4.46,<5" if sys.platform == "win32" else "transformers<5"
         try:
             from packaging.version import Version
             if Version(metadata.version("torch")) < Version("2.6"):
                 # Transformers v4.52.0 import_utils disables Torch older than 2.1.
                 # Its BERT .bin loader additionally requires Torch >=2.6.
                 # Transformers v4.52.0 禁用低于 2.1 的 Torch；BERT .bin 加载还需 >=2.6。
-                transformers_requirement = "transformers<4.52"
+                transformers_requirement = "transformers>=4.36,<4.52" if sys.platform == "win32" else "transformers<4.52"
                 notes.append("The current BERT pack uses pytorch_model.bin; Transformers >=4.52 requires torch >=2.6 to load it. Older releases must only read trusted, verified checkpoints / 当前 BERT 包使用 pytorch_model.bin；Transformers >=4.52 加载它需要 torch >=2.6，较早发行只应读取可信且已校验权重")
         except metadata.PackageNotFoundError:
             pass
@@ -413,10 +445,14 @@ def prepare_optional(feature, allow_replacement=None, check_only=False, source_r
         raise ValueError("Unknown optional feature / 未知可选功能: " + str(feature))
     # SAM3D declares no Requires-Python in upstream pyproject; do not invent a floor.
     # SAM3D 上游 pyproject 未声明 Requires-Python，不把环境建议写成硬下限。
-    if (feature == "sam2" and (sys.platform != "linux" or sys.version_info[:2] < (3, 10))) or (feature == "sam3d" and sys.platform != "linux"):
+    if feature == "sam2" and sys.version_info[:2] < (3, 10):
         return {"status": "blocked", "feature": feature, "requirements": requirements,
                 "install": [], "replace": [], "notes": notes,
-                "reason": "SAM2 path requires Linux/Python >=3.10; SAM3D requires Linux / SAM2 路径需要 Linux/Python >=3.10，SAM3D 需要 Linux"}
+                "reason": "SAM2 path requires Python >=3.10 / SAM2 路径需要 Python >=3.10"}
+    if feature == "sam3d" and sys.platform != "linux":
+        return {"status": "blocked", "feature": feature, "requirements": requirements,
+                "install": [], "replace": [], "notes": notes,
+                "reason": "SAM3D native wheels require Linux x86_64 / SAM3D 原生 wheel 需要 Linux x86_64"}
     if feature == "sam3d":
         # Do not mutate the environment when the complete inference plan is unresolved.
         # 完整推理安装计划尚未确定时，不先修改环境再报告失败。
@@ -424,6 +460,12 @@ def prepare_optional(feature, allow_replacement=None, check_only=False, source_r
                 "install": [], "replace": [], "notes": notes, "source_metadata_verified": False,
                 "pending_source_dependencies": ["pytorch3d", "spconv", "utils3d", "MoGe"],
                 "reason": "SAM3D inference-only native dependencies and checkpoint access are not yet verified / SAM3D 仅推理原生依赖及权重访问尚未验证"}
+    if feature == "robot" and sys.platform != "linux" and importlib.util.find_spec("mplib") is None:
+        # Reject unavailable planning before installing simulation dependencies.
+        # 规划库不可用时先退出，不先安装仿真依赖再报告无法运行。
+        return {"status": "blocked", "feature": feature, "requirements": requirements,
+                "install": [], "replace": [], "notes": notes,
+                "reason": "Robot planning needs mplib; the verified wheels require Linux / 机器人规划需要 mplib；已验证的 wheel 要求 Linux"}
     if feature == "sam2":
         if source_requirement and os.path.isdir(source_requirement):
             # Reuse a healthy installation only when its recorded local source matches.
@@ -472,6 +514,11 @@ def prepare_optional(feature, allow_replacement=None, check_only=False, source_r
             notes.append("mplib 0.1.1 uses the validated NumPy 1 / SciPy <1.18 / OpenCV <4.12 candidate; existing replacements still require approval / mplib 0.1.1 使用实测 NumPy 1、SciPy <1.18、OpenCV <4.12 候选组合；替换已有库仍需同意")
     result = install_requirements(requirements, allow_replacement=allow_replacement, check_only=check_only)
     result.update(feature=feature, notes=notes)
+    if feature == "robot" and result.get("status") in ("ready", "installed") and importlib.util.find_spec("mplib") is None:
+        # The marker skips mplib off Linux. Scene creation then dies in native code.
+        # 非 Linux 的依赖标记会跳过 mplib。继续建场景会在原生代码里崩溃。
+        result.update(status="blocked",
+                      reason="Robot planning needs mplib, which publishes Linux wheels only / 机器人规划需要 mplib，发行包只有 Linux wheel")
     # A dry-run cannot import packages that its plan has not installed yet.
     # dry-run 尚未安装计划中的新包，不能用导入失败覆盖有效安装计划。
     if check_only and result.get("install"):

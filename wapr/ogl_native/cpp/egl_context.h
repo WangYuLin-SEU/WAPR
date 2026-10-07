@@ -8,7 +8,6 @@
 #pragma once
 
 #include "gl_loader.h"
-#include <EGL/egl.h>
 #include <string>
 
 namespace wapr_ogl {
@@ -22,8 +21,13 @@ public:
     EglContext& operator=(const EglContext&) = delete;
 
     bool valid() const { return valid_; }
+#ifdef _WIN32
+    void* display() const { return display_; }
+    void* context() const { return context_; }
+#else
     EGLDisplay display() const { return display_; }
     EGLContext context() const { return context_; }
+#endif
     const GLFunctions& gl() const { return gl_; }
     GLFunctions& gl() { return gl_; }
 
@@ -33,9 +37,15 @@ public:
 
 private:
     bool valid_ = false;
+#ifdef _WIN32
+    void* display_ = nullptr;
+    void* context_ = nullptr;
+    void* surface_ = nullptr;
+#else
     EGLDisplay display_ = EGL_NO_DISPLAY;
     EGLContext context_ = EGL_NO_CONTEXT;
     EGLSurface surface_ = EGL_NO_SURFACE;
+#endif
     GLFunctions gl_{};
 };
 

@@ -88,7 +88,12 @@ def source_ignore(directory, names):
     """
     ignored = set()
     for name in names:
-        if name in {"__pycache__", "build", ".pytest_cache", ".git", ".cursor", ".codex", ".agents", "reports", "benchmarks", "samples", "datasets", "third_party", "outputs", "cache", ".cache"} or name.endswith((".pyc", ".so", ".pth", ".pt", ".ckpt", ".safetensors", ".engine", ".onnx", ".o", ".a", ".whl")):
+        # ogl_native/third_party holds the Khronos headers the Windows SDK does not ship.
+        # 仓库根目录的 third_party 不进 wheel。ogl_native/third_party 是 Windows 编译要用的 Khronos 头。
+        if name == "third_party" and os.path.basename(os.path.abspath(directory)) != "ogl_native":
+            ignored.add(name)
+            continue
+        if name in {"__pycache__", "build", ".pytest_cache", ".git", ".cursor", ".codex", ".agents", "reports", "benchmarks", "samples", "datasets", "outputs", "cache", ".cache"} or name.endswith((".pyc", ".so", ".pyd", ".dll", ".pth", ".pt", ".ckpt", ".safetensors", ".engine", ".onnx", ".o", ".a", ".whl")):
             ignored.add(name)
         if name == "paths.json":
             ignored.add(name)
@@ -106,7 +111,10 @@ def main():
     """
     # Explicit build choice: source wheel preserves the target Python/CUDA stack.
     # 显式构建选择：源码 wheel 保留目标机器已有的 Python/CUDA 软件栈。
-    if os.environ.get("WAPR_WHEEL_SOURCE_ONLY") == "1":
+    # The universal wheel is source-only. pip install is the same command on
+    # Windows and Linux; the first OGL use compiles EGL or WGL for that host.
+    # 通用 wheel 只带源码。Windows 和 Linux 都是同一条 pip install；第一次使用 OGL 时按本机编译 EGL 或 WGL。
+    if os.environ.get("WAPR_WHEEL_SOURCE_ONLY") == "1" or sys.platform != "linux":
         build_source_wheel()
         return
     if sys.version_info[:2] != (3, 10):
@@ -189,7 +197,10 @@ def main():
             parts = name.split("/")
             if not (parts[0] == "wapr" or parts[0].endswith(".dist-info")):
                 leaked.append(name)
-            if any(part in {"assets", "weights", "samples", "datasets", "reports", "benchmarks", "third_party", "outputs", "cache", ".cache", "__pycache__", "tools", "pages"} for part in parts):
+            blocked_parts = {"assets", "weights", "samples", "datasets", "reports", "benchmarks", "outputs", "cache", ".cache", "__pycache__", "tools", "pages"}
+            if "third_party" in parts and parts[:3] != ["wapr", "ogl_native", "third_party"]:
+                blocked_parts.add("third_party")
+            if any(part in blocked_parts for part in parts):
                 leaked.append(name)
             if parts[-1] in {"paths.json", "PATHS.txt", "AGENTS.md", "check_list.md"} or name.endswith((".pth", ".pt", ".engine", ".onnx", ".pyc", ".log")):
                 leaked.append(name)
@@ -224,10 +235,13 @@ def build_source_wheel():
         with open(metadata_path, encoding="utf-8") as stream:
             metadata = stream.read()
         metadata = metadata.replace('requires-python = "==3.10.*"', 'requires-python = ">=3.8"')
-        metadata += '\n# Native sources compile on the target. / 本地源码在目标机器编译。\n'
-        metadata += '[tool.setuptools.exclude-package-data]\nwapr = ["**/*.so", "**/*.pyc"]\n'
+        metadata += '\n# Native sources compile on the target. Windows uses the bundled Khronos headers.\n'
+        metadata += '# 本地源码在目标机器编译。Windows 使用包内的 Khronos 头。\n'
+        metadata += '[tool.setuptools.exclude-package-data]\nwapr = ["**/*.so", "**/*.pyd", "**/*.pyc"]\n'
         metadata = metadata.replace('"ogl_native/_gpu_render*.so",',
-                                    '"ogl_native/CMakeLists.txt", "ogl_native/cpp/*", "ogl_native/cuda/*", "ogl_native/python/*",')
+                                    '"ogl_native/CMakeLists.txt", "ogl_native/cpp/*", "ogl_native/cuda/*", "ogl_native/python/*", '
+                                    '"ogl_native/third_party/GL/glext.h", "ogl_native/third_party/KHR/khrplatform.h", '
+                                    '"ogl_native/third_party/LICENSE_KHRONOS",')
         with open(os.path.join(stage_dir, "pyproject.toml"), "w", encoding="utf-8") as stream:
             stream.write(metadata)
         for name in ("LICENSE", "AUTHORS.md", "WEIGHTS_LICENSE.txt", "THIRD_PARTY_NOTICES.txt"):
@@ -235,8 +249,12 @@ def build_source_wheel():
         shutil.copytree(os.path.join(RELEASE_DIR, "wapr"), os.path.join(stage_dir, "wapr"), ignore=source_ignore)
         stage_examples(stage_dir)
         output_dir = os.path.join(temporary_dir, "dist")
+        build_env = os.environ.copy()
+        # setup.py uses this to keep the wheel tagged py3-none-any. The native module is compiled after install.
+        # setup.py 靠这个变量把 wheel 标成 py3-none-any。本地模块在安装之后再编译。
+        build_env["WAPR_WHEEL_SOURCE_ONLY"] = "1"
         subprocess.check_call([sys.executable, "-m", "pip", "wheel", "--no-deps", "--no-build-isolation",
-                               "--wheel-dir", output_dir, stage_dir])
+                               "--wheel-dir", output_dir, stage_dir], env=build_env)
         wheels = [name for name in os.listdir(output_dir) if name.endswith(".whl")]
         if len(wheels) != 1 or not wheels[0].endswith("-py3-none-any.whl"):
             raise RuntimeError("Expected one source-only Python wheel / 应产生一个仅含源码的 wheel")
@@ -245,14 +263,26 @@ def build_source_wheel():
     with zipfile.ZipFile(wheel_path) as archive:
         members = archive.namelist()
         check_example_members(members)
-        required = ["wapr/bootstrap.py", "wapr/ogl_native/CMakeLists.txt",
+        required = ["wapr/bootstrap.py", "wapr/ogl.py", "wapr/ogl_native/CMakeLists.txt",
+                    "wapr/ogl_native/cpp/egl_context.cpp", "wapr/ogl_native/cpp/wgl_context.cpp",
                     "wapr/ogl_native/python/gpu_render_pybind.cpp",
-                    "wapr/ogl_native/cuda/pack_outputs.cu"]
+                    "wapr/ogl_native/cuda/pack_outputs.cu",
+                    "wapr/ogl_native/third_party/GL/glext.h",
+                    "wapr/ogl_native/third_party/KHR/khrplatform.h",
+                    "wapr/ogl_native/third_party/LICENSE_KHRONOS"]
         if any(name not in members for name in required):
             raise RuntimeError("Native source or setup entry missing / 缺少本地源码或安装入口")
-        prohibited = {"reports", "benchmarks", "samples", "third_party", "outputs", "__pycache__", "tools", "pages", ".cursor", ".codex", ".agents"}
-        if any(prohibited.intersection(name.split("/")) or name.endswith((".so", ".pth", ".pt", ".ckpt", ".safetensors", ".engine", ".onnx", ".pyc")) for name in members):
-            raise RuntimeError("Non-runtime content in wheel / wheel 含非运行内容")
+        prohibited = {"reports", "benchmarks", "samples", "outputs", "__pycache__", "tools", "pages", ".cursor", ".codex", ".agents"}
+        allowed_headers = {"wapr/ogl_native/third_party/GL/glext.h",
+                           "wapr/ogl_native/third_party/KHR/khrplatform.h",
+                           "wapr/ogl_native/third_party/LICENSE_KHRONOS"}
+        for name in members:
+            parts = name.split("/")
+            blocked = prohibited.intersection(parts)
+            if "third_party" in parts and name not in allowed_headers:
+                blocked.add("third_party")
+            if blocked or name.endswith((".so", ".pyd", ".dll", ".pth", ".pt", ".ckpt", ".safetensors", ".engine", ".onnx", ".pyc")):
+                raise RuntimeError("Non-runtime content in wheel / wheel 含非运行内容: " + name)
         for name in ("LICENSE", "AUTHORS.md", "WEIGHTS_LICENSE.txt", "THIRD_PARTY_NOTICES.txt"):
             if not any(member.endswith(".dist-info/licenses/" + name) for member in members):
                 raise RuntimeError("Missing license / 缺少许可: " + name)
@@ -260,7 +290,7 @@ def build_source_wheel():
         digest = hashlib.sha256(stream.read()).hexdigest()
     print("WHEEL_BUILT", wheel_path, flush=True)
     print("WHEEL_SHA256", digest, flush=True)
-    print("WHEEL_CONTENT", members, flush=True)
+    print("WHEEL_CONTENT", {"files": len(members), "native_sources": len(required)}, flush=True)
 
 
 if __name__ == "__main__":

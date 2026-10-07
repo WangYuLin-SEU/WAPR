@@ -55,13 +55,50 @@ light_dir = (0.0, 0.0, 1.0)
 # A missing engine raises. It does not fall back to the module.
 # "torch" 走模块。"trt" 必须有 assets/weights/<name>.engine 这份 FP16 引擎。
 # 缺引擎直接报错，不退回模块。
+# Linux keeps this request. Windows uses torch unless TensorRT is already installed
+# or WAPR_BACKEND overrides it. See resolve_backend.
+# Linux 保持这个选择。Windows 在未安装 TensorRT 时用 torch；WAPR_BACKEND 可覆盖。见 resolve_backend。
 backend = "trt"
-# False writes no 6D pose visualization. True writes one, from the examples that call visualize_6d_pose.
-# False 不存 6D 位姿可视化。True 时，调用了 visualize_6d_pose 的示例会存一张。
-visualize = False
+# True writes the 6D pose picture from examples that call visualize_6d_pose.
+# The 2D mask and blue box are a separate file and do not use this switch.
+# True 时，调用了 visualize_6d_pose 的示例会存 6D 图。
+# 二维 mask 和蓝框是另一张图，不看这个开关。
+visualize = True
 # A directory, or a .jpg / .png file. Relative paths start at the release root.
 # 目录，或者一个 .jpg / .png 文件。相对路径从 release 根目录算。
 visualize_path = "outputs/vis"
+
+
+def resolve_backend(requested=None):
+    """Return trt or torch for this machine.
+
+    An explicit WAPR_BACKEND of trt or torch wins. Linux keeps a trt request.
+    Any other platform uses torch when TensorRT cannot be imported.
+
+    返回本机要用的 trt 或 torch。
+
+    WAPR_BACKEND 设为 trt 或 torch 时优先采用。Linux 保留 trt 请求。
+    其他平台在无法导入 TensorRT 时使用 torch。
+    """
+    import importlib.util
+    import os
+    import sys
+
+    override = os.environ.get("WAPR_BACKEND", "").strip().lower()
+    if override in ("trt", "torch"):
+        return override
+    choice = str(backend if requested is None else requested)
+    if choice != "trt":
+        return choice
+    if sys.platform == "linux" or importlib.util.find_spec("tensorrt") is not None:
+        return "trt"
+    if not getattr(resolve_backend, "_announced", False):
+        print("WAPR_BACKEND", {"requested": choice, "selected": "torch",
+                               "reason": "TensorRT is not installed on this platform / 当前平台未安装 TensorRT，改用 PyTorch"},
+              flush=True)
+        resolve_backend._announced = True
+    return "torch"
+
 
 # Input channels. wapr_w_mask is RGB, mask, xyz. The other three are RGB, xyz.
 # 输入通道。wapr_w_mask 是 RGB、mask、xyz。其余三个是 RGB、xyz。

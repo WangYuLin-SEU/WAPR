@@ -13,7 +13,7 @@ build-backend = "setuptools.build_meta"
 name = "wapr"
 # Release version confirmed by the maintainer.
 # 作者确认的本次发行版本。
-version = "0.0.3"
+version = "0.0.4"
 description = "Wide-angle pose refinement for unseen object 6D pose estimation"
 authors = [{name = "Yulin Wang", email = "yulinwang@seu.edu.cn"}]
 readme = "README.md"
@@ -22,6 +22,7 @@ license = "LGPL-2.1-only"
 license-files = ["LICENSE", "AUTHORS.md", "WEIGHTS_LICENSE.txt", "THIRD_PARTY_NOTICES.txt", "wapr/fonts/LICENSE_DEJAVU", "wapr/fonts/wqy-microhei-copyright.txt", "wapr/fonts/Apache-2.0.txt"]
 dependencies = [
     "numpy",
+    "scipy",
     "trimesh",
     "Pillow",
     "huggingface-hub",

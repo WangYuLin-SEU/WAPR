@@ -93,7 +93,10 @@ def rank_recovery_candidates(estimator, rgb, depth_m, K, tracks, candidates):
     candidates 将 track_id 映射到实际尝试位姿；不补齐单候选评分组。
     """
     selected = {}
-    capacity = min(int(estimator.nets["wbps"].engine.max_batch), 120)
+    engine = estimator.nets["wbps"].engine
+    # Torch has no engine. The published row budget is 120.
+    # torch 没有引擎。发布的行数预算是 120。
+    capacity = min(int(engine.max_batch), 120) if engine is not None else 120
     # Different group lengths are separate batches, never padded attention groups.
     # 不同组长分别批量计算，不补齐注意力组。
     for group in sorted({len(rows) for rows in candidates.values()}):
@@ -186,10 +189,15 @@ if __name__ == "__main__":
     torch.cuda.synchronize(device)
     setup_started = time.perf_counter()
     estimator = WAPREstimator(device=device)
-    if any(net.engine is None for net in estimator.nets.values()):
-        raise RuntimeError("This example requires TRT FP16 / 本例需要 TRT FP16 引擎")
-    if not os.path.isfile(os.path.join(os.path.dirname(os.fspath(recipe.engine_file("wbps"))), "wbps_batch.engine")):
-        raise FileNotFoundError("Run python -m wapr.export_batch_engine on this GPU")
+    pose_backend = recipe.resolve_backend()
+    # TensorRT still requires the FP16 engines. Windows without TensorRT uses the torch path.
+    # 有 TensorRT 时仍要求 FP16 引擎。未安装 TensorRT 的 Windows 走 torch 路径。
+    if pose_backend == "trt":
+        if any(net.engine is None for net in estimator.nets.values()):
+            raise RuntimeError("This example requires TRT FP16 / 本例需要 TRT FP16 引擎")
+        if not os.path.isfile(os.path.join(os.path.dirname(os.fspath(recipe.engine_file("wbps"))), "wbps_batch.engine")):
+            raise FileNotFoundError("Run python -m wapr.export_batch_engine on this GPU")
+    backend_label = "TensorRT FP16 + OGL" if pose_backend == "trt" else "PyTorch + OGL"
     prepared = estimator.prepare_meshes(raw_meshes)
     dino = load_tracker_dino(device, dino_name=dino_name)
     sam_path = os.path.join(default_weights_dir, "sam2.1_l.pt")
@@ -277,7 +285,7 @@ if __name__ == "__main__":
                 "tracks": [{"track_id": name, "obj_id": obj_id, "status": "INIT", "pose_updated": True,
                              "score_6d": float(result["score_6d"]), "pose_4x4": result["pose_4x4"].tolist()}
                             for (name, obj_id, _), result in zip(objects, initial)]}]
-    print("TACO_SETUP", {"gpu": torch.cuda.get_device_name(device), "backend": "TensorRT FP16 + OGL",
+    print("TACO_SETUP", {"gpu": torch.cuda.get_device_name(device), "backend": backend_label,
                          "setup_seconds": setup_seconds, "sam_warmup_seconds": sam_warmup_seconds,
                          "pose_warmup_seconds": pose_warmup_seconds, "tracking_warmup_seconds": tracking_warmup_seconds,
                          "warmup_calls": warmup_calls, "tracks": list(tracks), "frames": [first_frame, stop_frame],
@@ -389,7 +397,7 @@ if __name__ == "__main__":
                         "pose_4x4": row["pose_4x4"], "score_6d": row["score_6d"]}
                        for row in frame_tracks if row["pose_updated"]]
             save_pose_view(rgb, visible, os.path.join(output_dir, "frame_%04d.jpg" % frame_id), K=K)
-    report = {"gpu": torch.cuda.get_device_name(device), "backend": "TensorRT FP16 + OGL",
+    report = {"gpu": torch.cuda.get_device_name(device), "backend": backend_label,
               "sequence": clicks["sequence"], "frame_stride": frame_stride, "grayscale_pose": grayscale_pose,
               "refine_steps": {"wapr": recipe.wapr_iters, "sapr": recipe.sapr_iters},
               "init_group_length": recipe.n_view * recipe.n_inplane, "tracking_group_length": 6,

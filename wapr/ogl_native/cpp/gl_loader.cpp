@@ -6,17 +6,28 @@
 // Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
 
 #include "gl_loader.h"
+#ifndef _WIN32
 #include <dlfcn.h>
+#endif
 
 namespace wapr_ogl {
 
 template <typename T>
-static T load_fn(EGLDisplay , const char* name) {
-    T fn = reinterpret_cast<T>(eglGetProcAddress(name));
-    if (!fn) {
-        fn = reinterpret_cast<T>(dlsym(RTLD_DEFAULT, name));
+static T load_fn(EGLDisplay, const char* name) {
+    // EGL returns a function pointer; WGL's wrapper returns void*.
+    // EGL 返回函数指针，WGL 包装返回 void*；显式转换使两种平台都能编译。
+    void* raw = reinterpret_cast<void*>(eglGetProcAddress(name));
+#ifdef _WIN32
+    if (!raw || raw == reinterpret_cast<void*>(1) || raw == reinterpret_cast<void*>(2) ||
+        raw == reinterpret_cast<void*>(3) || raw == reinterpret_cast<void*>(-1)) {
+        raw = reinterpret_cast<void*>(GetProcAddress(GetModuleHandleA("opengl32.dll"), name));
     }
-    return fn;
+#else
+    if (!raw) {
+        raw = dlsym(RTLD_DEFAULT, name);
+    }
+#endif
+    return reinterpret_cast<T>(raw);
 }
 
 bool load_gl_functions(GLFunctions& gl, EGLDisplay display) {

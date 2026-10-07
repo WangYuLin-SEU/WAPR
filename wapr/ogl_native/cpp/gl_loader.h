@@ -7,8 +7,36 @@
 
 #pragma once
 
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#ifdef near
+#undef near
+#endif
+#ifdef far
+#undef far
+#endif
+#include <GL/gl.h>
+#include <GL/glext.h>
+#ifndef GLchar
+typedef char GLchar;
+#endif
+#ifndef GLsizeiptr
+#include <stddef.h>
+typedef ptrdiff_t GLsizeiptr;
+typedef ptrdiff_t GLintptr;
+#endif
+using EGLDisplay = void*;
+extern "C" void* eglGetProcAddress(const char* name);
+#else
 #include <EGL/egl.h>
 #include <GL/gl.h>
+#endif
 #include <cstdint>
 
 #ifndef GL_SYNC_FLUSH_COMMANDS_BIT

@@ -776,13 +776,19 @@ def _place_config(weights_dir, spec):
 
 """
     dest = os.path.join(weights_dir, spec['config'])
-    if os.path.isfile(dest):
-        return dest
     source = os.path.join(grounding_repo, 'groundingdino', 'config', spec['config_src'])
     if not os.path.isfile(source):
+        if os.path.isfile(dest):
+            return dest
         raise FileNotFoundError('Missing GroundingDINO config: ' + source)
+    # Keep the published LF bytes. A Windows checkout often stores CRLF.
+    # 保持发布时的 LF 字节。Windows 检出经常存成 CRLF。
+    payload = open(source, 'rb').read().replace(b'\r\n', b'\n').replace(b'\r', b'\n')
+    if os.path.isfile(dest) and open(dest, 'rb').read() == payload:
+        return dest
     os.makedirs(weights_dir, exist_ok=True)
-    shutil.copyfile(source, dest)
+    with open(dest, 'wb') as stream:
+        stream.write(payload)
     print('DET2D_CONFIG', {'path': dest}, flush=True)
     return dest
 
@@ -1072,7 +1078,17 @@ def verify_assets(weights_dir):
     for name, record in manifest['artifacts'].items():
         if name.endswith('.engine'):
             continue
-        if sha256(os.path.join(weights_dir, name)) != record['sha256']:
+        path = os.path.join(weights_dir, name)
+        digest = sha256(path)
+        # Git autocrlf and Windows text mode turn LF manifests into CRLF.
+        # The published hash is the LF file. Binary weights are never rewritten.
+        # Git autocrlf 和 Windows 文本模式会把 LF 清单变成 CRLF。
+        # 发布的哈希是 LF 文件。二进制权重不会被改写。
+        if digest != record['sha256'] and name.endswith(('.json', '.txt')):
+            with open(path, 'rb') as stream:
+                payload = stream.read().replace(b'\r\n', b'\n').replace(b'\r', b'\n')
+            digest = hashlib.sha256(payload).hexdigest()
+        if digest != record['sha256']:
             raise RuntimeError('Detection weight differs from det2d_assets.json: ' + name)
     return sha256(det2d_manifest_path)
 
@@ -1100,7 +1116,7 @@ def _save_json(path, value):
         - value: 可序列化为 JSON 的对象。写出时缩进为 2。
 
 """
-    with open(path + '.tmp', 'w') as stream:
+    with open(path + '.tmp', 'w', newline='\n') as stream:
         json.dump(value, stream, indent=2)
     os.replace(path + '.tmp', path)
 
@@ -2511,6 +2527,8 @@ class WAPRDet2D:
             - 返回 None。
             - loading_s: 加载耗时，单位秒。last_evidence 初始为 None。没有返回值。
         """
+        from wapr.recipe import resolve_backend
+        backend = resolve_backend(backend)
         if backend not in ['trt', 'torch']:
             raise ValueError('backend must be trt or torch')
         self.device = torch.device(device)
@@ -3054,7 +3072,7 @@ def onboard_meshes(meshes_m, cache_path="", weights_dir=default_weights_dir, dev
 
 """
     started = time.perf_counter()
-    from wapr.ogl import GpuRenderRuntime, ensure_ogl, _native_dir, parse_cuda_device
+    from wapr.ogl import _native_dir, runtime_for
     from wapr import recipe as pose_recipe
 
     if not meshes_m:
@@ -3090,8 +3108,7 @@ def onboard_meshes(meshes_m, cache_path="", weights_dir=default_weights_dir, dev
                     print('DET2D_CAD_CACHE_HIT', cache_path, flush=True)
                     return cache_path
             raise ValueError('Existing CAD cache has different inputs/code; choose a new cache path')
-    ordinal = parse_cuda_device(device)
-    runtime = GpuRenderRuntime(ensure_ogl(), ordinal, str(_native_dir() / 'shaders'))
+    runtime = runtime_for(device)
     intrinsics = np.array([[224., 0, 112.], [0, 224., 112.], [0, 0, 1.]])
     renders = {}
     for obj_id, original in sorted(meshes_m.items()):
