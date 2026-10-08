@@ -1,4 +1,22 @@
 {
+  "ycbineoat_cracker_frame": {
+    "folder": "ycbineoat/cracker_box_reorient",
+    "source": "https://github.com/wenbowen123/iros20-6d-pose-tracking",
+    "files": {
+      "rgb/1579908945563078571.png": {
+        "sha256": "513ee2489d312d85ac1c3f71540d9fac8bcbb5fcf75043d32d840f0d0bcf6ef5",
+        "bytes": 499551
+      },
+      "depth/1579908945563078571.png": {
+        "sha256": "f23cb266d5b61ee6efa3021fa2cf6afb9c8273aa2bf74de5fa5f404e44905241",
+        "bytes": 86369
+      },
+      "cam_K.txt": {
+        "sha256": "215ee25197aa8af78d64e51cec1e81ecb48ec2a677eb2497bfb71380a3cd6af7",
+        "bytes": 225
+      }
+    }
+  },
   "taco": {
     "folder": "taco",
     "source": "https://github.com/leolyliu/TACO-Instructions",

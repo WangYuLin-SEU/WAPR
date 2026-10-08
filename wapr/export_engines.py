@@ -381,7 +381,7 @@ def _build_fp16_engine(onnx_path, engine_path, min_shape, opt_shape, max_shape):
     ## Args
 
         - onnx_path: the FP32 ONNX file.
-        - engine_path: assets/weights/<name>.engine. min_shape, opt_shape, and max_shape are (batch, channels, px, px) for inputs A and B. A TensorRT version other than 10.x raises RuntimeError. A failed build raises RuntimeError.
+        - engine_path: cache/weights/<name>.engine by default. min_shape, opt_shape, and max_shape are (batch, channels, px, px) for inputs A and B. A TensorRT version other than 10.x raises RuntimeError. A failed build raises RuntimeError.
 
     ---
 
@@ -394,7 +394,7 @@ def _build_fp16_engine(onnx_path, engine_path, min_shape, opt_shape, max_shape):
     ## 参数
 
         - onnx_path: FP32 的 ONNX。
-        - engine_path: assets/weights/<name>.engine。
+        - engine_path: 默认 cache/weights/<name>.engine。
         - min_shape、opt_shape、max_shape: 输入 A 和 B 的 (batch, channels, px, px)。不是 TensorRT 10.x 就抛出 RuntimeError。构建失败也抛出 RuntimeError。
 
 """

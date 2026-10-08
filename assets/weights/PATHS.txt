@@ -1,6 +1,0 @@
-# Source weight paths, relative to the repository root.
-# 源码权重路径，相对于仓库根目录。
-wapr_w_mask assets/weights/wapr_w_mask.pth
-wapr_wo_mask assets/weights/wapr_wo_mask.pth
-sapr assets/weights/sapr.pth
-wbps assets/weights/wbps.pth

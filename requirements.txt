@@ -8,4 +8,4 @@ trimesh
 pybind11
 pillow
 onnx
-huggingface-hub
+huggingface-hub>=0.34,<1

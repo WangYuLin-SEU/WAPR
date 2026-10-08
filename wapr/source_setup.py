@@ -23,16 +23,13 @@ import urllib.request
 import urllib.parse
 import zipfile
 
-from wapr.resources import resource_root, source_checkout
+from wapr.resources import cache_dir
 
 
 # These public snapshots are pinned, not a claim of inference validation.
 # 固定公开快照，不代表已验证其推理；SAM commits follow the reconstruction recipe.
 # SAM commit 与重建 recipe 一致。
-DINOV2_REVISION = "7764ea0f912e53c92e82eb78a2a1631e92725fc8"
 GROUNDING_REVISION = "856dde20aee659246248e20734ef9ba5214f5e44"
-ULTRALYTICS_REVISION = "f38fa61ffc47a749be34e9317e9be9ea01d1ad9b"  # v8.3.70
-SAM2_REVISION = "2b90b9f5ceec907a1c18123530e92e794ad901a4"
 SAM3D_REVISION = "f91db411c50efee93d8db7aeb323885650f6f722"
 ROMA_REVISION = "77f8d68803526dcddfd9b7a46bc76125bdc25f15"
 UNIPOSE9D_REVISION = "bfb2afd1d06f9ebe0c5edee46625b71a0cb2ecbf"
@@ -180,7 +177,7 @@ def prepare_raster_source(allow_replacement=None):
                 "torch_cxx11_abi": bool(torch._C._GLIBCXX_USE_CXX11_ABI),
                 "architectures": build_env["TORCH_CUDA_ARCH_LIST"], "gpu_capability": [major, minor],
                 "source_sha256": source_digest.hexdigest(), "requested_revision": NVDIFFRAST_REVISION}
-    stamp_directory = os.path.join(resource_root(), "native_wheels", "nvdiffrast")
+    stamp_directory = os.path.join(cache_dir(), "native_wheels", "nvdiffrast")
     os.makedirs(stamp_directory, exist_ok=True)
     key = hashlib.sha256(json.dumps(identity, sort_keys=True).encode("utf-8")).hexdigest()
     stamp_path = os.path.join(stamp_directory, key + ".json")
@@ -286,13 +283,13 @@ def prepare_ycbineoat(sequence):
     from wapr.det2d import _download_file
     if sequence not in ("mustard_easy_00_02", "cracker_box_reorient", "sugar_box1"):
         raise ValueError("Unsupported tutorial sequence / 不支持的教程序列: " + sequence)
-    target = Path(samples_dir()) / "YCBInEOAT" / sequence
+    target = Path(samples_dir()) / "ycbineoat" / sequence
     marker = target / ".wapr-sequence.json"
     if marker.is_file():
         stored = json.loads(marker.read_text())
         if stored.get("sequence") == sequence and stored.get("files") and all((target / name).is_file() and (target / name).stat().st_size == size for name, size in stored["files"].items()):
             return str(target)
-    cache = Path(resource_root()) / ".downloads" / "ycbineoat"
+    cache = Path(cache_dir()) / "downloads" / "ycbineoat"
     cache.mkdir(parents=True, exist_ok=True)
     archive_path = cache / (sequence + ".tar.gz")
     url = "https://archive.cs.rutgers.edu/archive/a/2020/pracsys/Bowen/iros2020/YCBInEOAT/" + sequence + ".tar.gz"
@@ -349,6 +346,10 @@ def prepare_robot_assets(name):
     仅在机器人依赖准备后调用，pip 安装时不触发。
     """
     from pathlib import Path
+    from wapr.resources import samples_dir
+    # Direct asset preparation follows the same root as robot dependency setup.
+    # 直接准备资源也使用与机器人依赖准备一致的根目录；保留显式覆盖。
+    os.environ.setdefault("MS_ASSET_DIR", os.path.join(samples_dir(), "maniskill"))
     from mani_skill.utils.assets.data import DATA_SOURCES
     from wapr.det2d import _download_file
     spec = DATA_SOURCES[name]
@@ -361,7 +362,7 @@ def prepare_robot_assets(name):
             return str(target)
     if not spec.url or not spec.url.endswith(".zip"):
         raise RuntimeError("Unsupported ManiSkill asset catalog entry / 不支持的 ManiSkill 资源条目: " + name)
-    cached = Path(resource_root()) / ".downloads" / "robot"
+    cached = Path(cache_dir()) / "downloads" / "robot"
     cached.mkdir(parents=True, exist_ok=True)
     archive_path = cached / (name + ".zip")
     if not archive_path.is_file():
@@ -523,7 +524,7 @@ def _checkout(name, url, revision, compatibility=""):
 
     创建并核验检出，或直接返回用户已有目录；既有源码不打补丁。
     """
-    parent = os.path.join(resource_root(), "third_party" if source_checkout else "sources")
+    parent = os.path.join(cache_dir(), "sources")
     path = os.path.join(parent, name)
     if os.path.exists(path):
         if not os.path.isdir(path):
@@ -605,8 +606,8 @@ def _checkout(name, url, revision, compatibility=""):
             )
             for source_name, destination in copies:
                 shutil.copyfile(os.path.join(assets, source_name), os.path.join(candidate, destination))
-        elif compatibility in ("sam3d", "dinov2"):
-            patch_name = "sam3d_wapr_compat.patch" if compatibility == "sam3d" else "dinov2_python38_annotations.patch"
+        elif compatibility == "sam3d":
+            patch_name = "sam3d_wapr_compat.patch"
             patch = os.path.join(MODULE_DIR, "runtime_assets", "patches", patch_name)
             patch_environment = os.environ.copy()
             # An archive has no .git; never discover an unrelated parent repository.
@@ -652,18 +653,11 @@ def _checkout(name, url, revision, compatibility=""):
 def prepare_source(feature, allow_replacement=None, check_only=False):
     """Return optional source without installing its training/build dependencies.
 
-    返回可选功能源码，不安装训练或构建依赖；det2d 同时准备三项源码。
+    返回可选功能源码，不安装训练或构建依赖；det2d 只准备 GroundingDINO 源码。
     """
-    if feature == "dinov2":
-        return _checkout("dinov2", "https://github.com/facebookresearch/dinov2.git", DINOV2_REVISION, "dinov2")
     if feature == "det2d":
-        prepare_source("dinov2")
-        _checkout("ultralytics", "https://github.com/ultralytics/ultralytics.git", ULTRALYTICS_REVISION)
         return _checkout("GroundingDINO", "https://github.com/IDEA-Research/GroundingDINO.git", GROUNDING_REVISION, "groundingdino")
-    if feature == "sam2":
-        return _checkout("sam2", "https://github.com/facebookresearch/sam2.git", SAM2_REVISION)
     if feature == "sam3d":
-        prepare_source("sam2")
         return _checkout("sam-3d-objects", "https://github.com/facebookresearch/sam-3d-objects.git", SAM3D_REVISION, "sam3d")
     if feature == "roma":
         # WAPR imports the pinned inference source directly, not the training package.
@@ -681,10 +675,9 @@ def prepare_sam_dino_weights():
     """
     import torch
     from wapr.det2d import _download_file
-    hub_directory = os.path.join(os.environ.get("TORCH_HOME", os.path.join(resource_root(), "torchhub")), "hub")
+    hub_directory = torch.hub.get_dir()
     # Use one cache for the resumable download and upstream torch.hub state loading.
     # 续传下载与上游 torch.hub 权重加载共用同一个缓存目录。
-    torch.hub.set_dir(hub_directory)
     directory = os.path.join(hub_directory, "checkpoints")
     os.makedirs(directory, exist_ok=True)
     name = "dinov2_vitl14_reg4_pretrain.pth"
@@ -878,9 +871,9 @@ def prepare_qwen_weights():
 
 
 def prepare_sam2_weights(model="large"):
-    """Fetch an official SAM2.1 checkpoint and its matching configuration.
+    """Fetch the Ultralytics SAM2.1 checkpoint without native SAM2 installation.
 
-    获取官方 SAM2.1 权重及匹配配置；默认沿用 large，测试可显式选择 tiny。
+    获取 Ultralytics SAM2.1 权重，不安装原生 SAM2；默认 large，可显式选择 tiny。
     These candidates are not a claim of compatibility with the current environment.
     提供这些候选不表示当前环境已经通过兼容验证；导入模块不下载资源。
     """
@@ -889,21 +882,17 @@ def prepare_sam2_weights(model="large"):
     from wapr.resources import weights_dir
 
     candidates = {
-        "large": ("sam2.1_hiera_large.pt", "configs/sam2.1/sam2.1_hiera_l.yaml"),
-        "tiny": ("sam2.1_hiera_tiny.pt", "configs/sam2.1/sam2.1_hiera_t.yaml"),
+        "large": "sam2.1_l.pt",
+        "tiny": "sam2.1_t.pt",
     }
     if model not in candidates:
         raise ValueError("SAM2 model must be large or tiny / SAM2 型号必须为 large 或 tiny: " + str(model))
-    filename, config = candidates[model]
-    source = prepare_source("sam2")
-    config_path = os.path.join(source, "sam2", config)
-    if not os.path.isfile(config_path):
-        raise FileNotFoundError("SAM2 configuration is missing / SAM2 配置缺失: " + config_path)
-    directory = weights_dir()
+    filename = candidates[model]
+    directory = os.path.join(weights_dir(), "det2d")
     os.makedirs(directory, exist_ok=True)
     checkpoint = os.path.join(directory, filename)
     if not os.path.isfile(checkpoint):
-        url = "https://dl.fbaipublicfiles.com/segment_anything_2/092824/" + filename
+        url = "https://github.com/ultralytics/assets/releases/download/v8.3.0/" + filename
         _download_file(url, checkpoint)
     # The public download catalog has no checksum; verify ZIP indexes and data CRCs.
     # 公开下载目录未提供校验值，核验 ZIP 索引和数据 CRC，损坏缓存不能表示准备成功。
@@ -914,4 +903,4 @@ def prepare_sam2_weights(model="large"):
                 raise RuntimeError("Invalid SAM2 checkpoint record / SAM2 权重数据记录损坏: " + broken_record)
     except (zipfile.BadZipFile, EOFError, OSError) as error:
         raise RuntimeError("Incomplete SAM2 checkpoint / SAM2 权重不完整: " + checkpoint) from error
-    return {"checkpoint": checkpoint, "config": config, "config_path": config_path, "source": source}
+    return {"checkpoint": checkpoint, "model": model, "source": "ultralytics"}

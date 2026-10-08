@@ -23,6 +23,7 @@ import re
 import sys
 
 import numpy as np
+import wapr
 
 
 EXAMPLES_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -36,10 +37,7 @@ if RELEASE_DIR not in sys.path:
     sys.path.insert(0, RELEASE_DIR)
 
 from step01_point_mask import (  # noqa: E402
-    SAM2_CHECKPOINT,
     WEIGHTS_DIR,
-    SAM2_CONFIG,
-    SAM2_ROOT,
     project_silhouette,
 )
 
@@ -54,7 +52,9 @@ QWEN_ROOT = os.environ.get(
 QWEN_ROOT = os.path.abspath(os.path.join(RELEASE_DIR, QWEN_ROOT))
 # The bundled, unmodified font includes Chinese glyphs; its license is beside it.
 # 随项目提供的原版字体包含中文字形；许可在字体旁。
-FONT_PATH = os.path.join(RELEASE_DIR, "wapr", "fonts", "wqy-microhei.ttc")
+# The installed package owns the font even when examples are exported elsewhere.
+# 示例导出到其他目录时，字体仍由已安装的包提供。
+FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(wapr.__file__)), "fonts", "wqy-microhei.ttc")
 DEVICE = "cuda:0"
 
 
@@ -299,37 +299,8 @@ def mask_from_box(rgb, box):
         - 返回前会放开模型。
 
 """
-    import torch
-
-    from wapr.sam3d_isolated import SAM3D_ENV_ROOT
-    if os.path.realpath(sys.prefix) != os.path.realpath(SAM3D_ENV_ROOT):
-        # The original large SAM2 box recipe runs without replacing pose Torch.
-        # 原 large SAM2 框分割配方独立运行，不替换位姿 Torch。
-        from wapr.sam2_isolated import predict_mask
-        isolated_checkpoint = SAM2_CHECKPOINT
-        if isolated_checkpoint == os.path.join(WEIGHTS_DIR, "sam2.1_hiera_large.pt") and not os.path.isfile(isolated_checkpoint):
-            isolated_checkpoint = None
-        return predict_mask(rgb, box_xyxy=box, device=DEVICE,
-                            checkpoint=isolated_checkpoint, config=SAM2_CONFIG)
-    if SAM2_ROOT not in sys.path:
-        sys.path.insert(0, SAM2_ROOT)
-    from sam2.build_sam import build_sam2
-    from sam2.sam2_image_predictor import SAM2ImagePredictor
-
-    sam = build_sam2(SAM2_CONFIG, SAM2_CHECKPOINT, device=DEVICE)
-    predictor = SAM2ImagePredictor(sam)
-    predictor.set_image(rgb)
-    masks, scores, _low = predictor.predict(
-        box=np.asarray(box, dtype=np.float32),
-        multimask_output=True,
-    )
-    pick = int(np.argmax(scores))
-    mask = (masks[pick] > 0).astype(np.uint8)
-    print("SAM", int(mask.sum()), "score", round(float(scores[pick]), 3), flush=True)
-    del predictor
-    del sam
-    torch.cuda.empty_cache()
-    return mask
+    from wapr.sam2 import predict_mask
+    return predict_mask(rgb, box_xyxy=box, device=DEVICE)
 
 
 def obb_rotation(verts):
@@ -465,48 +436,6 @@ def apply_display(verts, matrix):
     return out - center
 
 
-def load_cad_vertices():
-    """
-    # Return the published mustard real-mesh vertices.
-
-    ## Args
-
-        - There are no arguments.
-
-    ## Returns
-
-        - The return is (N, 3) float32 meters, from mustard_cad.bin.
-        - It is not None.
-
-    ---
-
-    # 返回页面上芥末瓶真实网格的顶点。
-
-    ## 参数
-
-        - 没有参数。
-
-    ## 返回
-
-        - 返回值是 mustard_cad.bin 里的 (N, 3) float32，单位米。
-        - 不是 None。
-
-"""
-    page = os.path.join(RELEASE_DIR, "pages", "demo", "reconstruct", "mustard_cad.json")
-    blob = os.path.join(RELEASE_DIR, "pages", "demo", "reconstruct", "mustard_cad.bin")
-    with open(page, encoding="utf-8") as stream:
-        meta = json.load(stream)
-    raw = open(blob, "rb").read()
-    count = int(meta["vertices"])
-    return np.frombuffer(raw, dtype=np.float32, count=count * 3).reshape(count, 3)
-
-
-# The published mustard's long axis is Z. These degrees lay that axis across the
-# frame and turn the printed label toward the camera. The flip keeps the label upright.
-# 已发布芥末瓶的长轴是 Z。这几个角度让长轴横过来，并把印刷标签转到相机前。翻转后标签是正的。
-LABEL_SIDE_DEG = 165.0
-LABEL_TILT_DEG = 35.0
-LABEL_UPRIGHT = True
 
 
 FLOW_LABELS = (
@@ -604,83 +533,6 @@ def compose_flow_board(panels_rgb, path):
     board.save(path, "PNG", optimize=True)
 
 
-def baked_label_view(width, height):
-    """
-    # Return a software view of the published mustard with the label toward the camera.
-
-    ## Args
-
-        - width: the canvas width in pixels. It is not None.
-        - height: the canvas height in pixels. It is not None.
-
-    ## Returns
-
-        - The return is (height, width, 3) uint8 BGR.
-        - It is not None.
-        - Each face uses the color at its UV centroid.
-        - No GL context is opened.
-
-    ---
-
-    # 返回已发布芥末瓶的软件视图，印刷标签朝向相机。
-
-    ## 参数
-
-        - width: 画布宽，单位像素。不是 None。
-        - height: 画布高，单位像素。不是 None。
-
-    ## 返回
-
-        - 返回值是 (height, width, 3) uint8 BGR。
-        - 不是 None。
-        - 每个面用 UV 中心的颜色。
-        - 这里不开 GL 上下文。
-
-"""
-    import cv2
-    from pose_frame_align import load_viewer_mesh, texture_rgb
-
-    stem = os.path.join(RELEASE_DIR, "pages", "demo", "reconstruct", "mustard")
-    mesh = load_viewer_mesh(stem)
-    verts = np.asarray(mesh.vertices, dtype=np.float64)
-    faces = np.asarray(mesh.faces, dtype=np.int32)
-    local = verts - verts.mean(axis=0)
-    side = np.deg2rad(LABEL_SIDE_DEG)
-    tilt = np.deg2rad(LABEL_TILT_DEG)
-    camera = np.array([
-        np.cos(side) * np.cos(tilt),
-        np.sin(side) * np.cos(tilt),
-        np.sin(tilt),
-    ])
-    camera = camera / np.linalg.norm(camera)
-    right = np.array([0.0, 0.0, 1.0])
-    up = np.cross(camera, right)
-    up = up / np.linalg.norm(up)
-    if LABEL_UPRIGHT:
-        up = -up
-    right = np.cross(up, camera)
-    view = np.stack([local @ right, local @ up, local @ camera], axis=1)
-    span = np.ptp(view[:, :2], axis=0).max()
-    if span < 1e-8:
-        span = 1.0
-    scale = 0.86 * min(width, height) / span
-    xy = np.stack([
-        width / 2 + view[:, 0] * scale,
-        height / 2 - view[:, 1] * scale,
-    ], axis=1)
-    uv, image = texture_rgb(mesh)
-    tex_h, tex_w = image.shape[:2]
-    centroid = uv[faces].mean(axis=1)
-    tex_x = np.clip(np.rint(centroid[:, 0] * (tex_w - 1)).astype(np.int32), 0, tex_w - 1)
-    tex_y = np.clip(np.rint((1.0 - centroid[:, 1]) * (tex_h - 1)).astype(np.int32), 0, tex_h - 1)
-    colors = image[tex_y, tex_x]
-    order = np.argsort(view[faces].mean(axis=1)[:, 2])
-    canvas = np.full((height, width, 3), 244, dtype=np.uint8)
-    for face_index in order:
-        poly = np.rint(xy[faces[face_index]]).astype(np.int32)
-        color = colors[face_index]
-        cv2.fillConvexPoly(canvas, poly, (int(color[2]), int(color[1]), int(color[0])))
-    return canvas
 
 
 def draw_flow(rgb, box, mask, mesh, pose, K, path):

@@ -54,9 +54,9 @@ import wapr.recipe as recipe  # noqa: E402
 
 
 DEVICE = "cuda:0"
-OUT_DIR = os.path.join(RELEASE_DIR, "outputs", "reconstruction_stages", "step04_dino_pose")
-DINO_REPO = os.path.join(RELEASE_DIR, "third_party", "dinov2")
-DINO_WEIGHT = os.path.join(RELEASE_DIR, "assets", "weights", "det2d", "dinov2_vitl14_pretrain.pth")
+from wapr.resources import outputs_dir, weights_dir
+OUT_DIR = os.path.join(outputs_dir("11_reconstruct_object"), "stages", "step04_dino_pose")
+DINO_WEIGHT = os.path.join(weights_dir(), "det2d", "dinov2_vitl14_pretrain.pth")
 # Poses at or below this within_group are dropped before DINOv2 ranks the rest.
 # within_group 小于或等于这个值的位姿先去掉，剩下的再由 DINOv2 排序。
 WITHIN_MIN = 0.0
@@ -242,30 +242,21 @@ def dino_model():
 
 """
     if getattr(dino_model, "net", None) is None:
-        dino_repo = DINO_REPO
         dino_weight = DINO_WEIGHT
         # Preserve provided resources; fetch the same ViT-L/14 only if absent.
         # 保留已有资源；缺失时才获取相同 ViT-L/14 源码与权重。
         from wapr.bootstrap import ensure_optional
         ensure_optional("dinov2")
-        if not os.path.isfile(os.path.join(dino_repo, "hubconf.py")):
-            if dino_repo != os.path.join(RELEASE_DIR, "third_party", "dinov2"):
-                raise FileNotFoundError(dino_repo)
-            from wapr.source_setup import prepare_source
-            dino_repo = prepare_source("dinov2")
         if not os.path.isfile(dino_weight):
-            if dino_weight != os.path.join(RELEASE_DIR, "assets", "weights", "det2d", "dinov2_vitl14_pretrain.pth"):
+            if dino_weight != os.path.join(weights_dir(), "det2d", "dinov2_vitl14_pretrain.pth"):
                 raise FileNotFoundError(dino_weight)
             from wapr.det2d import default_weights_dir, prepare_dino_weight
             prepare_dino_weight(default_weights_dir, dino="vitl14")
             dino_weight = os.path.join(default_weights_dir, "dinov2_vitl14_pretrain.pth")
-        # UniPose may already own this package namespace; use the original backbone entry only.
-        # UniPose 可能已载入此包命名空间；只调用原始骨干入口，不导入无关的新版 cell 模型。
-        if dino_repo not in sys.path:
-            sys.path.insert(0, dino_repo)
-        from dinov2.hub import backbones
-        print("DINO_BACKBONE_SOURCE", backbones.__file__, flush=True)
-        net = backbones.dinov2_vitl14(pretrained=False)
+        # Official Hub reuses its cache without borrowing UniPose9D's bundled DINO.
+        # 官方 Hub 复用缓存；隔离 UniPose9D 内置的同名 DINO 包。
+        from wapr.det2d import _load_official_dino
+        net = _load_official_dino("dinov2_vitl14")
         state = torch.load(dino_weight, map_location="cpu", weights_only=True)
         net.load_state_dict(state, strict=True)
         dino_model.net = net.eval().to(DEVICE)

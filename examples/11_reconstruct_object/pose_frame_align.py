@@ -31,15 +31,16 @@ if DEMO_DIR not in sys.path:
     sys.path.insert(0, DEMO_DIR)
 
 from step01_point_mask import mesh_diameter_m, read_rgb_depth, segment_point  # noqa: E402
+from wapr.resources import outputs_dir, samples_dir
 
 
-DATA_ROOT = os.environ.get("RECON_DATA_ROOT", os.path.join(RELEASE_DIR, "datasets", "YCBInEOAT"))
+DATA_ROOT = os.environ.get("RECON_DATA_ROOT", os.path.join(samples_dir(), "ycbineoat"))
 DATA_ROOT = os.path.abspath(os.path.join(RELEASE_DIR, DATA_ROOT))
-PAGE = os.path.join(RELEASE_DIR, "pages", "demo", "reconstruct")
-LANG = os.path.join(RELEASE_DIR, "pages", "demo", "language")
+PAGE = os.path.join(outputs_dir("11_reconstruct_object"), "stages", "step01_point_mask")
+LANG = os.path.join(outputs_dir("11_reconstruct_object"), "stages", "language_prompt")
 # Staging copies. The page bins are replaced only after the previews are checked.
 # 先写到这里。看过预览再替换页面上的网格。
-OUT_DIR = os.path.join(RELEASE_DIR, "outputs", "reconstruction_stages", "frame_align")
+OUT_DIR = os.path.join(outputs_dir("11_reconstruct_object"), "stages", "frame_align")
 DEVICE = "cuda:0"
 
 

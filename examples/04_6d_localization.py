@@ -31,13 +31,14 @@ from wapr import recipe
 from wapr.det2d import WAPRDet2D, onboard_meshes
 from wapr.bop import load_bop_rgbd, load_mesh_m
 from wapr.download_assets import check_and_fetch_pack
-from wapr.resources import samples_dir
+from wapr.resources import samples_dir, outputs_dir
 from wapr.frame import estimate_frame_many_categories_many_instances
 from wapr.view import visualize_6d_pose, visualize_2d_detection
 
 
 
 if __name__ == "__main__":
+    recipe.visualize_path = outputs_dir(__file__)
     print("example 04  previous examples/03_published_boxes_to_pose.py  next examples/05_bop_6d_detection.py", flush=True)
     # bop_path is the external dataset root. Empty uses the one-frame pack.
     # bop_path 是外部数据集根目录。为空时用这单帧示例。

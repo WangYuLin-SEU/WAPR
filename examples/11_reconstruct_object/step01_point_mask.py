@@ -45,16 +45,13 @@ RELEASE_DIR = os.path.dirname(os.path.dirname(DEMO_DIR))
 # 使用与已安装包下载器一致的源码及权重根目录。
 if RELEASE_DIR not in sys.path:
     sys.path.insert(0, RELEASE_DIR)
-from wapr.resources import resource_root, source_checkout, weights_dir, samples_dir
-THIRD_PARTY = os.path.join(resource_root(), "third_party" if source_checkout else "sources")
+from wapr.resources import cache_dir, weights_dir, samples_dir
+THIRD_PARTY = os.path.join(cache_dir(), "sources")
 WEIGHTS_DIR = weights_dir()
 
 # Local checkouts. They are not part of the pose package.
 # 本地检出。它们不属于位姿包。
-SAM2_ROOT = os.path.join(THIRD_PARTY, "sam2")
 SAM3D_ROOT = os.path.join(THIRD_PARTY, "sam-3d-objects")
-SAM2_CONFIG = "configs/sam2.1/sam2.1_hiera_l.yaml"
-SAM2_CHECKPOINT = os.path.join(WEIGHTS_DIR, "sam2.1_hiera_large.pt")
 # pipeline.yaml plus the checkpoints next to it.
 # pipeline.yaml 和它旁边的权重。
 SAM3D_CONFIG = os.path.join(WEIGHTS_DIR, "sam3d", "checkpoints", "pipeline.yaml")
@@ -63,7 +60,7 @@ SAM3D_CONFIG = os.path.join(WEIGHTS_DIR, "sam3d", "checkpoints", "pipeline.yaml"
 MOGE_CHECKPOINT = os.path.join(WEIGHTS_DIR, "moge-vitl", "model.pt")
 # One external dataset root. The frame paths below are children of it.
 # 一个外部数据根。下面的帧路径都从它推出。
-DATA_ROOT = os.environ.get("RECON_DATA_ROOT", os.path.join(samples_dir(), "YCBInEOAT"))
+DATA_ROOT = os.environ.get("RECON_DATA_ROOT", os.path.join(samples_dir(), "ycbineoat"))
 DATA_ROOT = os.path.abspath(os.path.join(RELEASE_DIR, DATA_ROOT))
 SEQUENCE = "cracker_box_reorient"
 # Frame that is reconstructed, and a later frame that only estimates pose.
@@ -133,7 +130,8 @@ DEPTH_LOSS_MIN_GAIN_M = 0.001
 # 测量轮廓和深度时用的面数。尺度加到完整网格上。
 ASPECT_SEARCH_FACES = 8000
 device = "cuda:0"
-OUT_DIR = os.path.join(RELEASE_DIR, "pages", "demo", "reconstruct")
+from wapr.resources import outputs_dir
+OUT_DIR = os.path.join(outputs_dir("11_reconstruct_object"), "stages", "step01_point_mask")
 
 
 def frame_list(seq_dir):
@@ -249,46 +247,8 @@ def segment_point(rgb, click_uv):
         第一个分量是像素 x，第二个是 y。
 
 """
-    import torch
-    from wapr.sam3d_isolated import SAM3D_ENV_ROOT
-    if os.path.realpath(sys.prefix) != os.path.realpath(SAM3D_ENV_ROOT):
-        # Keep the pose Torch; run the same large SAM2 point recipe separately.
-        # 保留位姿 Torch；在独立进程运行相同 large SAM2 点分割配方。
-        from wapr.sam2_isolated import predict_mask
-        isolated_checkpoint = SAM2_CHECKPOINT
-        if isolated_checkpoint == os.path.join(WEIGHTS_DIR, "sam2.1_hiera_large.pt") and not os.path.isfile(isolated_checkpoint):
-            isolated_checkpoint = None
-        return predict_mask(rgb, point_uv=click_uv, device=device,
-                            checkpoint=isolated_checkpoint, config=SAM2_CONFIG)
-    if SAM2_ROOT not in sys.path:
-        sys.path.insert(0, SAM2_ROOT)
-    # Prepare optional dependencies only when segmentation is requested.
-    # 仅在调用分割时准备可选依赖，优先使用上面的用户源码目录。
-    from wapr.bootstrap import ensure_optional
-    ensure_optional("sam2")
-    from sam2.build_sam import build_sam2
-    from sam2.sam2_image_predictor import SAM2ImagePredictor
-
-    checkpoint = SAM2_CHECKPOINT
-    if not os.path.isfile(checkpoint):
-        default_checkpoint = os.path.join(WEIGHTS_DIR, "sam2.1_hiera_large.pt")
-        if checkpoint != default_checkpoint:
-            raise FileNotFoundError("Custom SAM2 checkpoint missing / 自定义 SAM2 权重缺失: " + checkpoint)
-        # Fetch the same large checkpoint on first use; preserve supplied files.
-        # 首次使用时获取相同 large 权重；保留用户已提供的文件。
-        from wapr.source_setup import prepare_sam2_weights
-        prepared_weights = prepare_sam2_weights("large")
-        checkpoint = prepared_weights["checkpoint"]
-    sam = build_sam2(SAM2_CONFIG, checkpoint, device=device)
-    predictor = SAM2ImagePredictor(sam)
-    predictor.set_image(rgb)
-    point = np.asarray(click_uv, dtype=np.float32).reshape(1, 2)
-    label = np.ones(1, dtype=np.int32)
-    masks, scores, _low = predictor.predict(
-        point_coords=point, point_labels=label, multimask_output=True,
-    )
-    pick = int(np.argmax(scores))
-    return (masks[pick] > 0).astype(np.uint8)
+    from wapr.sam2 import predict_mask
+    return predict_mask(rgb, point_uv=click_uv, device=device)
 
 
 def sam3d_utils3d_names():
@@ -471,87 +431,13 @@ def sam3d_gaussian_backend():
     render_utils.render_frames = render_frames
 
 
-def sam3d_local_dino():
+def prepare_sam3d_dino_weights():
+    """Prepare register weights in the existing official Torch Hub cache.
+
+    在现有官方 Torch Hub 缓存中准备寄存器权重，不改写 Hub 加载器。
     """
-    # Point `torch.hub.load` at the DINOv2 checkout already cached on disk.
-
-        This function takes no arguments.
-
-        The checkout comes from the package's pinned DINOv2 source preparation.
-
-    ## Returns
-
-        - Returns None.
-        - A loader already marked returns without a change.
-
-    ---
-
-    # 把 `torch.hub.load` 指到磁盘上已经缓存的 DINOv2 检出。
-
-        这个函数没有参数。
-
-        检出来自包内固定版本 DINOv2 源码准备入口。
-
-    ## 返回
-
-        - 返回 None。
-        - 加载器已经打过标记时，不做修改。
-
-"""
-    import torch
-
-    if getattr(torch.hub.load, "_wapr_local_dino", False):
-        return
-    from wapr.source_setup import prepare_source, prepare_sam_dino_weights
-    cached = prepare_source("dinov2")
+    from wapr.source_setup import prepare_sam_dino_weights
     prepare_sam_dino_weights()
-    original = torch.hub.load
-
-    def load(repo_or_dir, model, *args, source="github", **kwargs):
-        """
-        # Load DINOv2 from the local hub cache when the repo argument is the GitHub id.
-
-            Every other repo is forwarded to the original `torch.hub.load`. Returns that result.
-
-            `repo_or_dir` is compared with the string `facebookresearch/dinov2`. A match is replaced by the cached directory and `source` becomes `local`. It is not None.
-
-            `model` is forwarded as the hub model name.
-
-            `args` and `kwargs` are forwarded.
-
-            `source` defaults to `github` and is used only for the non-DINOv2 branch.
-
-            This wrapper does not state their shapes.
-
-        ---
-
-        # 当仓库参数是 GitHub 上的 DINOv2 标识时，从本地 hub 缓存加载。
-
-            其他仓库转给原来的 `torch.hub.load`。
-
-            返回那次结果。
-
-            `repo_or_dir` 会和字符串 `facebookresearch/dinov2` 比较。
-
-            匹配时改成缓存目录，并且 `source` 变成 `local`。
-
-            不是 None。
-
-            `model` 作为 hub 模型名转发。
-
-            `args` 和 `kwargs` 也会转发。
-
-            `source` 默认 `github`，只在非 DINOv2 分支使用。
-
-            这个包装不写它们的形状。
-
-"""
-        if repo_or_dir == "facebookresearch/dinov2":
-            return original(cached, model, *args, source="local", **kwargs)
-        return original(repo_or_dir, model, *args, source=source, **kwargs)
-
-    load._wapr_local_dino = True
-    torch.hub.load = load
 
 
 def reconstruct_mesh(rgb, mask):
@@ -604,7 +490,7 @@ def reconstruct_mesh(rgb, mask):
     os.environ["LIDRA_SKIP_INIT"] = "true"
     sam3d_utils3d_names()
     sam3d_gaussian_backend()
-    sam3d_local_dino()
+    prepare_sam3d_dino_weights()
     if int(mask.sum()) < 20:
         raise RuntimeError("mask")
     # Drop the segmentation weights before the reconstruction model.

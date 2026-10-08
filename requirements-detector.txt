@@ -2,7 +2,7 @@
 # 2D 检测器源码所需的附加依赖；这些库不会打入 WAPR wheel。
 # Prepare torchvision matching your installed torch before running the installer.
 # 运行安装脚本前，自行准备与当前 torch 匹配的 torchvision。
-transformers
+transformers>=4.36,<5
 timm
 addict
 yapf
@@ -17,6 +17,6 @@ PyYAML
 requests
 tqdm
 safetensors
-ultralytics-thop
-# Ultralytics itself uses the compatible source tree, not the pip distribution.
-# Ultralytics 本体使用兼容源码目录，不从 pip 安装。
+ultralytics>=8.3.70,<9
+# Bootstrap resolves these versions against the installed Torch before installing.
+# Bootstrap 按已有 Torch 解析版本后再安装；此清单不替代兼容性检查。

@@ -38,7 +38,7 @@ from wapr import recipe
 from wapr.estimator import mask_from_bbox
 from wapr.bop import keep_top_per_class, load_bop_rgbd, load_mesh_m, load_detections
 from wapr.download_assets import check_and_fetch_pack
-from wapr.resources import samples_dir
+from wapr.resources import samples_dir, outputs_dir, cache_dir
 from wapr.view import visualize_6d_pose
 
 
@@ -70,7 +70,7 @@ def fetch_bop_det(method):
         known = ", ".join(sorted(bop_det_lmo))
         raise SystemExit("det_method must be one of: %s" % known)
     entry = bop_det_lmo[method]
-    folder = os.path.join(release_dir, "outputs", "cache", "bop_det")
+    folder = os.path.join(cache_dir(), "bop_det")
     os.makedirs(folder, exist_ok=True)
     path = os.path.join(folder, entry["file"])
     if os.path.isfile(path) and os.path.getsize(path) > 0:
@@ -85,12 +85,13 @@ def fetch_bop_det(method):
 
 
 if __name__ == "__main__":
+    recipe.visualize_path = outputs_dir(__file__)
     # bop_path is the dataset root. Empty uses the one-frame pack under samples/bop/.
     # bop_path 是数据集根目录。为空时使用 samples/bop/ 里的单帧示例。
     # By default, use the included single-frame excerpt. Set use_full_published_json
-    # to True to fetch the full official detection file into outputs/cache/bop_det/.
+    # to True to fetch the full official detection file into cache/bop_det/.
     # 默认使用随包提供的单帧摘录。设 use_full_published_json 为 True 才将完整官方
-    # 检测文件下载到 outputs/cache/bop_det/。
+    # 检测文件下载到 cache/bop_det/。
     # frames must be an image that file contains. Image 1 of scene 2 is not in these files.
     # frames 必须是该文件所包含的图像。场景 2 第 1 帧不在这些文件中。
     # obj_ids is the eight LM-O objects. max_per_class keeps one mask per object.

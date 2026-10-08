@@ -37,7 +37,7 @@ sys.path.insert(0, release_dir)
 from wapr import WAPREstimator
 from wapr import recipe
 from wapr.download_assets import check_and_fetch_pack
-from wapr.resources import samples_dir
+from wapr.resources import samples_dir, outputs_dir
 from wapr.bop import read_image
 from wapr.det2d import WAPRDet2D, onboard_meshes
 from wapr.frame import estimate_frame_many_categories_many_instances
@@ -86,6 +86,7 @@ def read_camera_yml(path):
 
 
 if __name__ == "__main__":
+    recipe.visualize_path = outputs_dir(__file__)
     print("example 10  previous examples/09_taco_many_instances.py  next examples/11_reconstruct_object.py", flush=True)
     # Fetch one Ensenso frame on first use; no dataset enters the wheel.
     # 首次使用获取一帧 Ensenso，数据不进入 wheel。
@@ -222,7 +223,7 @@ if __name__ == "__main__":
     visualize_6d_pose(rgb, rows, K, filename="robi_zigzag.jpg")
     # Structured outputs let a later evaluator check the actual standard recipe.
     
-    output_dir = os.path.join(release_dir, "outputs", "robi_zigzag")
+    output_dir = outputs_dir(__file__)
     os.makedirs(output_dir, exist_ok=True)
     saved = {
         "protocol": "example08_standard_detector_and_masked_pose_batch",

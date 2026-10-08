@@ -30,19 +30,20 @@ from wapr import recipe
 from wapr.det2d import WAPRDet2D, onboard_meshes
 from wapr.bop import load_bop_rgbd, load_mesh_m, model_ids
 from wapr.download_assets import check_and_fetch_pack
-from wapr.resources import samples_dir
+from wapr.resources import samples_dir, outputs_dir
 from wapr.frame import estimate_frame_many_categories_many_instances
 from wapr.view import visualize_6d_pose, visualize_2d_detection
 
 
 if __name__ == "__main__":
+    recipe.visualize_path = outputs_dir(__file__)
     print("example 05  previous examples/04_6d_localization.py  next examples/06_custom_scene.py", flush=True)
     # bop_path is the external dataset root.
     # An empty template_path keeps the rendered views and DINOv2 features on the GPU.
-    # Set a path, such as outputs/cache/det2d/lmo.pt, only when the next run should load that file.
+    # Set a path, such as cache/templates/det2d/lmo.pt, only when the next run should load that file.
     # bop_path 是外部数据集根目录。
     # template_path 为空时，渲染图和 DINOv2 特征留在显存，不写磁盘。
-    # 只有要给下次运行加载时，才填路径，例如 outputs/cache/det2d/lmo.pt。
+    # 只有要给下次运行加载时，才填路径，例如 cache/templates/det2d/lmo.pt。
     # det_backend is the detector. The pose backend stays in wapr/recipe.py.
     # det_backend 是检测器。姿态后端仍在 wapr/recipe.py。
     bop_path = ""

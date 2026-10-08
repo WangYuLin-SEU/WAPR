@@ -14,19 +14,17 @@ import os
 
 
 release_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# PATHS.txt belongs to the source release and is excluded from the wheel.
-# PATHS.txt 属于源码发布目录，不会打进 wheel；据此保留源码原有布局。
-source_checkout = os.path.isfile(os.path.join(release_dir, "assets", "weights", "PATHS.txt"))
+# Detect source files without changing the common resource layout.
+# 识别源码目录，但不改变共用资源布局。
+source_checkout = (os.path.isdir(os.path.join(release_dir, "examples"))
+                   and os.path.isdir(os.path.join(release_dir, "wheel_build")))
 
 
 def resource_root():
-    """Return the source release or the installed package's user cache.
+    """Return the common writable resource root for source and wheel.
 
-    返回源码发布根目录，或已安装包使用的用户缓存目录。
+    返回源码与 wheel 共用的可写资源根目录。
     """
-    if source_checkout:
-        return release_dir
-
     override = os.environ.get("WAPR_CACHE_DIR", "").strip()
     if override:
         override = os.path.expanduser(override)
@@ -40,14 +38,28 @@ def resource_root():
     return os.path.join(os.path.expanduser("~"), ".cache", "wapr")
 
 
+def cache_dir():
+    """Return shared reusable resources. / 返回可复用资源目录。"""
+    return os.path.join(resource_root(), "cache")
+
+
+def outputs_dir(example=None):
+    """Keep each numbered recipe's outputs separate. / 各编号示例的输出独立存放。"""
+    root = os.path.join(resource_root(), "outputs")
+    if example is None:
+        return root
+    name = os.path.splitext(os.path.basename(os.fspath(example)))[0]
+    if not name or name in (".", ".."):
+        raise ValueError("Invalid example output name / 示例输出名称无效")
+    return os.path.join(root, name)
+
+
 def weights_dir():
     """Return the directory for checkpoints and locally built engines.
 
     返回权重与本机生成引擎所在目录。
     """
-    if source_checkout:
-        return os.path.join(resource_root(), "assets", "weights")
-    return os.path.join(resource_root(), "weights")
+    return os.path.join(cache_dir(), "weights")
 
 
 def samples_dir():
@@ -55,4 +67,4 @@ def samples_dir():
 
     返回下载的教程小样所在目录。
     """
-    return os.path.join(resource_root(), "samples")
+    return os.path.join(cache_dir(), "samples")

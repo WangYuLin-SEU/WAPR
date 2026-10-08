@@ -7,8 +7,8 @@
 
 # Fetch the four checkpoints and small dataset excerpts from SEU-WYL/WAPR.
 # 从 SEU-WYL/WAPR 获取四份权重和各数据集的小样本摘录。
-# python -m wapr.download_assets downloads missing packs to the release tree or user cache.
-# python -m wapr.download_assets 将缺少的数据包下载到源码目录或用户缓存。
+# python -m wapr.download_assets downloads missing packs to the shared resource cache.
+# python -m wapr.download_assets 将缺少的数据包下载到共用资源缓存。
 # A run that needs one pack calls check_and_fetch_pack(name).
 # 某次运行仅需一份时，调用 check_and_fetch_pack(name)。
 # Full BOP test sets are not in this repo and are not downloaded here.
@@ -41,7 +41,7 @@ if os.path.isfile("/etc/network_turbo") and getproxies().get("https"):
     os.environ["NO_PROXY"] = ",".join(proxy_bypass_hosts)
     os.environ["no_proxy"] = os.environ["NO_PROXY"]
 
-from wapr.resources import resource_root, samples_dir, weights_dir
+from wapr.resources import resource_root, cache_dir, samples_dir, weights_dir
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS_DIR = ROOT / "assets"
@@ -190,11 +190,11 @@ def _place_weight_license():
 
 def _marker(name):
     """
-    # Path that means this pack is already in the release tree.
+    # Marker path in the shared resource cache; pack_ready checks required files too.
 
     ## Args
 
-        - name: wapr_sapr_wbps, pose_lmo, or a small BOP pack: lmo, ycbv, tless, tudl. wapr_sapr_wbps looks for assets/weights/wapr_w_mask.pth. pose_lmo looks for samples/pose_lmo/meta.json. A BOP sample marker is samples/bop/<name>/PROVENANCE.txt.
+        - name: wapr_sapr_wbps, pose_lmo, or a small BOP pack: lmo, ycbv, tless, tudl. Markers live under cache/weights/ and cache/samples/.
 
     ## Returns
 
@@ -202,11 +202,11 @@ def _marker(name):
 
     ---
 
-    # 该路径上的文件若存在，即表示该示例包已在发布目录中。
+    # 共用资源缓存中的标记路径；pack_ready 还检查实际所需文件。
 
     ## 参数
 
-        - name: wapr_sapr_wbps、pose_lmo，或 BOP 小样本包：lmo、ycbv、tless、tudl。wapr_sapr_wbps 的标记是 assets/weights/wapr_w_mask.pth；pose_lmo 的标记是 samples/pose_lmo/meta.json；BOP 小样本的标记是 samples/bop/<name>/PROVENANCE.txt。
+        - name: wapr_sapr_wbps、pose_lmo，或 BOP 小样本包：lmo、ycbv、tless、tudl。标记位于 cache/weights/ 与 cache/samples/。
 
     ## 返回
 
@@ -235,7 +235,7 @@ def pack_ready(name):
     ## 参数
 
         - name 与 _marker 相同。
-        - wapr_sapr_wbps 在 assets/weights/ 下四份位姿权重均存在时视为就绪。
+        - wapr_sapr_wbps 在 cache/weights/ 下四份位姿权重均存在时视为就绪。
         - pose_lmo 需要第一节课使用的五个文件。
         - lmo 需要两帧、CAD 及已公布的 2D 检测摘录。
         - 其他 BOP 小样也检查相机、RGB、深度和物体网格文件。
@@ -307,7 +307,7 @@ def _local_source(name):
 
 def _place_local(name, source):
     """
-    # Copy one pack from assets/hf/ into assets/weights/ or samples/. Returns None.
+    # Copy one local pack into cache/weights/ or cache/samples/. Returns None.
 
         name selects the destination.
 
@@ -315,7 +315,7 @@ def _place_local(name, source):
 
     ---
 
-    # 将一份示例包从 assets/hf/ 复制到 assets/weights/ 或 samples/。
+    # 将一份本地示例包复制到 cache/weights/ 或 cache/samples/。
 
         name 决定目标位置。
 
@@ -378,7 +378,7 @@ def _patterns(names):
 
 def _place_download(staging, names):
     """
-    # Copy fetched packs out of the snapshot directory into assets/weights/ or samples/. Returns None.
+    # Copy fetched packs from the snapshot into cache/weights/ or cache/samples/. Returns None.
 
     ## Args
 
@@ -387,7 +387,7 @@ def _place_download(staging, names):
 
     ---
 
-    # 将已下载的示例包从快照目录复制到 assets/weights/ 或 samples/。
+    # 将已下载的示例包从快照目录复制到 cache/weights/ 或 cache/samples/。
 
     ## 参数
 
@@ -587,7 +587,7 @@ def download(names):
     # Stable download staging survives disconnects; files are placed only after
     # the Hub finishes the requested snapshot. Keep the existing resource root.
     # 固定下载暂存目录保留断线续传；Hub 完成请求后再放置文件，不改变现有资源根目录。
-    staging_dir = RESOURCE_ROOT / ".downloads" / "-".join(sorted(pending))
+    staging_dir = Path(cache_dir()) / "downloads" / "-".join(sorted(pending))
     staging_dir.mkdir(parents=True, exist_ok=True)
     with (staging_dir / ".lock").open("a") as download_lock:
         if os.name == "posix":
@@ -618,9 +618,9 @@ def check_and_fetch_pack(name):
     ## Args
 
         - name: which pack. The check and the files are different for each name.
-        - wapr_sapr_wbps: the four pose checkpoints. The check passes only when all four exist: assets/weights/wapr_w_mask.pth, wapr_wo_mask.pth, sapr.pth, and wbps.pth. These are WAPR with a mask, WAPR without a mask, SAPR, and WBPS. One missing file fetches all four again.
-        - pose_lmo: one LM-O frame in meters, for examples/02_one_category_one_instance.py. The check passes when meta.json, rgb.png, depth.npy, model.ply, and mask.png all exist under samples/pose_lmo/.
-        - lmo, ycbv, tless, tudl: one BOP frame each. The check passes when samples/bop/<name>/PROVENANCE.txt exists. The frame lands under samples/bop/<name>/. This is not the full test set.
+        - wapr_sapr_wbps: the four pose checkpoints in cache/weights/: wapr_w_mask.pth, wapr_wo_mask.pth, sapr.pth, and wbps.pth. These are WAPR with a mask, WAPR without a mask, SAPR, and WBPS. One missing file fetches all four again.
+        - pose_lmo: one LM-O frame in meters, for examples/02_one_category_one_instance.py. Required files live under cache/samples/pose_lmo/.
+        - lmo, ycbv, tless, tudl: small BOP packs under cache/samples/bop/<name>/, checked with their required files. These are not full test sets.
 
     ## Returns
 
@@ -643,9 +643,9 @@ def check_and_fetch_pack(name):
     ## 参数
 
         - name: 所获取的数据包。每个名字检查的文件和写入的位置均不同。
-        - wapr_sapr_wbps: 四份位姿权重。四份均存在时检查通过：assets/weights/wapr_w_mask.pth、wapr_wo_mask.pth、sapr.pth、wbps.pth。它们是带 mask 的 WAPR、不带 mask 的 WAPR、SAPR、WBPS。任一文件缺失时，四份均重新获取。
-        - pose_lmo: 一帧 LM-O，单位为米，供 examples/02_one_category_one_instance.py 使用。samples/pose_lmo/ 下的 meta.json、rgb.png、depth.npy、model.ply、mask.png 全部存在时检查通过。
-        - lmo、ycbv、tless、tudl: 各对应一帧 BOP。samples/bop/<名称>/PROVENANCE.txt 存在时检查通过。该帧写入 samples/bop/<名称>/。并非完整测试集。
+        - wapr_sapr_wbps: cache/weights/ 下四份位姿权重 wapr_w_mask.pth、wapr_wo_mask.pth、sapr.pth、wbps.pth。它们是带 mask 的 WAPR、不带 mask 的 WAPR、SAPR、WBPS。任一文件缺失时，四份均重新获取。
+        - pose_lmo: 一帧 LM-O，单位为米，供示例 02 使用；所需文件位于 cache/samples/pose_lmo/。
+        - lmo、ycbv、tless、tudl: cache/samples/bop/<名称>/ 下的 BOP 小样，检查实际所需文件，不下载完整测试集。
 
     ## 返回
 

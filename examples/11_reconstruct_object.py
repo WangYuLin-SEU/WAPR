@@ -20,8 +20,8 @@
 # 入口导入阶段函数；基础环境不兼容 SAM 时，仅该阶段使用独立工作进程。
 # Language prompts and observation-only RoMa are stages in this same entry.
 # 语言提示与仅用观测的 RoMa 均为本入口的内部阶段。
-# Predicted meshes go under the resource cache's outputs/reconstruct_object/<object>/prediction/.
-# 预测模型写入资源缓存中的 outputs/reconstruct_object/<object>/prediction/。
+# Predicted meshes go under outputs/11_reconstruct_object/<object>/prediction/.
+# 预测模型写入 outputs/11_reconstruct_object/<object>/prediction/。
 # Page assets are not rewritten. / 不改写页面现成资源。
 import importlib
 import hashlib
@@ -42,7 +42,8 @@ if CASE_DIR not in sys.path:
 if RELEASE_DIR not in sys.path:
     sys.path.insert(0, RELEASE_DIR)
 
-from wapr.resources import resource_root
+from wapr.resources import resource_root, outputs_dir, samples_dir
+from wapr import recipe
 
 from step01_point_mask import (  # noqa: E402
     DATA_ROOT,
@@ -97,9 +98,9 @@ TOTAL_SCALE_BOUNDS = (0.70, 1.30)
 MATCH_PAD_PX = 36
 MIN_CERT = 0.25
 device = "cuda:0"
-# Installed recipes share writable reconstruction outputs with example 12.
-# 已安装配方与示例 12 共用可写的重建输出目录。
-OUT_DIR = os.path.join(resource_root(), "outputs", "reconstruct_object")
+# Example 12 reads this reconstruction; its visualization outputs stay separate.
+# 示例 12 读取本例重建结果，但可视化输出各自保存。
+OUT_DIR = outputs_dir(__file__)
 POINTS_PATH = os.path.join(CASE_DIR, "selected_points.json")
 with open(POINTS_PATH, "r", encoding="utf-8") as stream:
     saved_points = json.load(stream)
@@ -343,18 +344,22 @@ def choose_size(estimator, rgb, depth_m, mask, k, mesh, row):
 
 
 if __name__ == "__main__":
+    recipe.visualize_path = OUT_DIR
     # Run the script stages directly in the entry block.
     # 在入口块中直接执行脚本各阶段。
     from wapr.estimator import WAPREstimator
 
     # Fetch the selected built-in sequence; preserve custom frame paths.
     # 获取选中的内置序列；保留用户自定义帧路径。
-    from wapr.resources import samples_dir
-    if DATA_ROOT == os.path.join(samples_dir(), "YCBInEOAT"):
+    if DATA_ROOT == os.path.join(samples_dir(), "ycbineoat"):
         sequence = os.path.basename(os.path.dirname(FRAME_K))
         if sequence in ("cracker_box_reorient", "mustard_easy_00_02", "sugar_box1"):
-            from wapr.source_setup import prepare_ycbineoat
-            prepare_ycbineoat(sequence)
+            if sequence == "cracker_box_reorient":
+                from wapr.download_assets import _fetch_example_sample
+                _fetch_example_sample("ycbineoat_cracker_frame")
+            else:
+                from wapr.source_setup import prepare_ycbineoat
+                prepare_ycbineoat(sequence)
 
     # Select one recorded object and obtain its source RGB-D frame and mask.
     # 选择一个已记录物体，读取其源帧 RGB-D 与目标掩码。

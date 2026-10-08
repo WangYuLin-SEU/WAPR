@@ -1808,14 +1808,13 @@ def ensure_ogl():
                     digest.update(str(source_path.relative_to(native_dir)).encode("utf-8"))
                     digest.update(source_path.read_bytes())
         source_digest = digest.hexdigest()
-        from wapr.resources import resource_root, source_checkout
-        if not source_checkout:
-            # Source wheels may be installed read-only; build outside site-packages.
-            # 源码 wheel 可能安装在只读目录；在用户缓存编译，不修改 site-packages。
-            build_root = Path(resource_root()) / "native_build" / "ogl" / source_digest
-            build_root.mkdir(parents=True, exist_ok=True)
-            build_stamp = build_root / "build-source.sha256"
-            so = _find_so(build_root)
+        from wapr.resources import cache_dir
+        # Source and wheel builds share a writable, environment-specific cache.
+        # 源码与 wheel 都使用可写缓存；环境指纹区分编译结果。
+        build_root = Path(cache_dir()) / "native_build" / "ogl" / source_digest
+        build_root.mkdir(parents=True, exist_ok=True)
+        build_stamp = build_root / "build-source.sha256"
+        so = _find_so(build_root)
         if not build_stamp.is_file() or build_stamp.read_text().strip() != source_digest:
             if so is not None:
                 so.unlink()
@@ -1842,11 +1841,22 @@ def ensure_ogl():
             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=%s" % build,
             "-DPython3_EXECUTABLE=%s" % sys.executable,
         ]
-        if sys.platform == "win32":
+        ninja = shutil.which("ninja", path=build_env.get("PATH", ""))
+        if not ninja:
+            for candidate in (os.path.join(sys.prefix, "Scripts", "ninja.exe"),
+                              os.path.join(sys.prefix, "bin", "ninja")):
+                if os.path.isfile(candidate):
+                    ninja = candidate
+                    break
+        if sys.platform == "win32" or ninja:
             # Ninja plus the MSVC environment uses the bundled nvcc. The Visual Studio
             # generator looks for a CUDA toolset this pip toolkit does not install.
             # Ninja 配合 MSVC 环境使用随包 nvcc。Visual Studio 生成器要找的 CUDA 工具集，这个 pip 工具包没有。
+            # Linux may have Ninja without make; select the available builder explicitly.
+            # Linux 可能只有 Ninja、没有 make；显式选择已有构建工具。
             configure[1:1] = ["-G", "Ninja"]
+            if ninja:
+                configure.append("-DCMAKE_MAKE_PROGRAM=%s" % ninja)
         subprocess.check_call(configure + compiler_options, env=build_env)
         subprocess.check_call([cmake, "--build", str(build), "-j", "4"], env=build_env)
         so = _find_so(build_root)

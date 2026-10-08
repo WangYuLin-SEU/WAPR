@@ -42,7 +42,8 @@ bridge = importlib.import_module("14_bridge_tasks")
 known = importlib.import_module("13_known_mesh_place")
 
 
-PAGE_DIR = os.path.join(RELEASE_DIR, "pages", "demo", "robot")
+from wapr.resources import outputs_dir
+PAGE_DIR = outputs_dir(__file__)
 # Local gripper drawing, meters. +X is the approach, down. +Y is the finger gap.
 # 画出来的夹爪，米。+X 是接近方向，朝下。+Y 是指缝。
 # Local +X points down, at the object. The palm and the approach sit on -X, above it.
@@ -125,11 +126,11 @@ def draw_segments(canvas, segments, extrinsic, camera_k, color):
 if __name__ == "__main__":
     # This case visualizes grasps from saved WAPR poses; physical execution is in 13–15.
     # 本例基于保存的 WAPR 位姿绘制虚拟抓取，实际机械臂执行流程在 13–15 中。
-    root = os.path.join(RELEASE_DIR, "outputs")
+    root = outputs_dir()
     for folder, closing_mode, stem in (
-        (os.path.join(root, "sim_bridge_tasks", "carrot"), "thin", "carrot"),
-        (os.path.join(root, "sim_bridge_tasks", "eggplant"), "thin", "eggplant"),
-        (os.path.join(root, "sim_xarm_cube", "cube"), "world_y", "xarm_cube"),
+        (os.path.join(root, "14_bridge_tasks", "carrot"), "thin", "carrot"),
+        (os.path.join(root, "14_bridge_tasks", "eggplant"), "thin", "eggplant"),
+        (os.path.join(root, "15_xarm_cube", "cube"), "world_y", "xarm_cube"),
     ):
         # 1. Load the saved camera frame and estimated object-to-camera pose from 14/15.
         # 1. 读取 14/15 保存的相机帧与估计的物体到相机位姿。
@@ -171,7 +172,8 @@ if __name__ == "__main__":
                 frame[mask > 0] = (255, 210, 0)
             draw_segments(frame, segments, extrinsic, camera_k, (0, 190, 255))
             name = "%s_grasp.jpg" % stem if lang == "zh" else "%s_grasp_en.jpg" % stem
-            path = os.path.join(PAGE_DIR, name)
+            os.makedirs(outputs_dir(__file__), exist_ok=True)
+            path = os.path.join(outputs_dir(__file__), name)
             if not cv2.imwrite(path, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)):
                 raise OSError("Cannot write grasp image: " + path)
             print("WROTE", path, "frame", row["i"], flush=True)

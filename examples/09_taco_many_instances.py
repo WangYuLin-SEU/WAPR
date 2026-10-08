@@ -31,7 +31,7 @@ sys.path.insert(0, release_dir)
 from wapr import WAPREstimator, recipe
 from wapr.bootstrap import ensure_optional
 from wapr.download_assets import check_and_fetch_pack
-from wapr.resources import samples_dir
+from wapr.resources import samples_dir, outputs_dir
 from wapr.det2d import default_weights_dir
 from wapr.estimator import center_from_mesh
 from wapr.region_tracking import (
@@ -44,7 +44,7 @@ from wapr.view import save_pose_view
 
 # Prepared excerpt root; all inputs derive from this path. / 小样根目录；输入由此派生。
 data_root = os.path.join(samples_dir(), "taco")
-output_dir = os.path.join(release_dir, "outputs", "taco_many_instances")
+output_dir = outputs_dir(__file__)
 device = "cuda:0"
 # Raw frame indices, end exclusive. The selected excerpt starts at raw frame 80.
 # 原始帧号，终点不包含；选定摘录从原始第 80 帧开始，不将其写成原始第 0 帧。
@@ -134,6 +134,7 @@ def mesh_counters(estimator):
 
 
 if __name__ == "__main__":
+    recipe.visualize_path = output_dir
     # Ultralytics SAM belongs to the optional detection stack, not the base wheel.
     # Ultralytics SAM 属于可选检测环境，不属于基础 wheel 依赖。
     ensure_optional("det2d")

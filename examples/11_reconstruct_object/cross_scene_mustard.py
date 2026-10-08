@@ -22,6 +22,7 @@ import sys
 
 import numpy as np
 import torch
+import wapr
 
 
 DEMO_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -32,26 +33,29 @@ if DEMO_DIR not in sys.path:
     sys.path.insert(0, DEMO_DIR)
 
 from step01_point_mask import mesh_diameter_m, project_silhouette  # noqa: E402
+from wapr.resources import outputs_dir, samples_dir, cache_dir
 
 
 # Scene A supplies an independent meter-scale prediction with its saved appearance.
 # A 场景提供独立的米制预测网格，并保留其保存的外观。
-MESH_STEM = os.path.join(RELEASE_DIR, "outputs", "reconstruct_object", "mustard", "prediction", "mesh")
+MESH_STEM = os.path.join(outputs_dir("11_reconstruct_object"), "mustard", "prediction", "mesh")
 SCENE_A_RGB = os.path.join(
-    os.path.join(RELEASE_DIR, "datasets", "YCBInEOAT"), "mustard0", "rgb", "1581120424100262102.png",
+    os.path.join(samples_dir(), "ycbineoat"), "mustard0", "rgb", "1581120424100262102.png",
 )
 # Scene B is one YCB-V test frame. Five objects are visible. The mustard is obj 5.
 # B 场景是 YCB-V 测试集的一帧。画面里有五个物体。芥末瓶是 5 号。
-BOP_ROOT = os.path.join(RELEASE_DIR, "datasets", "bop")
+BOP_ROOT = os.path.join(samples_dir(), "bop")
 SCENE_ID = 50
 IM_ID = 1130
 # The library stores this one mesh under the YCB-V mustard id. The id is a label
 # on the bank, not a box given to the detector.
 # 库里这份网格用 YCB-V 芥末瓶的编号保存。这个编号是库的标签，不是交给检测器的框。
 OBJ_ID = 5
-BANK_PATH = os.path.join(RELEASE_DIR, "outputs", "cache", "det2d", "cross_mustard_ycbineoat_box12s.pt")
-OUT_DIR = os.path.join(RELEASE_DIR, "outputs", "cross_scene_pose", "mustard")
-FONT_PATH = os.path.join(RELEASE_DIR, "wapr", "fonts", "wqy-microhei.ttc")
+BANK_PATH = os.path.join(cache_dir(), "templates", "det2d", "cross_mustard_ycbineoat_box12s.pt")
+OUT_DIR = os.path.join(outputs_dir("11_reconstruct_object"), "stages", "cross_scene_mustard")
+# Exported recipes reuse the installed package font.
+# 导出的配方复用安装包内字体。
+FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(wapr.__file__)), "fonts", "wqy-microhei.ttc")
 DEVICE = "cuda:0"
 
 
@@ -566,66 +570,6 @@ def mute_low_pose_contours(photo, rows):
             photo[py, px] = low
 
 
-def paint_saved_scores():
-    """
-    # Label the saved cross-scene figures from result.json.
-
-        No function in WAPR calls it.
-
-    ## Args
-
-        - There are no arguments.
-
-    ## Returns
-
-        - Returns None.
-        - The return is None.
-        - detect.png, pose.png, and flow.png under pages/demo/cross are rewritten.
-        - No new pose is estimated.
-
-    ---
-
-    # 用已经写好的 result.json 给跨场景图标上分数。
-
-        WAPR 里没有函数调用它。
-
-    ## 参数
-
-        - 没有参数。
-
-    ## 返回
-
-        - 返回 None。
-        - 返回值是 None。
-        - pages/demo/cross 下的 detect.png、pose.png 和 flow.png 被重写。
-        - 不再估计一次位姿。
-    """
-    import cv2
-
-    out_dir = os.path.join(RELEASE_DIR, "pages", "demo", "cross")
-    with open(os.path.join(out_dir, "result.json"), encoding="utf-8") as stream:
-        rows = json.load(stream)["outputs"]
-    detect = cv2.imread(os.path.join(out_dir, "detect.png"), cv2.IMREAD_COLOR)
-    mark_score_rows(detect, rows, "score_2d", draw_box=True)
-    cv2.imwrite(os.path.join(out_dir, "detect.png"), detect)
-
-    pose = cv2.imread(os.path.join(out_dir, "pose.png"), cv2.IMREAD_COLOR)
-    photo_w = detect.shape[1]
-    mute_low_pose_contours(pose[:, :photo_w], rows)
-    mark_score_rows(pose[:, :photo_w], rows, "score_6d", draw_box=False)
-    best_pose = max(float(row["score_6d"]) for row in rows)
-    paint_score_badge(pose, "%.2f" % best_pose, photo_w + 24, 28, True)
-    cv2.imwrite(os.path.join(out_dir, "pose.png"), pose)
-
-    flow = cv2.imread(os.path.join(out_dir, "flow.png"), cv2.IMREAD_COLOR)
-    tile_w, tile_h = 640, 480
-    gap = 56
-    title_h = 156
-    detect_left = gap + 2 * (tile_w + gap)
-    pose_left = gap + 3 * (tile_w + gap)
-    flow[title_h:title_h + tile_h, detect_left:detect_left + tile_w] = detect
-    flow[title_h:title_h + tile_h, pose_left:pose_left + tile_w] = pose[:, :photo_w]
-    cv2.imwrite(os.path.join(out_dir, "flow.png"), flow)
 
 
 def draw_pose_zoom(pose_bgr, mesh, pose, K, path):

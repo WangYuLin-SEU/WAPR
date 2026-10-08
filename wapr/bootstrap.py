@@ -2,11 +2,14 @@
 # SPDX-License-Identifier: LGPL-2.1-only
 """Prepare an installed WAPR source wheel in the existing Python environment.
 
-核心使用当前 Python；SAM 在需要时准备兼容独立前缀，更换已有包须用户明确同意。
+核心及 SAM2 使用当前 Python；SAM3D 按需准备兼容独立前缀，更换已有包须用户明确同意。
 Run / 运行: python -m wapr.bootstrap
 """
 import ctypes.util
 import argparse
+import glob
+import hashlib
+import html
 import importlib.util
 import json
 import os
@@ -18,6 +21,7 @@ import sys
 import tempfile
 from pathlib import Path
 from urllib.error import HTTPError, URLError
+from urllib.parse import unquote, urljoin, urlsplit
 from urllib.request import ProxyHandler, Request, build_opener
 
 
@@ -32,15 +36,26 @@ def _find_nvcc():
     nvcc = shutil.which("nvcc")
     if nvcc:
         return nvcc
-    candidates = ["/usr/local/cuda/bin/nvcc"]
+    candidates = []
     for variable in ("CUDA_HOME", "CUDA_PATH"):
         toolkit = os.environ.get(variable, "").strip()
         if toolkit:
             candidates.extend(os.path.join(toolkit, "bin", name) for name in ("nvcc.exe", "nvcc"))
-    nvidia_root = os.path.join(sys.prefix, "Lib", "site-packages", "nvidia")
-    if os.path.isdir(nvidia_root):
-        for entry in os.listdir(nvidia_root):
-            candidates.append(os.path.join(nvidia_root, entry, "bin", "nvcc.exe"))
+    # Discover versioned system toolkits and packages in the current interpreter.
+    # 搜索系统多版本工具包与当前解释器中的包，不绑定某个机器路径。
+    import sysconfig
+    roots = [sys.prefix, os.path.join(sys.prefix, "Library")]
+    if sys.platform == "win32":
+        roots.extend(glob.glob(os.path.join(os.environ.get("ProgramFiles", "C:\\Program Files"),
+                                           "NVIDIA GPU Computing Toolkit", "CUDA", "v*")))
+    else:
+        roots.extend(glob.glob("/usr/local/cuda*"))
+        roots.extend(glob.glob("/opt/cuda*"))
+    for package_root in set(sysconfig.get_paths().get(key, "") for key in ("purelib", "platlib")):
+        if package_root:
+            roots.extend(glob.glob(os.path.join(package_root, "nvidia", "*")))
+    for root in roots:
+        candidates.extend(os.path.join(root, "bin", name) for name in ("nvcc", "nvcc.exe"))
     for candidate in candidates:
         if candidate and os.path.isfile(candidate):
             return candidate
@@ -112,14 +127,6 @@ def prepare_feature(feature, allow_replacement=None, check_only=False):
                                                        check_only=check_only)
         from wapr.reconstruction_setup import prepare_reconstruction
         return prepare_reconstruction(allow_replacement=allow_replacement, check_only=check_only)
-    if feature == "sam2":
-        import torch
-        from packaging.version import Version
-        if Version(torch.__version__.split("+", 1)[0]) < Version("2.5.1") or sys.version_info[:2] < (3, 10):
-            # Older pose environments use an independent SAM2 worker.
-            # 较旧的位姿环境使用独立 SAM2 工作进程。
-            from wapr.sam2_isolated import prepare_environment
-            return prepare_environment(allow_replacement=allow_replacement, check_only=check_only)
     if feature == "roma":
         from wapr.sam3d_isolated import SAM3D_ENV_ROOT
         if os.path.realpath(sys.prefix) != os.path.realpath(SAM3D_ENV_ROOT):
@@ -147,12 +154,12 @@ def prepare_feature(feature, allow_replacement=None, check_only=False):
     if not check_only and feature in _prepared_optional:
         return {"feature": feature, "status": "ready"}
     source = None
-    if feature in ("sam2", "roma"):
+    if feature == "roma":
         from wapr.source_setup import prepare_source
         if check_only:
-            from wapr.resources import resource_root, source_checkout
-            source_name = "sam2" if feature == "sam2" else "RoMa"
-            source_parent = os.path.join(resource_root(), "third_party" if source_checkout else "sources")
+            from wapr.resources import cache_dir
+            source_name = "RoMa"
+            source_parent = os.path.join(cache_dir(), "sources")
             candidate = os.path.join(source_parent, source_name)
             if os.path.isdir(candidate):
                 source = prepare_source(feature)
@@ -178,19 +185,15 @@ def prepare_feature(feature, allow_replacement=None, check_only=False):
         return result
     if result.get("status") not in ("ready", "installed"):
         return result
-    if feature == "unipose9d" and result.get("existing_source_api"):
-        _prepared_optional.add(feature)
-        return result
     # Source-based projects stay outside site-packages and outside the wheel.
     # 源码项目放在资源目录，不打进 wheel；使用当前解释器解析其实际依赖。
-    if feature in ("dinov2", "det2d", "sam2", "roma", "unipose9d"):
+    if feature in ("det2d", "roma", "unipose9d") and not result.get("existing_source_api"):
         from wapr.source_setup import prepare_source
         if source is None:
             source = prepare_source(feature)
         result["source"] = source
         if feature == "det2d":
-            parent = os.path.dirname(source)
-            source_paths = [source, os.path.join(parent, "ultralytics"), os.path.join(parent, "dinov2")]
+            source_paths = [source]
         elif feature == "unipose9d":
             source_paths = [os.path.join(source, "infer")]
         else:
@@ -249,6 +252,74 @@ def cuda_device_index():
     return index
 
 
+def _tensorrt_requirements(cuda_major):
+    """Reuse verified NVIDIA wheels instead of downloading them again for metadata.
+
+    复用已校验的 NVIDIA wheel，避免解析元数据与安装时重复下载大型库。
+    Match the existing version bounds, Python ABI and OS; keep the upstream fallback.
+    按已有版本范围、Python ABI 和系统匹配；目录不可用时保留上游安装方式。
+    """
+    from packaging.tags import sys_tags
+    from packaging.utils import parse_wheel_filename, canonicalize_name
+    from packaging.version import Version
+    from wapr.resources import cache_dir
+    import urllib.request
+
+    family = "tensorrt-cu%d" % cuda_major
+    fallback = [family + ">=10,<11"]
+    if os.environ.get("WHEEL_STUB_PIP_INDEX_URL"):
+        return fallback
+    compatible_tags = set(sys_tags())
+    catalogs = []
+    try:
+        for suffix in ("libs", "bindings"):
+            name = family + "-" + suffix
+            index = "https://pypi.nvidia.com/" + name + "/"
+            with urllib.request.urlopen(index, timeout=20) as response:
+                page = response.read().decode("utf-8")
+            candidates = {}
+            for href in re.findall(r'href=[\"\x27]([^\"\x27]+)', page):
+                url = urljoin(index, html.unescape(href))
+                parts = urlsplit(url)
+                filename = unquote(os.path.basename(parts.path))
+                if not filename.endswith(".whl") or parts.hostname != "pypi.nvidia.com":
+                    continue
+                wheel_name, version, _, tags = parse_wheel_filename(filename)
+                digest = re.fullmatch(r"sha256=([0-9a-f]{64})", parts.fragment)
+                if (canonicalize_name(wheel_name) == name and digest is not None
+                        and Version("10") <= version < Version("11")
+                        and not version.is_prerelease and compatible_tags.intersection(tags)):
+                    candidates[version] = (name, filename, url, digest.group(1))
+            catalogs.append(candidates)
+    except (OSError, ValueError, URLError) as error:
+        print("WAPR_TENSORRT_ROUTE", {"route": "upstream", "reason": type(error).__name__}, flush=True)
+        return fallback
+    common_versions = set(catalogs[0]).intersection(catalogs[1])
+    if not common_versions:
+        return fallback
+    version = max(common_versions)
+    requirements = [family + "==" + str(version)]
+    directory = os.path.join(cache_dir(), "package_wheels", "tensorrt")
+    os.makedirs(directory, exist_ok=True)
+    from wapr.det2d import _download_file
+    for catalog in catalogs:
+        name, filename, url, expected_digest = catalog[version]
+        destination = os.path.join(directory, filename)
+        if not os.path.isfile(destination):
+            _download_file(url.split("#", 1)[0], destination)
+        digest = hashlib.sha256()
+        with open(destination, "rb") as stream:
+            for block in iter(lambda: stream.read(8 * 1024 * 1024), b""):
+                digest.update(block)
+        if digest.hexdigest() != expected_digest:
+            raise RuntimeError("NVIDIA TensorRT wheel checksum mismatch; retain and review the file"
+                               " / NVIDIA TensorRT wheel 校验失败，保留文件并检查: " + destination)
+        requirements.append(name + " @ " + Path(destination).as_uri() + "#sha256=" + expected_digest)
+    print("WAPR_TENSORRT_ROUTE", {"route": "verified_wheels", "version": str(version),
+                                  "python": sys.version.split()[0], "platform": sys.platform}, flush=True)
+    return requirements
+
+
 def prepare_runtime(allow_replacement=None):
     """Install missing pose dependencies and compile for the existing CUDA.
 
@@ -272,28 +343,29 @@ def prepare_runtime(allow_replacement=None):
     missing = []
     # OpenCV 4.12+ requires NumPy 2; retain preinstalled NumPy 1 environments.
     # OpenCV 4.12 之后要求 NumPy 2；保留镜像自带 NumPy 1 时选择兼容版本范围。
-    opencv_package = "opencv-python-headless"
+    # The default setup also prepares Ultralytics, which requires this cv2 provider.
+    # 默认准备包含 Ultralytics，使用其要求的 cv2 发行，避免首次准备再次切换发行。
+    opencv_package = "opencv-python"
     try:
         if int(metadata.version("numpy").split(".")[0]) < 2:
             opencv_package += "<4.12"
     except metadata.PackageNotFoundError:
         pass
     for module, package in [("numpy", "numpy"), ("scipy", "scipy"), ("trimesh", "trimesh"), ("PIL", "Pillow"),
-                            ("huggingface_hub", "huggingface-hub"), ("kornia", "kornia"),
+                            ("huggingface_hub", "huggingface-hub>=0.34,<1"), ("kornia", "kornia"),
                             ("cv2", opencv_package)]:
         if importlib.util.find_spec(module) is None:
             missing.append(package)
     # TensorRT provides separate CUDA families. Select from the existing torch
     # CUDA runtime; its own packages are downloaded rather than bundled here.
     # TensorRT 分 CUDA 家族发行；按已有 torch 的 CUDA 运行时选包，不打进本 wheel。
-    from wapr.recipe import resolve_backend
-    use_trt = resolve_backend() == "trt"
+    use_trt = True
     cuda_major = int(original_cuda.split(".")[0])
     if renderer == "ogl":
         if use_trt and cuda_major not in (11, 12, 13):
             raise RuntimeError("Unverified TensorRT CUDA family / 未验证的 TensorRT CUDA 家族")
         if use_trt and importlib.util.find_spec("tensorrt") is None:
-            missing.append("tensorrt-cu%d>=10,<11" % cuda_major)
+            missing.extend(_tensorrt_requirements(cuda_major))
         if importlib.util.find_spec("pybind11") is None:
             missing.append("pybind11>=2.10")
         cmake_path = shutil.which("cmake") or os.path.join(sys.prefix, "Scripts", "cmake.exe")
@@ -305,9 +377,13 @@ def prepare_runtime(allow_replacement=None):
                 cmake_version = tuple(int(value) for value in cmake_match.groups())
         if cmake_version < (3, 18):
             missing.append("cmake>=3.18")
-        if sys.platform == "win32":
-            ninja_path = shutil.which("ninja") or os.path.join(sys.prefix, "Scripts", "ninja.exe")
-            if not os.path.isfile(ninja_path):
+        ninja_candidates = [shutil.which("ninja") or "",
+                            os.path.join(sys.prefix, "Scripts", "ninja.exe"),
+                            os.path.join(sys.prefix, "bin", "ninja")]
+        if not any(path and os.path.isfile(path) for path in ninja_candidates):
+            # Linux can use make; install Ninja only when neither builder is present.
+            # Linux 可以用 make；两种构建工具都没有时才安装 Ninja。Windows 使用 Ninja。
+            if sys.platform == "win32" or shutil.which("make") is None:
                 missing.append("ninja")
     if importlib.util.find_spec("onnx") is None and use_trt:
         missing.append("onnx")
@@ -323,9 +399,15 @@ def prepare_runtime(allow_replacement=None):
         # Missing EGL/GL development headers are system prerequisites, not wheel contents.
         # EGL/GL 开发头文件是系统前置条件，不打进 wheel；缺项才安装。Windows 用系统自带的 opengl32。
         system_packages = []
-        for header, package in [("/usr/include/EGL/egl.h", "libegl1-mesa-dev"),
-                                 ("/usr/include/GL/gl.h", "libgl1-mesa-dev")]:
-            if not os.path.isfile(header):
+        include_roots = [os.path.join(sys.prefix, "include"), "/usr/include", "/usr/local/include"]
+        for variable in ("CPATH", "C_INCLUDE_PATH", "CPLUS_INCLUDE_PATH"):
+            include_roots.extend(path for path in os.environ.get(variable, "").split(os.pathsep) if path)
+        for prefix in os.environ.get("CMAKE_PREFIX_PATH", "").split(os.pathsep):
+            if prefix:
+                include_roots.append(os.path.join(prefix, "include"))
+        for header, package in [(os.path.join("EGL", "egl.h"), "libegl1-mesa-dev"),
+                                 (os.path.join("GL", "gl.h"), "libgl1-mesa-dev")]:
+            if not any(os.path.isfile(os.path.join(root, header)) for root in include_roots):
                 system_packages.append(package)
         if shutil.which("g++") is None:
             system_packages.append("g++")
@@ -343,6 +425,29 @@ def prepare_runtime(allow_replacement=None):
         from wapr.source_setup import prepare_raster_source
         prepare_raster_source(allow_replacement=allow_replacement)
     print("WAPR_RUNTIME_READY", {"torch": original_torch, "torch_cuda": original_cuda, "renderer": renderer}, flush=True)
+
+
+def _expose_pip_cuda_sonames(cuda_root):
+    """Supply the unversioned linker names missing from pip CUDA runtime wheels.
+
+    为 pip CUDA 运行库补齐 CMake 查找的无版本链接名称；不修改系统工具包。
+    """
+    if sys.platform != "linux" or "site-packages" not in cuda_root.replace("\\", "/").lower():
+        return
+    libdir = os.path.join(cuda_root, "lib")
+    if not os.path.isdir(libdir):
+        return
+    for filename in sorted(os.listdir(libdir)):
+        stem, separator, version = filename.partition(".so.")
+        if not separator or not version[:1].isdigit() or not stem.startswith("lib"):
+            continue
+        link_path = os.path.join(libdir, stem + ".so")
+        if os.path.lexists(link_path):
+            continue
+        try:
+            os.symlink(filename, link_path)
+        except OSError as error:
+            raise RuntimeError("Cannot expose CUDA linker name / 无法创建 CUDA 链接名称: " + link_path) from error
 
 
 def ensure_cuda_build_stack():
@@ -378,6 +483,7 @@ def ensure_cuda_build_stack():
         result = install_requirements([package])
         if result.get("status") not in ("ready", "installed"):
             raise RuntimeError("CUDA headers preparation stopped / CUDA 头文件准备已停止: " + json.dumps(result, ensure_ascii=False))
+    _expose_pip_cuda_sonames(cuda_root)
     return nvcc
 
 
@@ -409,9 +515,8 @@ def native_build_options():
                                 "torch_cuda": torch.version.cuda, "gpu_sm": target_sm,
                                 "cmake_architecture": architecture,
                                 "pybind11": metadata.version("pybind11")}, flush=True)
-    options = ["-DCMAKE_CUDA_COMPILER=" + nvcc, "-DCMAKE_CUDA_ARCHITECTURES=" + architecture]
-    if sys.platform == "win32":
-        options.append("-DCUDAToolkit_ROOT=" + os.path.dirname(os.path.dirname(nvcc)))
+    options = ["-DCMAKE_CUDA_COMPILER=" + nvcc, "-DCMAKE_CUDA_ARCHITECTURES=" + architecture,
+               "-DCUDAToolkit_ROOT=" + os.path.dirname(os.path.dirname(nvcc))]
     return options
 
 
@@ -492,7 +597,7 @@ def fetch_example():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Prepare WAPR in the existing Python / 在当前 Python 准备 WAPR")
-    parser.add_argument("--feature", nargs="+", default=["core"], choices=[
+    parser.add_argument("--feature", nargs="+", default=["core", "dinov2", "det2d", "sam2", "roma", "qwen", "unipose9d"], choices=[
         "core", "dinov2", "det2d", "sam2", "sam3d", "roma", "qwen", "robot", "unipose9d", "compatible"])
     parser.add_argument("--check", action="store_true", help="Inspect without installing / 只检查，不安装")
     parser.add_argument("--yes", action="store_true", help="Explicitly approve shown package replacements / 明确同意包更换")
@@ -503,3 +608,31 @@ if __name__ == "__main__":
         print("WAPR_PREPARATION", json.dumps(preparation, ensure_ascii=False), flush=True)
         if preparation.get("status") in ("blocked", "declined", "failed", "approval_required", "restart_required", "partial", "needs_source", "dependencies_ready") and not arguments.check:
             raise SystemExit(1)
+        if not arguments.check:
+            # Explicit setup fetches assets; first-use checks retain caller-selected paths.
+            # 显式准备时获取资源；首次调用检查保留调用者选定的路径。
+            if requested_feature == "dinov2":
+                from wapr.det2d import default_weights_dir, prepare_dino_weight
+                prepare_dino_weight(default_weights_dir)
+            elif requested_feature == "det2d":
+                from wapr.det2d import default_weights_dir, prepare_det2d_weights
+                prepare_det2d_weights(default_weights_dir)
+            elif requested_feature == "sam2":
+                from wapr.source_setup import prepare_sam2_weights
+                prepare_sam2_weights()
+            elif requested_feature == "roma":
+                # Explicit setup fetches matching weights without running the matcher.
+                # 显式准备时获取匹配权重，不执行匹配；复用已校验的检测器 DINOv2。
+                from wapr.roma_isolated import _matching_weights
+                _matching_weights("cpu")
+            elif requested_feature == "qwen":
+                from wapr.source_setup import prepare_qwen_weights
+                prepare_qwen_weights()
+            elif requested_feature == "unipose9d":
+                from wapr.source_setup import prepare_unipose_weights
+                prepare_unipose_weights()
+    if "core" in arguments.feature and not arguments.check:
+        # Download the shared demo packs after environment preparation succeeds.
+        # 环境准备成功后下载共用小样，不在 pip 安装钩子中执行。
+        from wapr.download_assets import main as download_demo_assets
+        download_demo_assets()

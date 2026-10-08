@@ -48,10 +48,11 @@ if SAM3D_ROOT not in sys.path:
 
 
 from wapr.resources import samples_dir
-DATA_ROOT = os.environ.get("RECON_DATA_ROOT", os.path.join(samples_dir(), "YCBInEOAT"))
+DATA_ROOT = os.environ.get("RECON_DATA_ROOT", os.path.join(samples_dir(), "ycbineoat"))
 DATA_ROOT = os.path.abspath(os.path.join(RELEASE_DIR, DATA_ROOT))
-PAGE = os.path.join(RELEASE_DIR, "pages", "demo", "reconstruct")
-OUT_DIR = os.path.join(RELEASE_DIR, "outputs", "reconstruction_stages", "short_texture")
+from wapr.resources import outputs_dir
+PAGE = os.path.join(outputs_dir("11_reconstruct_object"), "stages", "step01_point_mask")
+OUT_DIR = os.path.join(outputs_dir("11_reconstruct_object"), "stages", "short_texture")
 
 # Official Gaussian bake. Views, render size, optimizer steps, and the saved texture.
 # 官方高斯烘焙。视角数、渲染边长、优化步数，以及保存的贴图边长。
@@ -268,111 +269,8 @@ def apply_bake_budget():
     postprocessing_utils.TEXTURE_BAKE_MODE = BAKE_MODE
 
 
-def repair_published_textures():
-    """
-    # Fill black texels on the three page meshes and redraw the pairs.
-
-    ## Args
-
-        - There are no arguments.
-
-    ## Returns
-
-        - Returns None.
-        - The return is None.
-        - Geometry and the stored pose files stay.
-        - The page viewer bins and pair pictures are rewritten.
-
-    ---
-
-    # 补上页面上三个网格贴图里的黑纹素，并重画对照图。
-
-    ## 参数
-
-        - 没有参数。
-
-    ## 返回
-
-        - 返回 None。
-        - 返回值是 None。
-        - 几何和已保存的位姿文件保持不动。
-        - 页面上的查看器 bin 和对照图被重写。
-
-"""
-    from PIL import Image
-    from pose_frame_align import CRACKER_PAIR_YAW, draw_pair, load_viewer_mesh
-    from sam3d_objects.model.backbone.tdfy_dit.utils.postprocessing_utils import (
-        fill_unbaked_holes,
-    )
-    from step01_point_mask import save_viewer_mesh
-
-    import trimesh
-
-    page = os.path.join(RELEASE_DIR, "pages", "demo", "reconstruct")
-    stems = {"cracker": "aligned", "sugar": "sugar", "mustard": "mustard"}
-    for name, stem in stems.items():
-        mesh = load_viewer_mesh(os.path.join(page, stem))
-        # The page jpeg was already partly filled. The glb still has the bake.
-        # 页面上的 jpeg 已经被补过一次。glb 里仍是烘焙原图。
-        baked = trimesh.load(os.path.join(OUT_DIR, name + ".glb"), force="mesh", process=False)
-        image = np.asarray(baked.visual.material.baseColorTexture.convert("RGB"))
-        filled = fill_unbaked_holes(image, np.asarray(mesh.visual.uv), np.asarray(mesh.faces))
-        mesh.visual.material.image = Image.fromarray(filled)
-        save_viewer_mesh(mesh, os.path.join(page, stem))
-        cad_name = {"cracker": "cad", "sugar": "sugar_cad", "mustard": "mustard_cad"}[name]
-        cad = load_viewer_mesh(os.path.join(page, cad_name))
-        draw_pair(
-            mesh,
-            cad,
-            os.path.join(page, "pair_" + name + ".png"),
-            CRACKER_PAIR_YAW if name == "cracker" else 0.0,
-        )
-        dark = int(((filled.sum(axis=2) < 48)).sum())
-        print(name, "remaining_below_color", dark, flush=True)
-    redraw_cross_flow()
 
 
-def redraw_cross_flow():
-    """
-    # Replace the mesh panel in the saved cross-scene figure.
-
-    ## Args
-
-        - There are no arguments.
-
-    ## Returns
-
-        - Returns None.
-        - The return is None.
-        - Detection pixels already stored in detect.png and pose.png are copied into the figure.
-
-    ---
-
-    # 替换已保存的跨场景图里的网格那一格。
-
-    ## 参数
-
-        - 没有参数。
-
-    ## 返回
-
-        - 返回 None。
-        - 返回值是 None。
-        - detect.png 和 pose.png 里已经存好的检测像素被抄进这张图。
-
-"""
-    import cv2
-    from cross_scene_mustard import SCENE_A_RGB, draw_figure
-    from pose_frame_align import load_viewer_mesh
-
-    page = os.path.join(RELEASE_DIR, "pages", "demo")
-    mesh = load_viewer_mesh(os.path.join(page, "reconstruct", "mustard"))
-    scene_a = cv2.cvtColor(cv2.imread(SCENE_A_RGB, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
-    cross = os.path.join(page, "cross")
-    box_bgr = cv2.imread(os.path.join(cross, "detect.png"), cv2.IMREAD_COLOR)
-    pose_bgr = cv2.imread(os.path.join(cross, "pose.png"), cv2.IMREAD_COLOR)
-    draw_figure(scene_a, mesh, pose_bgr, box_bgr, pose_bgr, os.path.join(cross, "flow.png"))
-    print("flow", flush=True)
 
 
 
@@ -380,9 +278,6 @@ def redraw_cross_flow():
 if __name__ == "__main__":
     # Run the script stages directly in the entry block.
     # 在入口块中直接执行脚本各阶段。
-    if os.environ.get("REPAIR_TEXTURE") == "1":
-        repair_published_textures()
-        raise SystemExit(0)
     os.makedirs(OUT_DIR, exist_ok=True)
     apply_bake_budget()
     session = Sam3dSession(device="cuda:0").load()

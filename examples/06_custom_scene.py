@@ -28,13 +28,14 @@ from wapr import WAPREstimator
 from wapr import recipe
 from wapr.det2d import WAPRDet2D, onboard_meshes
 from wapr.download_assets import check_and_fetch_pack
-from wapr.resources import samples_dir
+from wapr.resources import samples_dir, outputs_dir
 from wapr.frame import estimate_frame_many_categories_many_instances
 from wapr.scene_files import load_scene
 from wapr.view import save_pose_view, visualize_2d_detection
 
 
 if __name__ == "__main__":
+    recipe.visualize_path = outputs_dir(__file__)
     print("example 06  previous examples/05_bop_6d_detection.py  next examples/07_write_bop_pose_csv.py", flush=True)
     # The default is an adapter of LM-O scene 2, image 307, with eight existing meshes.
     # Replace scene_dir with your own folder; paths are relative to the release root.
@@ -47,7 +48,8 @@ if __name__ == "__main__":
     # A different mesh at an existing path is refused. Choose a new path.
     # template_path 为空时，渲染图和 DINOv2 特征留在显存，不写磁盘。
     # 只有要给下次运行加载时才填路径。已有路径上的网格变了会拒绝写入，需要换一个新路径。
-    scene_dir = "samples/own_lmo"
+    default_scene_dir = os.path.join(samples_dir(), "own_lmo")
+    scene_dir = default_scene_dir
     template_path = ""
     device = "cuda:0"
     det_backend = "trt"
@@ -70,7 +72,7 @@ if __name__ == "__main__":
         scene_dir = os.path.join(release_dir, scene_dir)
     # Create the default folder from the public LM-O sample, without copying CADs.
     # 从公开 LM-O 样例生成默认目录，网格继续引用原文件，不重复复制。
-    if scene_dir == os.path.join(release_dir, "samples", "own_lmo") and not os.path.exists(scene_dir):
+    if scene_dir == default_scene_dir and not os.path.exists(scene_dir):
         check_and_fetch_pack("lmo")
         bop_dir = os.path.join(samples_dir(), "bop", "lmo")
         frame_dir = os.path.join(bop_dir, "test", "000002")

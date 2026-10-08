@@ -62,6 +62,12 @@ def _installed_requirements_healthy(requirements):
                 module_name = "thop"
             elif name == "mani-skill":
                 module_name = "mani_skill"
+            elif name.startswith("spconv-cu"):
+                # CUDA distribution tags do not change the Python module name.
+                # CUDA 发行标签不改变 Python 模块名；已有包不能因此被误判为缺失。
+                module_name = "spconv"
+            elif name.startswith("cumm-cu"):
+                module_name = "cumm"
             else:
                 module_name = name.replace("-", "_")
             importlib.import_module(module_name)
@@ -173,6 +179,10 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
         index_args = ["--index-url", _metadata_index(pypi_route)]
         command = [sys.executable, "-m", "pip", "install", "--dry-run", "--report", report_path,
                    "--timeout", "120", "--retries", "5"] + index_args + build_args
+        print("WAPR_INSTALL_RESOLVE / 解析依赖", requirements, flush=True)
+        if any(value.startswith("tensorrt") for value in requirements):
+            print("WAPR_INSTALL_RESOLVE / TensorRT's upstream backend may download its large libraries during resolution"
+                  " / TensorRT 上游后端可能在解析阶段下载大型库文件", flush=True)
         constrained = subprocess.run(command + ["-c", constraint_path] + requirements,
                                      env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         use_constraints = constrained.returncode == 0
@@ -287,7 +297,8 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
             # Obtain rollback files before removing the working cv2 provider.
             # 卸载可用 cv2 之前先准备恢复文件；下载失败不会改变环境。
             staged = subprocess.run([sys.executable, "-m", "pip", "download", "--no-deps", "--only-binary=:all:",
-                                     "--dest", staged_directory] + requested_wheels,
+                                     "--timeout", "120", "--retries", "5", "--dest", staged_directory]
+                                    + index_args + requested_wheels,
                                     env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             if staged.returncode != 0:
                 result.update(status="failed", exit_code=staged.returncode,
@@ -321,6 +332,7 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
         install_command = [sys.executable, "-m", "pip", "install", "--no-deps", "--timeout", "120", "--retries", "5"]
         if use_constraints:
             install_command += ["-c", constraint_path]
+        print("WAPR_INSTALL_PACKAGES / 安装依赖", [entry["name"] for entry in result["install"]], flush=True)
         completed = subprocess.run(install_command + build_args + targets, encoding="utf-8", errors="replace",
                                    env=subprocess_environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         result["status"] = "installed" if completed.returncode == 0 else "failed"
@@ -355,37 +367,50 @@ def prepare_optional(feature, allow_replacement=None, check_only=False, source_r
 
     只准备显式请求功能的 Python 依赖；第三方源码与权重由调用方另行获取。
     Importing this module never installs dependencies. / 导入本模块不触发安装。
-    source_requirement supplies the selected SAM2/RoMa checkout for one resolution.
-    source_requirement 提供所选 SAM2/RoMa 检出，以一次解析完成源码及其依赖计划。
+    source_requirement supplies the selected RoMa checkout for one resolution.
+    source_requirement 提供所选 RoMa 检出，以一次解析完成源码及其依赖计划。
     """
     notes = []
+    if feature in ("det2d", "sam2"):
+        # Ultralytics checks writability before creating its nested settings folder.
+        # Ultralytics 在创建配置子目录前检查可写性；提前建目录，避免退回系统临时盘。
+        from wapr.resources import cache_dir
+        config_root = os.environ.setdefault("YOLO_CONFIG_DIR", os.path.join(cache_dir(), "config", "ultralytics"))
+        os.makedirs(os.path.join(config_root, "Ultralytics"), exist_ok=True)
+    if feature == "robot":
+        # ManiSkill reads its asset root at import time; configure it beforehand.
+        # ManiSkill 在导入时读取资源根目录，须提前设置；保留用户显式路径。
+        from wapr.resources import samples_dir
+        os.environ.setdefault("MS_ASSET_DIR", os.path.join(samples_dir(), "maniskill"))
     if feature == "dinov2":
         requirements = ["torchvision", "Pillow"]
-        notes.append("DINOv2 source checkout is required; xFormers is optional / 需要 DINOv2 源码，xFormers 非必需")
+        notes.append("Official Torch Hub source/cache; xFormers is optional / 使用官方 Torch Hub 源码缓存，xFormers 非必需")
     elif feature == "det2d":
         # The adapted BERT wrapper uses Transformers 4 attention/head-mask methods.
         # 适配的 BERT 包装调用 Transformers 4 的 attention/head-mask 方法。
         # 4.36+ ships a Windows wheel for tokenizers. 4.12 pulls tokenizers 0.10,
         # which has no Windows wheel and tries to compile Rust.
         # 4.36 起 tokenizers 带 Windows wheel。4.12 会拉 tokenizers 0.10，Windows 上没有 wheel，会去编译 Rust。
-        transformers_requirement = "transformers>=4.46,<5" if sys.platform == "win32" else "transformers<5"
+        transformers_requirement = "transformers>=4.46,<5"
         try:
             from packaging.version import Version
             if Version(metadata.version("torch")) < Version("2.6"):
                 # Transformers v4.52.0 import_utils disables Torch older than 2.1.
                 # Its BERT .bin loader additionally requires Torch >=2.6.
                 # Transformers v4.52.0 禁用低于 2.1 的 Torch；BERT .bin 加载还需 >=2.6。
-                transformers_requirement = "transformers>=4.36,<4.52" if sys.platform == "win32" else "transformers<4.52"
+                transformers_requirement = "transformers>=4.36,<4.52"
                 notes.append("The current BERT pack uses pytorch_model.bin; Transformers >=4.52 requires torch >=2.6 to load it. Older releases must only read trusted, verified checkpoints / 当前 BERT 包使用 pytorch_model.bin；Transformers >=4.52 加载它需要 torch >=2.6，较早发行只应读取可信且已校验权重")
         except metadata.PackageNotFoundError:
             pass
-        requirements = ["torchvision", transformers_requirement, "timm", "addict", "yapf", "pycocotools",
+        requirements = ["torch>=2.0", "torchvision", transformers_requirement, "timm", "addict", "yapf", "pycocotools",
                         "scipy", "matplotlib", "pandas", "seaborn", "psutil", "py-cpuinfo",
-                        "PyYAML", "requests", "tqdm", "safetensors", "ultralytics-thop"]
-        notes.append("Use adapted GroundingDINO and Ultralytics v8.3.70 source, not a substitute pip detector / 使用适配 GroundingDINO 与 Ultralytics v8.3.70 源码，不替换为其他 pip 检测器")
+                        "PyYAML", "requests", "tqdm", "safetensors", "ultralytics>=8.3.70,<9"]
+        notes.append("Adapted GroundingDINO, packaged Ultralytics and official DINOv2 Torch Hub / 适配 GroundingDINO、Ultralytics 发行包与官方 DINOv2 Torch Hub")
     elif feature == "sam2":
-        requirements = ["torch>=2.5.1", "torchvision", "hydra-core>=1.3.2", "iopath", "Pillow"]
-        notes.append("Facebook SAM2 recommends Linux, Python >=3.10 and torch >=2.5.1; older versions are unverified here / Facebook SAM2 推荐 Linux、Python >=3.10、torch >=2.5.1；此处未验证更低版本")
+        # Ultralytics SAM2 attention calls Torch's SDPA API directly.
+        # Ultralytics SAM2 注意力直接调用 Torch 的 SDPA API，旧环境须先展示升级计划。
+        requirements = ["torch>=2.0", "ultralytics>=8.3.70,<9", "torchvision", "Pillow"]
+        notes.append("SAM2.1 uses Ultralytics; no native SAM2 source installation / SAM2.1 使用 Ultralytics，不安装原生 SAM2 源码")
     elif feature == "sam3d":
         from wapr.reconstruction_setup import prepare_reconstruction
         return prepare_reconstruction(allow_replacement=allow_replacement, check_only=check_only)
@@ -443,55 +468,12 @@ def prepare_optional(feature, allow_replacement=None, check_only=False, source_r
         notes.append("Simulation additionally needs a working Vulkan driver; physical robots have separate SDKs / 仿真另需可用 Vulkan 驱动；真实机器人 SDK 独立准备")
     else:
         raise ValueError("Unknown optional feature / 未知可选功能: " + str(feature))
-    # SAM3D declares no Requires-Python in upstream pyproject; do not invent a floor.
-    # SAM3D 上游 pyproject 未声明 Requires-Python，不把环境建议写成硬下限。
-    if feature == "sam2" and sys.version_info[:2] < (3, 10):
-        return {"status": "blocked", "feature": feature, "requirements": requirements,
-                "install": [], "replace": [], "notes": notes,
-                "reason": "SAM2 path requires Python >=3.10 / SAM2 路径需要 Python >=3.10"}
-    if feature == "sam3d" and sys.platform != "linux":
-        return {"status": "blocked", "feature": feature, "requirements": requirements,
-                "install": [], "replace": [], "notes": notes,
-                "reason": "SAM3D native wheels require Linux x86_64 / SAM3D 原生 wheel 需要 Linux x86_64"}
-    if feature == "sam3d":
-        # Do not mutate the environment when the complete inference plan is unresolved.
-        # 完整推理安装计划尚未确定时，不先修改环境再报告失败。
-        return {"status": "blocked", "feature": feature, "requirements": requirements,
-                "install": [], "replace": [], "notes": notes, "source_metadata_verified": False,
-                "pending_source_dependencies": ["pytorch3d", "spconv", "utils3d", "MoGe"],
-                "reason": "SAM3D inference-only native dependencies and checkpoint access are not yet verified / SAM3D 仅推理原生依赖及权重访问尚未验证"}
     if feature == "robot" and sys.platform != "linux" and importlib.util.find_spec("mplib") is None:
         # Reject unavailable planning before installing simulation dependencies.
         # 规划库不可用时先退出，不先安装仿真依赖再报告无法运行。
         return {"status": "blocked", "feature": feature, "requirements": requirements,
                 "install": [], "replace": [], "notes": notes,
                 "reason": "Robot planning needs mplib; the verified wheels require Linux / 机器人规划需要 mplib；已验证的 wheel 要求 Linux"}
-    if feature == "sam2":
-        if source_requirement and os.path.isdir(source_requirement):
-            # Reuse a healthy installation only when its recorded local source matches.
-            # 只有依赖、真实导入与已记录本地源码均吻合，才复用已安装的源码包。
-            from urllib.parse import unquote, urlsplit
-            distribution_name = "SAM-2" if feature == "sam2" else "romatch"
-            try:
-                distribution = metadata.distribution(distribution_name)
-                origin = json.loads(distribution.read_text("direct_url.json") or "{}")
-                source_url = urlsplit(origin.get("url", ""))
-                matching_source = source_url.scheme == "file" and os.path.realpath(unquote(source_url.path)) == os.path.realpath(source_requirement)
-                healthy = matching_source and _installed_requirements_healthy(requirements)
-                if healthy and feature == "sam2":
-                    builder = importlib.import_module("sam2.build_sam")
-                    predictor = importlib.import_module("sam2.sam2_image_predictor")
-                    healthy = callable(getattr(builder, "build_sam2", None)) and callable(getattr(predictor, "SAM2ImagePredictor", None))
-                if healthy:
-                    return {"status": "ready", "feature": feature, "requirements": requirements,
-                            "install": [], "replace": [], "notes": notes, "existing_source_api": True}
-            except Exception:
-                pass
-        if source_requirement is None:
-            return {"status": "needs_source", "feature": feature, "requirements": [],
-                    "install": [], "replace": [], "notes": notes,
-                    "reason": "Resolve the selected source metadata before installing / 安装前需要解析所选源码的实际依赖声明"}
-        requirements = [source_requirement]
     print("WAPR_OPTIONAL / 可选功能", feature, notes, flush=True)
     if feature == "robot" and sys.platform == "linux":
         # mplib 0.1.1 segfaulted in ArticulatedModel with NumPy 2 on nodes 01/02.

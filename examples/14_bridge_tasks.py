@@ -48,11 +48,10 @@ if RELEASE_DIR not in sys.path:
 known = importlib.import_module("13_known_mesh_place")
 
 DEVICE = "cuda:0"
-OUT_DIR = os.path.join(RELEASE_DIR, "outputs", "sim_bridge_tasks")
-PAGE_DIR = os.path.join(RELEASE_DIR, "pages", "demo", "robot")
-BRIDGE_ROOT = os.path.join(
-    os.path.expanduser("~"), ".maniskill", "data", "tasks", "bridge_v2_real2sim_dataset",
-)
+from wapr.resources import outputs_dir, samples_dir
+from wapr import recipe
+OUT_DIR = outputs_dir(__file__)
+PAGE_DIR = OUT_DIR
 # Fallback overview camera, meters, used when a task does not name its own.
 # 任务没有写自己的视点时，用这台总览相机，米。
 OVERVIEW_EYE_M = np.array([0.55, -0.55, 1.45], dtype=np.float64)
@@ -254,14 +253,13 @@ def load_source_mesh(source_name):
     运动物体的碰撞网格，米，物体坐标系。
     """
 
-    path = os.path.join(BRIDGE_ROOT, "custom", "models", source_name, "collision.obj")
-    if not os.path.isfile(path):
-        # The CAD is read before make_env; fetch its task assets at this first use.
-        # CAD 先于 make_env 读取，首次使用时即准备任务资源，避免空缓存启动失败。
-        from wapr.bootstrap import ensure_optional
-        from wapr.source_setup import prepare_robot_assets
-        ensure_optional("robot")
-        prepare_robot_assets("bridge_v2_real2sim")
+    # The installed catalog resolves its data subdirectory and user asset override.
+    # 按已安装资源清单解析 data 子目录与用户覆盖；CAD 先于 make_env 读取。
+    from wapr.bootstrap import ensure_optional
+    from wapr.source_setup import prepare_robot_assets
+    ensure_optional("robot")
+    bridge_root = prepare_robot_assets("bridge_v2_real2sim")
+    path = os.path.join(bridge_root, "custom", "models", source_name, "collision.obj")
     if not os.path.isfile(path):
         raise FileNotFoundError("Bridge collision mesh missing / Bridge 碰撞网格缺失: " + path)
     mesh = trimesh.load(path, force="mesh", process=False)
@@ -782,6 +780,7 @@ def redraw_saved(task):
 
 
 if __name__ == "__main__":
+    recipe.visualize_path = OUT_DIR
     # The worker above loads WAPREstimator once and batches objects per RGB-D frame.
     # 上方子进程入口仅载入一次 WAPREstimator，按 RGB-D 帧批量处理物体。
     if len(sys.argv) >= 3 and sys.argv[1] == "sequence":

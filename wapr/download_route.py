@@ -52,7 +52,8 @@ def route_cache_path():
 
     返回源码目录之外的测速缓存路径。
     """
-    return os.path.join(os.path.expanduser("~"), ".cache", "wapr", "download-route.json")
+    from wapr.resources import cache_dir
+    return os.path.join(cache_dir(), "download-route.json")
 
 
 def public_url(url):

@@ -20,7 +20,6 @@ from wapr import recipe
 from wapr.nets import load_net
 from wapr.pose_groups import wbps_group_sizes
 from wapr.ogl import depth2xyzmap_batch, make_crop_pair, runtime_for
-from wapr.resources import source_checkout
 
 
 def _rots_from_z(directions):
@@ -861,32 +860,28 @@ class WAPREstimator:
         setup_started = time.perf_counter()
         self.device = device
         use_engine = recipe.resolve_backend() == "trt"
-        if not source_checkout:
-            # A wheel keeps large assets in the user cache. Only a missing pack or
-            # engine starts setup; ordinary construction performs local file checks.
-            # wheel 的大资源位于用户缓存。仅缺文件时下载或构建；正常启动只检查本地文件。
-            from wapr.download_assets import check_and_fetch_pack
-
-            check_and_fetch_pack("wapr_sapr_wbps")
-            if use_engine:
-                engine_names = ("wapr_w_mask", "wapr_wo_mask", "sapr", "wbps")
-                missing_engines = [name for name in engine_names if not os.path.isfile(recipe.engine_file(name))]
-                if missing_engines:
-                    if len(missing_engines) != len(engine_names):
-                        raise FileNotFoundError(
-                            "Only some pose engines are present. Run python -m wapr.export_engines "
-                            "to review and rebuild the full set. / 位姿引擎仅部分存在；请显式重建并核对整套引擎。"
-                        )
-                    if torch.device(device).index not in (None, 0):
-                        raise RuntimeError(
-                            "Automatic engine build uses the first visible CUDA device. "
-                            "Select the target GPU with CUDA_VISIBLE_DEVICES and construct WAPREstimator('cuda:0'). / "
-                            "自动构建使用第一个可见 GPU；请先用 CUDA_VISIBLE_DEVICES 指定目标显卡，再使用 cuda:0。"
-                        )
-                    from wapr.export_engines import main as build_pose_engines
-
-                    print("WAPR_ENGINE_BUILD", {"missing": missing_engines, "device": device}, flush=True)
-                    build_pose_engines()
+        # Source and wheel share resources; present files never require a download.
+        # 源码与 wheel 共用资源；文件齐全时不下载。
+        from wapr.download_assets import check_and_fetch_pack
+        check_and_fetch_pack("wapr_sapr_wbps")
+        if use_engine:
+            engine_names = ("wapr_w_mask", "wapr_wo_mask", "sapr", "wbps")
+            missing_engines = [name for name in engine_names if not os.path.isfile(recipe.engine_file(name))]
+            if missing_engines:
+                if len(missing_engines) != len(engine_names):
+                    raise FileNotFoundError(
+                        "Only some pose engines are present. Run python -m wapr.export_engines "
+                        "to review and rebuild the full set. / 位姿引擎仅部分存在；请显式重建并核对整套引擎。"
+                    )
+                if torch.device(device).index not in (None, 0):
+                    raise RuntimeError(
+                        "Automatic engine build uses the first visible CUDA device. "
+                        "Select the target GPU with CUDA_VISIBLE_DEVICES and construct WAPREstimator('cuda:0'). / "
+                        "自动构建使用第一个可见 GPU；请先用 CUDA_VISIBLE_DEVICES 指定目标显卡，再使用 cuda:0。"
+                    )
+                from wapr.export_engines import main as build_pose_engines
+                print("WAPR_ENGINE_BUILD", {"missing": missing_engines, "device": device}, flush=True)
+                build_pose_engines()
         self.nets = {}
         for name in ("wapr_w_mask", "wapr_wo_mask", "sapr", "wbps"):
             engine = recipe.engine_file(name) if use_engine else None

@@ -40,7 +40,9 @@ if RELEASE_DIR not in sys.path:
 bridge = importlib.import_module("14_bridge_tasks")
 known = importlib.import_module("13_known_mesh_place")
 
-OUT_DIR = os.path.join(RELEASE_DIR, "outputs", "sim_xarm_cube")
+from wapr.resources import outputs_dir
+from wapr import recipe
+OUT_DIR = outputs_dir(__file__)
 # Overview of the ManiSkill table, meters. The xArm6 base sits behind the table.
 # ManiSkill 桌子的总览，米。xArm6 的底座在桌子后面。
 EYE_M = np.array([0.60, 0.70, 0.60], dtype=np.float64)
@@ -135,6 +137,7 @@ def redraw():
 
 
 if __name__ == "__main__":
+    recipe.visualize_path = OUT_DIR
     if len(sys.argv) >= 2 and sys.argv[1] == "redraw":
         redraw()
         sys.exit(0)

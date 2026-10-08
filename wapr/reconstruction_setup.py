@@ -140,6 +140,12 @@ def prepare_reconstruction(allow_replacement=None, check_only=False, checkpoint_
         return {"status": "blocked", "reason": "The selected MoGe source declares Python >=3.9 / 所选 MoGe 源码声明 Python >=3.9"}
     if sys.version_info[:2] >= (3, 12):
         return {"status": "blocked", "reason": "SAM3D's Open3D 0.18.0 recipe has no Python 3.12+ wheel; use a separately prepared compatible interpreter / SAM3D 的 Open3D 0.18.0 方案没有 Python 3.12+ wheel；请准备兼容的独立解释器"}
+    if not check_only:
+        # Missing gated access must stop before native downloads and compilation.
+        # 缺少受控模型权限时，在原生依赖下载和编译之前停止。
+        access = ensure_reconstruction_weights(checkpoint_directory, check_only=True)
+        if access["status"] == "blocked":
+            return access
     import torch
     if not torch.cuda.is_available():
         return {"status": "blocked", "reason": "Existing Torch needs CUDA / 已有 Torch 需要可用 CUDA"}
@@ -223,11 +229,11 @@ def prepare_reconstruction(allow_replacement=None, check_only=False, checkpoint_
     # The caller supplies a mask; this inference path does not import SAM2.
     # 调用者已提供 mask，此推理路径不导入 SAM2，不获取其无关源码。
     sam3d_source = _checkout("sam-3d-objects", "https://github.com/facebookresearch/sam-3d-objects.git", SAM3D_REVISION, "sam3d")
-    dinov2_source = prepare_source("dinov2")
     utils_source = _checkout("utils3d", "https://github.com/EasternJournalist/utils3d.git", "3913c65d81e05e47b9f367250cf8c0f7462a0900")
     moge_source = _checkout("MoGe", "https://github.com/microsoft/MoGe.git", "a8c37341bc0325ca99b9d57981cc3bb2bd3e255b")
     pytorch3d_source = _checkout("pytorch3d", "https://github.com/facebookresearch/pytorch3d.git", "75ebeeaea0908c5527e7b1e305fbc7681382db47")
-    wheel_directory = Path(resource_root()) / "native_wheels" / "pytorch3d"
+    from wapr.resources import cache_dir
+    wheel_directory = Path(cache_dir()) / "native_wheels" / "pytorch3d"
     wheel_directory.mkdir(parents=True, exist_ok=True)
     environment = os.environ.copy()
     environment["MAX_JOBS"] = "2"
@@ -270,7 +276,7 @@ def prepare_reconstruction(allow_replacement=None, check_only=False, checkpoint_
         result.update(status="blocked", reason="SAM3D inference import failed / SAM3D 推理导入失败: " + type(error).__name__ + " " + detail)
         return result
     result.update(status="ready", source=sam3d_source, native_wheel=native_wheel,
-                  source_paths=[sam3d_source, utils_source, moge_source], dinov2_source=dinov2_source,
+                  source_paths=[sam3d_source, utils_source, moge_source],
                   inference_verified=False)
     return result
 
@@ -307,25 +313,9 @@ def reconstruct(rgb, mask, checkpoint_directory=None, allow_replacement=None):
     rgba = np.concatenate([rgb, ((mask > 0)[..., None] * 255).astype(np.uint8)], axis=2)
     os.environ["LIDRA_SKIP_INIT"] = "true"
     torch.cuda.empty_cache()
-    original_hub_load = torch.hub.load
-
-    def local_dino_load(repo_or_dir, model, *args, source="github", **kwargs):
-        """Keep model arguments while using the prepared DINOv2 source.
-
-        保留模型参数与预训练选择，只将 DINOv2 源码定位到已准备的检出。
-        """
-        if repo_or_dir == "facebookresearch/dinov2":
-            if model == "dinov2_vitl14_reg" and kwargs.get("pretrained", True):
-                from wapr.source_setup import prepare_sam_dino_weights
-                prepare_sam_dino_weights()
-            return original_hub_load(prepared["dinov2_source"], model, *args, source="local", **kwargs)
-        return original_hub_load(repo_or_dir, model, *args, source=source, **kwargs)
-
-    torch.hub.load = local_dino_load
-    try:
-        pipeline = instantiate(config)
-    finally:
-        torch.hub.load = original_hub_load
+    # SAM3D uses the official Torch Hub loader and its existing cache directly.
+    # SAM3D 直接使用官方 Torch Hub 加载器及已有缓存，不替换全局加载函数。
+    pipeline = instantiate(config)
     with torch.no_grad():
         output = pipeline.run(rgba, None, seed=42, stage1_only=False,
                               with_mesh_postprocess=False, with_texture_baking=False,

@@ -41,7 +41,7 @@ from wapr.bootstrap import ensure_optional
 from wapr.det2d import WAPRDet2D, onboard_meshes
 from wapr.download_assets import check_and_fetch_pack
 from wapr.estimator import center_from_mesh, prepare_mesh
-from wapr.resources import samples_dir
+from wapr.resources import samples_dir, outputs_dir
 from wapr.source_setup import prepare_ycbineoat
 from wapr.region_tracking import (
     load_tracker_dino, dino_tokens, one_instance_mask_to_patches, patches_to_mask,
@@ -260,6 +260,7 @@ def rgb_frame_path(seq_dir, stem):
 
 
 if __name__ == "__main__":
+    recipe.visualize_path = outputs_dir(__file__)
     # Prepare optional detection before importing its mask codec.
     # 先准备可选检测功能，成功后再导入它的掩码编解码器。
     ensure_optional("det2d")
@@ -274,7 +275,7 @@ if __name__ == "__main__":
     # 第 0 帧由 RGB 和已知网格检测掩码；后续帧传播这块预测区域。
     # Author-approved default; downloaded BOP CAD is converted from mm to meters.
     # 作者确认的默认序列；下载的 BOP CAD 从毫米换为米。
-    default_seq_dir = os.path.join(samples_dir(), "YCBInEOAT", "mustard_easy_00_02")
+    default_seq_dir = os.path.join(samples_dir(), "ycbineoat", "mustard_easy_00_02")
     seq_dir = default_seq_dir
     default_models_dir = os.path.join(samples_dir(), "bop", "ycbv", "models")
     mesh_path = os.path.join(default_models_dir, "obj_000005.ply")
@@ -354,7 +355,7 @@ if __name__ == "__main__":
     mask0 = visible.astype(np.uint8) * 255
     # Save the predicted input and its detector score separately from dataset annotations.
     # 把预测输入及检测分数存到项目输出目录，与数据集标注分开。
-    init_out = os.path.join(release_dir, "outputs", "tracking_init", os.path.basename(os.path.normpath(seq_dir)))
+    init_out = os.path.join(outputs_dir(__file__), "tracking_init", os.path.basename(os.path.normpath(seq_dir)))
     os.makedirs(init_out, exist_ok=True)
     mask_out = os.path.join(init_out, "frame0_mask.png")
     if not cv2.imwrite(mask_out, mask0):

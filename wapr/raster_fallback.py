@@ -273,9 +273,8 @@ class NvRuntime:
 
         One mesh, separate tiles, same units as the GL runtime.
 
-        No function in this release constructs it.
-
-        runtime_for returns GpuRenderRuntime.
+        Tracking recipes construct it for full-frame region rendering.
+        The pose-crop runtime_for entry returns GpuRenderRuntime.
 
         The methods below are what a caller would use: load_mesh_trimesh, then render_tiles.
 
@@ -285,9 +284,8 @@ class NvRuntime:
 
         一个网格、分块渲染，单位与 GL 运行时相同。
 
-        这个发布包里没有函数构造它。
-
-        runtime_for 返回的是 GpuRenderRuntime。
+        跟踪配方用它渲染整幅图中的区域。
+        位姿裁切的 runtime_for 入口返回 GpuRenderRuntime。
 
         调用方会用的方法是 load_mesh_trimesh，然后 render_tiles。
     """
@@ -301,7 +299,7 @@ class NvRuntime:
 
         ## Args
 
-            - device: the CUDA ordinal, an int. The caller is whoever constructs NvRuntime. This release does not construct it.
+            - device: the CUDA ordinal, an int selected by the tracking caller.
 
         ---
 
@@ -344,7 +342,7 @@ class NvRuntime:
 
         ## Args
 
-            - count: the number of rows. The cache limit becomes at least that count. No function in this release calls it.
+            - count: the number of rows. The cache limit becomes at least that count.
 
         ## Returns
 
@@ -356,7 +354,7 @@ class NvRuntime:
 
         ## 参数
 
-            - count: 行数。缓存上限至少变成这个数量。这个发布包里没有函数调用它。
+            - count: 行数。缓存上限至少变成这个数量。
 
         ## 返回
 
@@ -370,7 +368,7 @@ class NvRuntime:
 
             render_tiles uses the id this returns.
 
-            No function outside this class calls it in this release.
+            Estimators and full-frame tracking use the returned mesh id.
 
         ## Args
 
@@ -387,7 +385,7 @@ class NvRuntime:
 
             render_tiles 使用它返回的编号。
 
-            在这个发布包里，类外面没有函数调用它。
+            位姿估计器和全帧跟踪使用返回的网格编号。
 
         ## 参数
 
@@ -537,7 +535,7 @@ class NvRuntime:
         """
         # Render tiles.
 
-            No function outside this class calls it in this release.
+            Estimators and full-frame tracking call this after mesh upload.
 
             A caller would use it after load_mesh_trimesh.
 
@@ -559,7 +557,7 @@ class NvRuntime:
 
         # 画分块。
 
-            在这个发布包里，类外面没有函数调用它。
+            位姿估计器和全帧跟踪在上传网格后调用此方法。
 
             调用方会在 load_mesh_trimesh 之后使用它。
 

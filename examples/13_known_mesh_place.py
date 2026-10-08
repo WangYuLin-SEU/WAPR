@@ -56,7 +56,9 @@ if RELEASE_DIR not in sys.path:
 # Panda 是已经能把这次搬运做完的那只手臂。网格单位是米。
 ROBOT_UID = "panda"
 DEVICE = "cuda:0"
-OUT_DIR = os.path.join(RELEASE_DIR, "outputs", "sim_known_mesh_place")
+from wapr.resources import outputs_dir
+from wapr import recipe
+OUT_DIR = outputs_dir(__file__)
 BOTTLE_RADIUS_M = 0.025
 BOTTLE_HEIGHT_M = 0.14
 BOX_EXTENTS_M = np.array([0.090, 0.060, 0.060], dtype=np.float64)
@@ -2869,6 +2871,7 @@ def recompose_tracking():
 
 
 if __name__ == "__main__":
+    recipe.visualize_path = OUT_DIR
     # These workers isolate WAPR's OpenGL renderer from SAPIEN's Vulkan context.
     # These functions above batch every object of one RGB-D in one estimator call.
     # 子进程隔离 WAPR 的 OpenGL 渲染器与 SAPIEN 的 Vulkan 上下文。

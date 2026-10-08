@@ -19,9 +19,8 @@ def _matching_weights(device):
     import hashlib
     import torch
     from wapr.det2d import _download_file
-    from wapr.resources import resource_root
-    directory = os.path.join(os.environ.get("TORCH_HOME", os.path.join(resource_root(), "torchhub")),
-                             "hub", "checkpoints")
+    from wapr.resources import weights_dir
+    directory = os.path.join(torch.hub.get_dir(), "checkpoints")
     assets = (
         ("roma_outdoor.pth", "https://github.com/Parskatt/storage/releases/download/roma/roma_outdoor.pth",
          445647516, "c7a45c80d41ad788a63c641d1b686d7cb3f297f40097c6f4e75039889e5cc8ba"),
@@ -31,6 +30,12 @@ def _matching_weights(device):
     loaded = []
     for name, url, size, expected in assets:
         path = os.path.join(directory, name)
+        if name == "dinov2_vitl14_pretrain.pth" and not os.path.isfile(path):
+            # The detector uses this exact backbone; verify before reusing its file.
+            # 检测器使用同一骨干；复用已有文件并在下方核验，避免重复下载 1.2 GB。
+            shared_path = os.path.join(weights_dir(), "det2d", name)
+            if os.path.isfile(shared_path):
+                path = shared_path
         if not os.path.isfile(path):
             _download_file(url, path)
         digest = hashlib.sha256()
@@ -59,8 +64,6 @@ def prepare_environment(allow_replacement=None, check_only=False):
         with open(path, "w", encoding="utf-8") as stream:
             json.dump({"allow_replacement": allow_replacement, "check_only": check_only}, stream)
         environment = os.environ.copy()
-        package_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        environment["PYTHONPATH"] = package_root + os.pathsep + environment.get("PYTHONPATH", "")
         result = sam3d_isolated._run_preparation_worker("prepare", path, environment,
                                                        worker_file=os.path.abspath(__file__))
     result["bootstrap"] = prepared
@@ -95,8 +98,6 @@ def match_pixels(src_rgb, dst_rgb, device, coarse_res, upsample_res, num):
         with open(request_path, "w", encoding="utf-8") as stream:
             json.dump(request, stream)
         environment = _worker_cache_environment(os.environ.copy())
-        package_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        environment["PYTHONPATH"] = package_root + os.pathsep + environment.get("PYTHONPATH", "")
         completed = subprocess.run([SAM3D_PYTHON, os.path.abspath(__file__), "match", request_path],
                                    env=environment, check=False)
         if completed.returncode != 0:

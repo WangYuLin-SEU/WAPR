@@ -36,10 +36,12 @@ DEMO_DIR = os.path.dirname(os.path.abspath(__file__))
 RELEASE_DIR = os.path.dirname(os.path.dirname(DEMO_DIR))
 # Resolve the upstream checkout under the release, independent of cwd.
 # 上游源码由发布根目录定位，不依赖启动目录。
-UNIPOSE_ROOT = os.path.join(RELEASE_DIR, "third_party", "UniPose9D")
-UNIPOSE_INFER = os.path.join(UNIPOSE_ROOT, "infer")
 if RELEASE_DIR not in sys.path:
     sys.path.insert(0, RELEASE_DIR)
+from wapr.resources import cache_dir, samples_dir, outputs_dir
+
+UNIPOSE_ROOT = os.path.join(cache_dir(), "sources", "UniPose9D")
+UNIPOSE_INFER = os.path.join(UNIPOSE_ROOT, "infer")
 if DEMO_DIR not in sys.path:
     sys.path.insert(0, DEMO_DIR)
 if UNIPOSE_INFER not in sys.path:
@@ -64,12 +66,11 @@ from step01_point_mask import (  # noqa: E402
 )
 
 
-from wapr.resources import samples_dir
-DATA_ROOT = os.environ.get("RECON_DATA_ROOT", os.path.join(samples_dir(), "YCBInEOAT"))
+DATA_ROOT = os.environ.get("RECON_DATA_ROOT", os.path.join(samples_dir(), "ycbineoat"))
 DATA_ROOT = os.path.abspath(os.path.join(RELEASE_DIR, DATA_ROOT))
-PAGE = os.path.join(RELEASE_DIR, "pages", "demo", "reconstruct")
-MESH_DIR = os.path.join(RELEASE_DIR, "outputs", "reconstruction_stages", "short_texture")
-OUT_DIR = os.path.join(RELEASE_DIR, "outputs", "reconstruction_stages", "box_constrain")
+PAGE = os.path.join(outputs_dir("11_reconstruct_object"), "stages", "step01_point_mask")
+MESH_DIR = os.path.join(outputs_dir("11_reconstruct_object"), "stages", "short_texture")
+OUT_DIR = os.path.join(outputs_dir("11_reconstruct_object"), "stages", "box_constrain")
 UNIPOSE_CKPT = os.path.join(UNIPOSE_ROOT, "checkpoints", "last.ckpt")
 UNIPOSE_CFG = os.path.join(UNIPOSE_ROOT, "checkpoints", "config.yaml")
 DEVICE = "cuda:0"

@@ -45,14 +45,14 @@ from wapr.estimator import (  # noqa: E402
     poses_original_to_centered,
 )
 from wapr.ogl import depth2xyzmap_batch, make_crop_pair  # noqa: E402
-from wapr.resources import resource_root, samples_dir
+from wapr.resources import resource_root, samples_dir, outputs_dir, cache_dir
 
 # Author-approved default follows example 11's cracker reconstruction.
 # 作者确认的默认值沿用示例 11 的饼干盒重建结果，此入口不重新建模。
 OBJECT_NAME = "cracker"
 # Consume example 11's writable output without writing into the installed package.
 # 读取示例 11 的可写输出，不向安装包目录写文件。
-MESH_STEM = os.path.join(resource_root(), "outputs", "reconstruct_object", OBJECT_NAME, "prediction", "mesh")
+MESH_STEM = os.path.join(outputs_dir("11_reconstruct_object"), OBJECT_NAME, "prediction", "mesh")
 # External BOP data; the camera file supplies K and millimeter depth scale.
 # 外部 BOP 数据；相机文件提供内参及毫米深度缩放。
 BOP_ROOT = os.path.join(samples_dir(), "bop")
@@ -64,7 +64,7 @@ FRAME_DEPTH = os.path.join(SCENE_DIR, "depth", "%06d.png" % IM_ID)
 FRAME_CAMERA = os.path.join(SCENE_DIR, "scene_camera.json")
 OBJ_ID = 2
 DEVICE = "cuda:0"
-OUT_DIR = os.path.join(resource_root(), "outputs", "cross_scene_pose", OBJECT_NAME)
+OUT_DIR = os.path.join(outputs_dir(__file__), OBJECT_NAME)
 # Optional evaluation mask is loaded only after the prediction is saved.
 # 可选评测掩码只在预测结果保存后读取。
 REFERENCE_MASK_PATH = None
@@ -73,6 +73,7 @@ REFERENCE_MASK_PATH = None
 WITHIN_MIN = 0.0
 
 if __name__ == "__main__":
+    recipe.visualize_path = OUT_DIR
     # Prepare optional detection before importing its mask codec.
     # 先准备可选检测功能，成功后再导入它的掩码编解码器。
     ensure_optional("det2d")
@@ -118,7 +119,9 @@ if __name__ == "__main__":
     # 编码实现变化时使用另一份缓存；保留此前的模板库，不覆盖已有用户文件。
     with open(detector_module.__file__, "rb") as stream:
         encoder_source_hash = hashlib.sha256(stream.read()).hexdigest()
-    bank_path = os.path.join(OUT_DIR, "templates_" + encoder_source_hash + ".pt")
+    bank_dir = os.path.join(cache_dir(), "templates", "12_cross_scene_pose", OBJECT_NAME)
+    os.makedirs(bank_dir, exist_ok=True)
+    bank_path = os.path.join(bank_dir, "templates_" + encoder_source_hash + ".pt")
     bank_meta_path = bank_path + ".source.json"
     with open(MESH_STEM + ".json", encoding="utf-8") as stream:
         layout = json.load(stream)

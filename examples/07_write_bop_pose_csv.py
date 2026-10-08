@@ -45,12 +45,13 @@ from wapr.bop import load_bop_rgbd, load_mesh_m, load_detections, model_ids, tar
 from wapr.estimator import mask_from_bbox
 from wapr.det2d import WAPRDet2D, onboard_meshes
 from wapr.download_assets import check_and_fetch_pack
-from wapr.resources import samples_dir
+from wapr.resources import samples_dir, outputs_dir
 from wapr.frame import estimate_frame_many_categories_many_instances
 from wapr.suppression import greedy_mask_nms_across_categories
 
 
 if __name__ == "__main__":
+    recipe.visualize_path = outputs_dir(__file__)
     # detector "det2d" is the default. "json" reads det_json.
     # detector 为 "det2d" 是默认。"json" 读 det_json。
     # score_thr and iou_thresh apply only to "json". det2d rejection and NMS live in wapr/det2d.py.
@@ -58,9 +59,9 @@ if __name__ == "__main__":
     # det_backend is the detector. The pose backend stays in wapr/recipe.py.
     # det_backend 是检测器。姿态后端仍在 wapr/recipe.py。
     # An empty template_path keeps the bank on the GPU for this process.
-    # Set a path, such as outputs/cache/det2d/<dataset>.pt, only to load a file next time.
+    # Set a path, such as cache/templates/det2d/<dataset>.pt, only to load a file next time.
     # template_path 为空时，这次运行的库留在显存。
-    # 只有下次要直接加载文件时，才填路径，例如 outputs/cache/det2d/<dataset>.pt。
+    # 只有下次要直接加载文件时，才填路径，例如 cache/templates/det2d/<dataset>.pt。
     bop_path = ""
     # The author-approved default is the small LM-O excerpt, not the full test set.
     # 作者确认默认使用 LM-O 小样，不下载完整测试集。
@@ -69,7 +70,7 @@ if __name__ == "__main__":
     template_path = ""
     det_backend = "trt"
     det_json = ""
-    out_csv = "poses.csv"
+    out_csv = os.path.join(outputs_dir(__file__), "poses.csv")
     device = "cuda:0"
     score_thr = 0.0
     iou_thresh = 0.5

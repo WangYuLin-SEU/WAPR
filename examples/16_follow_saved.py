@@ -69,6 +69,8 @@ from region_tracking import (
 )
 from wapr.estimator import WAPREstimator, center_from_mesh, prepare_mesh
 from wapr.tracking import track_many_categories_many_instances
+from wapr.resources import outputs_dir
+from wapr import recipe
 
 
 DEVICE = "cuda:0"
@@ -99,7 +101,10 @@ def backup_pose_file(path):
 
     仅在保存的 RGB-D 输入一致时复用完整估计备份。
     """
-    full_path = os.path.splitext(path)[0] + FULL_SUFFIX
+    source_folder = os.path.dirname(path)
+    backup_folder = os.path.join(outputs_dir("16_follow_saved"), os.path.relpath(source_folder, outputs_dir()))
+    os.makedirs(backup_folder, exist_ok=True)
+    full_path = os.path.join(backup_folder, os.path.splitext(os.path.basename(path))[0] + FULL_SUFFIX)
     metadata_path = full_path + ".inputs.json"
     folder = os.path.dirname(path)
     input_paths = set()
@@ -214,6 +219,10 @@ def write_pose_list(path, written):
 
     和完整估计那个文件一样的列表。
     """
+    # Tracking results never overwrite the producer example's saved initialization.
+    # 跟踪结果不覆盖生成示例保存的初始化位姿。
+    path = os.path.join(outputs_dir("16_follow_saved"), os.path.relpath(path, outputs_dir()))
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as stream:
         json.dump(written, stream)
     print("WROTE_POSES", path, "n", len(written), flush=True)
@@ -550,7 +559,7 @@ def follow_bottle(estimator, runtime, dino, mesh_ids):
 
     桌上瓶子、桌上盒子、腕部瓶子。三条序列，一份位姿文件。
     """
-    track_dir = os.path.join(RELEASE_DIR, "outputs", "sim_known_mesh_place", "tracking")
+    track_dir = os.path.join(outputs_dir("13_known_mesh_place"), "tracking")
     pose_path = os.path.join(track_dir, "sequence_poses.json")
     full_path = backup_pose_file(pose_path)
     init_poses = load_pose_map(full_path)
@@ -617,6 +626,7 @@ def follow_overview(estimator, runtime, dino, mesh_ids, folder, mesh_name):
 
 
 if __name__ == "__main__":
+    recipe.visualize_path = outputs_dir(__file__)
 
     # 1. Load networks once. Initialize each stream with the verified predictions from 13–15.
     # 1. 网络仅载入一次，各序列使用 13–15 已核验的预测结果初始化。
@@ -624,12 +634,12 @@ if __name__ == "__main__":
     # Saved simulation outputs are prerequisites, not downloadable predictions.
     # 仿真输出是真实前置结果，不能用下载的预测替代；加载网络前先检查。
     prerequisite_files = []
-    for folder in (os.path.join(RELEASE_DIR, "outputs", "sim_bridge_tasks", "carrot"),
-                   os.path.join(RELEASE_DIR, "outputs", "sim_bridge_tasks", "eggplant"),
-                   os.path.join(RELEASE_DIR, "outputs", "sim_xarm_cube", "cube")):
+    for folder in (os.path.join(outputs_dir("14_bridge_tasks"), "carrot"),
+                   os.path.join(outputs_dir("14_bridge_tasks"), "eggplant"),
+                   os.path.join(outputs_dir("15_xarm_cube"), "cube")):
         prerequisite_files.extend(os.path.join(folder, name) for name in ("rows.json", "jobs.json", "jobs_poses.json", "mesh.ply"))
     if not overview_only:
-        tracking_folder = os.path.join(RELEASE_DIR, "outputs", "sim_known_mesh_place", "tracking")
+        tracking_folder = os.path.join(outputs_dir("13_known_mesh_place"), "tracking")
         prerequisite_files.extend(os.path.join(tracking_folder, name) for name in ("rows.json", "sequence_poses.json", "meshes/bottle.ply", "meshes/box.ply"))
     missing_inputs = [path for path in prerequisite_files if not os.path.isfile(path)]
     if missing_inputs:
@@ -646,7 +656,7 @@ if __name__ == "__main__":
     dino = load_dino()
     mesh_ids = {}
     if not overview_only:
-        track_dir = os.path.join(RELEASE_DIR, "outputs", "sim_known_mesh_place", "tracking")
+        track_dir = os.path.join(outputs_dir("13_known_mesh_place"), "tracking")
         pose_path = os.path.join(track_dir, "sequence_poses.json")
         full_path = backup_pose_file(pose_path)
         init_poses = load_pose_map(full_path)
@@ -771,9 +781,9 @@ if __name__ == "__main__":
     # 4. The remaining recordings contain one object per camera; retain their original region policy.
     # 4. 其余录像每路相机仅有一个物体，保留其原有区域传播策略。
     for folder, mesh_name in (
-        (os.path.join(RELEASE_DIR, "outputs", "sim_bridge_tasks", "carrot"), "carrot"),
-        (os.path.join(RELEASE_DIR, "outputs", "sim_bridge_tasks", "eggplant"), "eggplant"),
-        (os.path.join(RELEASE_DIR, "outputs", "sim_xarm_cube", "cube"), "xarm_cube"),
+        (os.path.join(outputs_dir("14_bridge_tasks"), "carrot"), "carrot"),
+        (os.path.join(outputs_dir("14_bridge_tasks"), "eggplant"), "eggplant"),
+        (os.path.join(outputs_dir("15_xarm_cube"), "cube"), "xarm_cube"),
     ):
         pose_path = os.path.join(folder, "jobs_poses.json")
         full_path = backup_pose_file(pose_path)

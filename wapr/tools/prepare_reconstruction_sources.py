@@ -5,9 +5,9 @@
 # 作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
 # Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
 
-"""Fetch the tested SAM 2 and SAM 3D source revisions when absent.
+"""Fetch the tested SAM 3D source revision when absent.
 
-缺少源码时检出已测试的 SAM 2 和 SAM 3D 版本，并应用本地兼容补丁。
+缺少源码时检出已测试的 SAM 3D 版本，并应用本地兼容补丁；SAM2 使用 Ultralytics。
 Run from the release root: python wapr/tools/prepare_reconstruction_sources.py
 从发布根目录运行：python wapr/tools/prepare_reconstruction_sources.py
 """
@@ -15,14 +15,18 @@ Run from the release root: python wapr/tools/prepare_reconstruction_sources.py
 import os
 import shutil
 import subprocess
+import sys
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Source-only tools live under wapr/tools, two levels below the release root.
 # 仅供源码使用的工具位于 wapr/tools，发布根目录在其上两级。
 RELEASE_DIR = os.path.dirname(os.path.dirname(SCRIPT_DIR))
-THIRD_PARTY_DIR = os.path.join(RELEASE_DIR, "third_party")
-SAM2_REVISION = "2b90b9f5ceec907a1c18123530e92e794ad901a4"
+if RELEASE_DIR not in sys.path:
+    sys.path.insert(0, RELEASE_DIR)
+from wapr.resources import cache_dir
+
+THIRD_PARTY_DIR = os.path.join(cache_dir(), "sources")
 SAM3D_REVISION = "f91db411c50efee93d8db7aeb323885650f6f722"
 
 
@@ -36,7 +40,6 @@ def main():
     os.makedirs(THIRD_PARTY_DIR, exist_ok=True)
 
     sources = (
-        ("sam2", "https://github.com/facebookresearch/sam2.git", SAM2_REVISION),
         ("sam-3d-objects", "https://github.com/facebookresearch/sam-3d-objects.git", SAM3D_REVISION),
     )
     for name, url, revision in sources:

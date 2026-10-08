@@ -51,7 +51,7 @@ def main():
     if sys.version_info[:2] != (3, 10):
         problems.append("Python 3.10 is required / 需要 Python 3.10")
     if sys.platform != "linux":
-        problems.append("The EGL renderer requires Linux / EGL 渲染器需要 Linux")
+        problems.append("SAM3D reconstruction requires Linux / SAM3D 重建需要 Linux")
 
     # Import the paths used by the examples, so this check follows their recipe.
     # 从示例导入实际使用的路径，避免预检与运行脚本各维护一套路径。
@@ -59,8 +59,6 @@ def main():
         from step01_point_mask import (
             DATA_ROOT,
             MOGE_CHECKPOINT,
-            SAM2_CHECKPOINT,
-            SAM2_ROOT,
             SAM3D_CONFIG,
             SAM3D_ROOT,
         )
@@ -70,8 +68,9 @@ def main():
         print("Run the base installation first / 请先完成基础安装：https://wangyulin-seu.github.io/WAPR/docs/install-guide.html", flush=True)
         return 1
 
+    from wapr.resources import weights_dir
+    SAM2_CHECKPOINT = os.path.join(weights_dir(), "det2d", "sam2.1_l.pt")
     source_files = (
-        ("SAM 2", os.path.join(SAM2_ROOT, "sam2", "build_sam.py")),
         ("SAM 3D Objects", os.path.join(SAM3D_ROOT, "sam3d_objects", "pipeline", "inference_pipeline.py")),
         ("UniPose9D", os.path.join(UNIPOSE_INFER, "unipose9d_inference.py")),
     )
@@ -87,10 +86,10 @@ def main():
         ("MoGe v1", MOGE_CHECKPOINT),
         ("UniPose9D weights", UNIPOSE_CKPT),
         ("UniPose9D config", UNIPOSE_CFG),
-        ("WAPR pose engine", os.path.join(RELEASE_DIR, "assets", "weights", "wapr_w_mask.engine")),
-        ("SAPR pose engine", os.path.join(RELEASE_DIR, "assets", "weights", "sapr.engine")),
-        ("WBPS score engine", os.path.join(RELEASE_DIR, "assets", "weights", "wbps.engine")),
-        ("DINOv2 pose selector", os.path.join(RELEASE_DIR, "assets", "weights", "det2d", "dinov2_vitl14_pretrain.pth")),
+        ("WAPR pose engine", os.path.join(weights_dir(), "wapr_w_mask.engine")),
+        ("SAPR pose engine", os.path.join(weights_dir(), "sapr.engine")),
+        ("WBPS score engine", os.path.join(weights_dir(), "wbps.engine")),
+        ("DINOv2 pose selector", os.path.join(weights_dir(), "det2d", "dinov2_vitl14_pretrain.pth")),
     )
     for label, path in checkpoint_files:
         found = os.path.isfile(path) and os.path.getsize(path) > 0
@@ -120,11 +119,6 @@ def main():
         print("RECON_SAM3D_FILE", name, "OK" if found else "MISSING", path, flush=True)
         if not found:
             problems.append("SAM 3D " + name)
-
-    if os.path.islink(SAM2_CHECKPOINT):
-        resolved = os.path.realpath(SAM2_CHECKPOINT)
-        if os.path.commonpath((RELEASE_DIR, resolved)) != RELEASE_DIR:
-            print("RECON_PORTABILITY", "SAM 2 checkpoint link points outside this release / SAM 2 权重链接指向项目外", resolved, flush=True)
 
     # The local SAM 3D changes are needed by the documented UV bake path.
     # 文档中的 UV 烘焙路径需要这份本地 SAM 3D 兼容补丁。

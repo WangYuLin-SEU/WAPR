@@ -11,19 +11,15 @@ Run from the release root: python wapr/tools/install_wapr.py.
 为初始位姿与 2D 检测示例准备本机 WAPR 推理环境。从发布根目录运行：python wapr/tools/install_wapr.py。
 """
 
-import ast
 import ctypes.util
 import os
 import shutil
 import subprocess
 import sys
-import tempfile
 
 
-# Select the installation stages here. The detector needs the compatible source
-# trees under third_party/; set this to False for pose-only examples.
-# 在这里选择安装阶段。2D 检测需要 third_party/ 下的兼容源码；仅运行位姿示例时
-# 可设为 False。
+# Select the installation stages; bootstrap prepares the shared dependency/cache layout.
+# 选择安装阶段；bootstrap 统一准备依赖与缓存目录。仅位姿使用时可关闭检测阶段。
 prepare_2d_detector = True
 
 # Build the DINOv2 TensorRT engine during installation, before the first 2D call.
@@ -37,7 +33,11 @@ release_dir = os.path.dirname(os.path.dirname(script_dir))
 requirements_path = os.path.join(release_dir, "requirements.txt")
 detector_requirements_path = os.path.join(release_dir, "requirements-detector.txt")
 native_dir = os.path.join(release_dir, "wapr", "ogl_native")
-weights_dir = os.path.join(release_dir, "assets", "weights")
+if release_dir not in sys.path:
+    sys.path.insert(0, release_dir)
+from wapr.resources import weights_dir as cached_weights_dir, cache_dir
+
+weights_dir = cached_weights_dir()
 detector_weights_dir = os.path.join(weights_dir, "det2d")
 
 
@@ -51,23 +51,14 @@ def check_host():
     if sys.version_info[:2] != (3, 10):
         print("INSTALL_NOTE", "Source build with an unverified Python version; cp310 wheels require Python 3.10 / 当前 Python 版本尚未验证；cp310 wheel 仍需要 Python 3.10", flush=True)
     if sys.platform != "linux":
-        raise RuntimeError("The EGL/CUDA renderer currently requires Linux / EGL/CUDA 渲染器目前需要 Linux")
+        from wapr.ogl import selected_renderer
+        print("INSTALL_HOST", {"python": sys.executable, "renderer": selected_renderer(), "release": release_dir}, flush=True)
+        return os.environ.copy()
     for program in ("cmake", "c++"):
         if shutil.which(program) is None:
             raise RuntimeError("Missing system tool / 缺少系统工具: " + program)
-    nvcc_path = shutil.which("nvcc")
-    if nvcc_path is None:
-        # CUDA is often installed here without adding its bin directory to PATH.
-        # CUDA 常安装在这里，但其 bin 目录未加入 PATH。
-        cuda_home = os.environ.get("CUDA_HOME", "")
-        candidates = (
-            os.path.join(cuda_home, "bin", "nvcc") if cuda_home else "",
-            "/usr/local/cuda/bin/nvcc",
-        )
-        for candidate in candidates:
-            if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
-                nvcc_path = candidate
-                break
+    from wapr.bootstrap import _find_nvcc
+    nvcc_path = _find_nvcc()
     if nvcc_path is None:
         raise RuntimeError("Missing CUDA compiler / 缺少 CUDA 编译器 nvcc；安装适合当前 GPU 的 CUDA toolkit")
     nvcc_version = subprocess.check_output([nvcc_path, "--version"], text=True)
@@ -89,18 +80,13 @@ def check_detector_sources():
     检查项目兼容的检测器源码。上游 GroundingDINO 的 CUDA 扩展路径不能直接代替。
     """
     grounding_attention = os.path.join(
-        release_dir, "third_party", "GroundingDINO", "groundingdino",
+        cache_dir(), "sources", "GroundingDINO", "groundingdino",
         "models", "GroundingDINO", "ms_deform_attn.py",
-    )
-    ultralytics_init = os.path.join(
-        release_dir, "third_party", "ultralytics", "ultralytics", "__init__.py",
     )
     source_files = (
         grounding_attention,
-        os.path.join(release_dir, "third_party", "GroundingDINO", "groundingdino", "config", "groundingdino_swinb.json"),
-        os.path.join(release_dir, "third_party", "GroundingDINO", "groundingdino", "config", "groundingdino_swint.json"),
-        ultralytics_init,
-        os.path.join(release_dir, "third_party", "dinov2", "hubconf.py"),
+        os.path.join(cache_dir(), "sources", "GroundingDINO", "groundingdino", "config", "groundingdino_swinb.json"),
+        os.path.join(cache_dir(), "sources", "GroundingDINO", "groundingdino", "config", "groundingdino_swint.json"),
     )
     missing = [path for path in source_files if not os.path.isfile(path)]
     if missing:
@@ -118,20 +104,9 @@ def check_detector_sources():
         )
     if "multi_scale_deformable_attn_pytorch(" not in attention_source:
         raise RuntimeError("GroundingDINO PyTorch attention implementation is missing / 缺少 PyTorch 注意力实现")
-    with open(ultralytics_init, encoding="utf-8") as stream:
-        ultralytics_tree = ast.parse(stream.read(), filename=ultralytics_init)
-    ultralytics_version = None
-    for statement in ultralytics_tree.body:
-        if not isinstance(statement, ast.Assign) or len(statement.targets) != 1:
-            continue
-        target = statement.targets[0]
-        if isinstance(target, ast.Name) and target.id == "__version__":
-            if isinstance(statement.value, ast.Constant):
-                ultralytics_version = statement.value.value
-            break
-    if ultralytics_version != "8.3.70":
-        raise RuntimeError("Expected Ultralytics v8.3.70 source / 需要 Ultralytics v8.3.70 源码")
-    print("INSTALL_2D_SOURCES", "required files, attention path, and Ultralytics 8.3.70 present / 必需文件、注意力路径及 Ultralytics 8.3.70 已就绪", flush=True)
+    from importlib import metadata
+    print("INSTALL_2D_SOURCES", {"ultralytics": metadata.version("ultralytics"),
+                                "dinov2": "official torch.hub"}, flush=True)
 
 
 def main():
@@ -139,7 +114,13 @@ def main():
 
     按顺序安装 Python 包、样例和本地编译的渲染器；位姿引擎由用户显式导出。
     """
-    build_env = check_host()
+    from wapr.bootstrap import prepare_feature, prepare_runtime
+    prepare_runtime()
+    if prepare_2d_detector:
+        prepared = prepare_feature("det2d")
+        if prepared.get("status") != "ready":
+            raise RuntimeError(str(prepared))
+    check_host()
     print(
         "INSTALL_CHOICES",
         {"prepare_2d_detector": prepare_2d_detector, "build_dino_engine_now": build_dino_engine_now},
@@ -152,15 +133,23 @@ def main():
     # 在 pip 解析间接 torch 依赖前，先检查用户选择的 GPU 包，不自动替换 GPU 软件栈。
     try:
         import cv2
-        import tensorrt as trt
         import torch
     except ImportError as exc:
         raise RuntimeError(
-            "Prepare CUDA-enabled PyTorch, TensorRT 10.x and one OpenCV distribution first. / "
-            "请先准备带 CUDA 的 PyTorch、TensorRT 10.x 及一种 OpenCV 发行包。"
+            "Prepare CUDA-enabled PyTorch and one OpenCV distribution first. / "
+            "请先准备带 CUDA 的 PyTorch 及一种 OpenCV 发行包。"
         ) from exc
-    if not trt.__version__.startswith("10."):
-        raise RuntimeError("This engine API uses TensorRT 10.x / 当前引擎 API 使用 TensorRT 10.x: " + trt.__version__)
+    trt = None
+    from wapr.recipe import resolve_backend
+    if resolve_backend() == "trt":
+        try:
+            import tensorrt as trt
+        except ImportError as exc:
+            raise RuntimeError(
+                "Prepare TensorRT 10.x before the trt backend. / 使用 trt 后端前请先准备 TensorRT 10.x。"
+            ) from exc
+        if not trt.__version__.startswith("10."):
+            raise RuntimeError("This engine API uses TensorRT 10.x / 当前引擎 API 使用 TensorRT 10.x: " + trt.__version__)
     if not torch.cuda.is_available():
         raise RuntimeError("PyTorch cannot access a CUDA GPU / PyTorch 无法访问 CUDA GPU；检查驱动与容器 GPU 映射")
     if prepare_2d_detector:
@@ -171,59 +160,43 @@ def main():
         if not os.path.isfile(detector_requirements_path):
             raise FileNotFoundError(detector_requirements_path)
 
-    # Use the current interpreter so venv/conda and the compiled module agree.
-    # 使用当前解释器，确保虚拟环境与编译出的 Python 模块一致。
-    print("INSTALL_STAGE", "Python packages / Python 依赖", flush=True)
-    # Preserve the selected GPU versions even if a transitive dependency asks for an upgrade.
-    # 即使间接依赖要求升级，也保留用户选择的 GPU 版本；冲突时由 pip 明确报错。
-    with tempfile.TemporaryDirectory(prefix="wapr-install-") as constraints_dir:
-        constraints_path = os.path.join(constraints_dir, "gpu-constraints.txt")
-        with open(constraints_path, "w", encoding="utf-8") as stream:
-            stream.write("torch==" + torch.__version__ + "\n")
-            if prepare_2d_detector:
-                stream.write("torchvision==" + torchvision.__version__ + "\n")
-        subprocess.check_call([
-            sys.executable, "-m", "pip", "install", "-c", constraints_path, "-r", requirements_path,
-        ])
-        if prepare_2d_detector:
-            subprocess.check_call([
-                sys.executable, "-m", "pip", "install", "-c", constraints_path, "-r", detector_requirements_path,
-            ])
-
+    # Shared bootstrap has resolved dependencies and approved every replacement above.
+    # 上面的共用 bootstrap 已解析依赖并确认更换计划，不再重复直接调用 pip。
     import numpy as np
-    gpu_capability = torch.cuda.get_device_capability(0)
-    if gpu_capability < (7, 5):
+    from wapr.bootstrap import cuda_device_index
+    ordinal = cuda_device_index()
+    gpu_capability = torch.cuda.get_device_capability(ordinal)
+    if trt is not None and gpu_capability < (7, 5):
         raise RuntimeError("TensorRT 10 requires NVIDIA SM 7.5+ / TensorRT 10 需要 NVIDIA SM 7.5 及以上")
     print(
         "INSTALL_PACKAGES",
-        {"numpy": np.__version__, "torch": torch.__version__, "tensorrt": trt.__version__, "opencv": cv2.__version__},
+        {"numpy": np.__version__, "torch": torch.__version__,
+         "tensorrt": None if trt is None else trt.__version__, "opencv": cv2.__version__},
         flush=True,
     )
     print(
         "INSTALL_GPU",
-        {"name": torch.cuda.get_device_name(0), "compute_capability": gpu_capability, "torch_cuda": torch.version.cuda},
+        {"name": torch.cuda.get_device_name(ordinal), "compute_capability": gpu_capability, "torch_cuda": torch.version.cuda},
         flush=True,
     )
 
     # Prepare the pose weights and LM-O samples used by the basic workflows.
     # 准备基础流程使用的位姿权重和 LM-O 小样。
-    sys.path.insert(0, release_dir)
     from wapr.download_assets import check_and_fetch_pack
 
     print("INSTALL_STAGE", "Pose weights and LM-O samples / 位姿权重与 LM-O 小样", flush=True)
     for pack_name in ("wapr_sapr_wbps", "pose_lmo", "lmo"):
         check_and_fetch_pack(pack_name)
 
-    print("INSTALL_STAGE", "EGL/CUDA renderer / EGL/CUDA 渲染器", flush=True)
-    subprocess.check_call([
-        "cmake", "-S", native_dir, "-B", os.path.join(native_dir, "build"),
-        "-DCMAKE_BUILD_TYPE=Release", "-DPython3_EXECUTABLE=" + sys.executable,
-    ], env=build_env)
-    subprocess.check_call(["cmake", "--build", os.path.join(native_dir, "build"), "-j"], env=build_env)
+    if os.environ.get("WAPR_RENDERER", "").strip().lower() != "nvdiffrast":
+        print("INSTALL_STAGE", "OpenGL/CUDA renderer / OpenGL/CUDA 渲染器", flush=True)
+        from wapr.ogl import ensure_ogl
+        ensure_ogl()
+    else:
+        print("INSTALL_STAGE", "CUDA rasterizer builds on the first pose call / CUDA 光栅器在首次位姿调用时编译", flush=True)
 
-    # The source checkout never silently accepts or replaces old fixed-group
-    # plans. Explicit export builds four model engines plus the grouped WBPS plan.
-    # 源码目录不静默接受或替换旧引擎；显式导出构建四个模型引擎及 WBPS 批量推理引擎。
+    # Explicit export can prepare engines ahead of inference; partial sets are not overwritten.
+    # 显式导出可提前准备引擎；不自动覆盖不完整的已有引擎组。
     print("INSTALL_POSE_ENGINE_NEXT", "python -m wapr.export_engines", flush=True)
 
     if prepare_2d_detector:

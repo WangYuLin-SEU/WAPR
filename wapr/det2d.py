@@ -52,6 +52,7 @@ import os
 import re
 import shutil
 import sys
+import threading
 import time
 import urllib.request
 import zipfile
@@ -63,7 +64,7 @@ import torch.nn.functional as F
 from wapr.bootstrap import ensure_optional
 from wapr.installation import prepare_optional
 from wapr.recipe import resolve_backend
-from wapr.resources import weights_dir, resource_root, source_checkout
+from wapr.resources import weights_dir, resource_root, cache_dir
 
 
 release_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -71,8 +72,39 @@ default_weights_dir = os.path.join(weights_dir(), 'det2d')
 # The checksum catalog lives beside this module in both source and wheel layouts.
 # 校验清单在源码目录和 wheel 中都与此模块同处 wapr/。
 det2d_manifest_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'det2d_assets.json')
-source_parent = os.path.join(release_dir, 'third_party') if source_checkout else os.path.join(resource_root(), 'sources')
-default_dino_repo = os.path.join(source_parent, 'dinov2')
+source_parent = os.path.join(cache_dir(), 'sources')
+default_dino_repo = 'facebookresearch/dinov2'
+_dino_hub_import_lock = threading.RLock()
+
+
+def _load_official_dino(hub_name):
+    """Load official Hub DINO without borrowing UniPose9D's same-named package.
+
+    通过官方 Hub 加载 DINO，不借用 UniPose9D 的同名包；原模型与权重保持不变。
+    """
+    # Torch Hub isolates sys.path but not sys.modules. Preserve the other model's
+    # module objects while the official model binds its own classes and functions.
+    # Torch Hub 隔离 sys.path，却不隔离 sys.modules；保留另一模型的模块对象，
+    # 让官方模型在构建期间绑定自身的类与函数，不混用两份 DINO 实现。
+    with _dino_hub_import_lock:
+        previous_modules = {name: module for name, module in sys.modules.items()
+                            if name == 'dinov2' or name.startswith('dinov2.')}
+        previous_paths = sys.path[:]
+        for name in previous_modules:
+            del sys.modules[name]
+        try:
+            model = torch.hub.load(default_dino_repo, hub_name,
+                                   pretrained=False, trust_repo=True)
+        finally:
+            if previous_modules:
+                for name in list(sys.modules):
+                    if name == 'dinov2' or name.startswith('dinov2.'):
+                        del sys.modules[name]
+                sys.modules.update(previous_modules)
+            sys.path[:] = previous_paths
+        return model
+
+
 # A fresh GroundingDINO clone still calls its CUDA extension on GPU.
 # The checkout used here calls multi_scale_deformable_attn_pytorch instead.
 # The text encoder is a local bert-base-uncased directory, not a hub download.
@@ -82,9 +114,6 @@ default_dino_repo = os.path.join(source_parent, 'dinov2')
 grounding_repo = os.path.join(source_parent, 'GroundingDINO')
 if os.path.isdir(grounding_repo) and grounding_repo not in sys.path:
     sys.path.insert(0, grounding_repo)
-sam_repo = os.path.join(source_parent, 'ultralytics')
-if os.path.isdir(sam_repo) and sam_repo not in sys.path:
-    sys.path.insert(0, sam_repo)
 
 # Scientific choices stay explicit; changing them requires a new accuracy evaluation.
 # 科学选择显式保留；修改后必须重新评价精度，不能继承固定的实验配置的AP。
@@ -588,7 +617,7 @@ def _download_file_body(url, dest):
                 if expected_total is not None and os.path.getsize(partial) != expected_total:
                     raise RuntimeError('Incomplete total download / 文件尚未下载完整')
             zip_checkpoints = {spec['file'] for spec in DINO_CHOICES.values()}
-            zip_checkpoints.update(('sam2.1_hiera_large.pt', 'sam2.1_hiera_tiny.pt'))
+            zip_checkpoints.update(('sam2.1_l.pt', 'sam2.1_t.pt'))
             if os.path.basename(dest) in zip_checkpoints:
                 # Validate before publishing: a proxy may mislabel a truncated body as complete.
                 # 发布前核验：代理可能把截断主体错误标成完整 HTTP 响应。
@@ -1013,7 +1042,7 @@ def ensure_dino_engine(weights_dir=default_weights_dir, device='cuda:0', dino='v
         - weights_dir: the weight directory. The default is default_weights_dir. It is made absolute.
         - device: the CUDA device used for the capability check and for the build. The default is cuda:0.
         - dino: a DINO_CHOICES key. The default is vitl14. It selects the weight and the engine filenames.
-        - dino_repo: the local DINOv2 checkout passed into the build. The default is default_dino_repo. A matching engine does not use it and is not built again.
+        - dino_repo: official Torch Hub repository by default; an explicit custom source directory is also accepted. A matching engine does not reload or rebuild it.
 
     ---
 
@@ -1026,7 +1055,7 @@ def ensure_dino_engine(weights_dir=default_weights_dir, device='cuda:0', dino='v
         - weights_dir: 权重目录。默认是 default_weights_dir。会变成绝对路径。
         - device: 用于 GPU 架构兼容性检查和引擎构建的 CUDA 设备。默认是 cuda:0。
         - dino: DINO_CHOICES 的键。默认是 vitl14。它决定权重和引擎文件名。
-        - dino_repo: 传给构建的本地 DINOv2 源码目录。默认是 default_dino_repo。引擎已经匹配时不会用到它，也不会再次构建。
+        - dino_repo: 默认使用官方 Torch Hub 仓库；也可显式提供自定义源码目录。引擎匹配时不重新加载或构建。
 
 """
     weights_dir = os.path.abspath(os.fspath(weights_dir))
@@ -1472,7 +1501,7 @@ class NativeDino:
 
             - weights_dir: the .pth named by the catalog. The default is default_weights_dir. A missing file raises FileNotFoundError.
             - device: the CUDA device. The default is cuda:0.
-            - dino_repo: the local DINOv2 checkout. The default is default_dino_repo. It must contain hubconf.py. The hub load uses pretrained False, then the state dict is loaded with strict True.
+            - dino_repo: official Torch Hub repository by default, reusing its cache. An explicit custom source directory must contain hubconf.py. Load the verified weight with strict True.
             - dino: vits14, vitb14, or vitl14. The default is vitl14. The patch size must be 14. The embed width must match the catalog row.
 
         ---
@@ -1493,7 +1522,7 @@ class NativeDino:
             - 默认是 default_weights_dir。
             - 文件不存在时抛出 FileNotFoundError。
             - device: CUDA 设备。默认是 cuda:0。
-            - dino_repo: 本地 DINOv2 源码目录。默认是 default_dino_repo。它必须包含 hubconf.py。hub 加载使用 pretrained False，然后以 strict True 载入 state dict。
+            - dino_repo: 默认使用官方 Torch Hub 仓库并复用缓存；显式自定义源码目录须包含 hubconf.py。已校验权重以 strict True 载入。
             - dino: vits14、vitb14 或 vitl14。默认是 vitl14。patch 大小必须是 14。embed 宽度必须和目录行一致。
         """
         if os.path.abspath(dino_repo) == os.path.abspath(default_dino_repo):
@@ -1508,16 +1537,13 @@ class NativeDino:
         self.weight_path = os.path.join(weights_dir, self.spec['file'])
         if not os.path.isfile(self.weight_path):
             raise FileNotFoundError('Missing DINOv2 weight %s. prepare_det2d_weights downloads it.' % self.weight_path)
-        if not os.path.isfile(os.path.join(dino_repo, 'hubconf.py')):
-            raise FileNotFoundError('Missing local DINOv2 source: ' + dino_repo)
         with torch.cuda.device(self.device):
-            # Load the catalog backbone directly, preserving an already imported UniPose namespace.
-            # 直接载入目录中指定的骨干，保留 UniPose 已导入的命名空间。
-            if dino_repo not in sys.path:
-                sys.path.insert(0, dino_repo)
-            from dinov2.hub import backbones
-            print('DINO_BACKBONE_SOURCE', backbones.__file__, flush=True)
-            self.model = getattr(backbones, self.spec['hub'])(pretrained=False)
+            # Official Hub reuses its source cache; the verified model weight stays local.
+            # 官方 Hub 复用其源码缓存；已校验的模型权重仍从本地读取。
+            if os.path.abspath(dino_repo) == os.path.abspath(default_dino_repo):
+                self.model = _load_official_dino(self.spec['hub'])
+            else:
+                self.model = torch.hub.load(dino_repo, self.spec['hub'], source='local', pretrained=False)
             self.model.load_state_dict(_load_tensor_file(self.weight_path, map_location='cpu'), strict=True)
             self.model = self.model.eval().to(self.device)
         if int(self.model.patch_size) != 14:
@@ -1726,7 +1752,7 @@ def build_dino_engine(weights_dir=default_weights_dir, device='cuda:0', dino_rep
 
         - weights_dir: the output directory. The default is default_weights_dir. The selected .pth is placed there if it is missing.
         - device: the CUDA device for the native check and the build. The default is cuda:0.
-        - dino_repo: the local DINOv2 checkout passed to NativeDino. The default is default_dino_repo.
+        - dino_repo: official Torch Hub repository passed to NativeDino by default; an explicit custom source directory is accepted.
         - dino: vits14, vitb14, or vitl14. The default is vitl14. vitl14 writes the published engine filename.
 
     ## Returns
@@ -1749,7 +1775,7 @@ def build_dino_engine(weights_dir=default_weights_dir, device='cuda:0', dino_rep
 
         - weights_dir: 输出目录。默认是 default_weights_dir。所选 .pth 不在时会放到这里。
         - device: 与 PyTorch 模型核对和构建使用的 CUDA 设备。默认是 cuda:0。
-        - dino_repo: 传给 NativeDino 的本地 DINOv2 源码目录。默认是 default_dino_repo。
+        - dino_repo: 传给 NativeDino 的仓库，默认使用官方 Torch Hub；也可显式提供自定义源码目录。
         - dino: vits14、vitb14 或 vitl14。默认是 vitl14。vitl14 写出已发布的引擎文件名。
 
     ## 返回
@@ -2187,6 +2213,7 @@ class GroundingSAM:
 """
         from PIL import Image
         from torchvision.ops import box_convert, nms
+        from ultralytics.cfg import DEFAULT_CFG_DICT
 
         height, width = rgb.shape[:2]
         image, _ = self.transform(Image.fromarray(rgb), None)
@@ -2206,8 +2233,11 @@ class GroundingSAM:
         if not len(boxes):
             return boxes, torch.empty((0, height, width), device=self.device, dtype=torch.bool), objectness
         with torch.autocast('cuda', enabled=False):
+            # New Ultralytics uses quantize instead of half; both keep SAM in FP32.
+            # 新版 Ultralytics 以 quantize 替代 half；两种接口均保持 SAM 的 FP32 精度。
+            precision = {"quantize": 32} if "quantize" in DEFAULT_CFG_DICT else {"half": False}
             result = self.segmentor.predict(np.ascontiguousarray(rgb[:, :, ::-1]), bboxes=boxes.cpu().numpy().tolist(),
-                                            device=self.device, half=False, verbose=False, save=False)[0]
+                                            device=self.device, verbose=False, save=False, **precision)[0]
         masks = result.masks.data.bool()
         if masks.shape != (len(boxes), height, width):
             raise RuntimeError('SAM returned unexpected mask dimensions')

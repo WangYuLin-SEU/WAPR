@@ -11,7 +11,7 @@
 # 路径相对 release 根目录，也就是本文件的上一级。
 from pathlib import Path
 
-from wapr.resources import source_checkout, weights_dir
+from wapr.resources import weights_dir
 
 _ROOT = Path(__file__).resolve().parents[1]
 
@@ -51,9 +51,9 @@ w_diffuse = 0.2
 # Light direction in the OpenCV camera frame, +Z forward.
 # OpenCV 相机系的光照方向，+Z 朝前。
 light_dir = (0.0, 0.0, 1.0)
-# "torch" runs the modules. "trt" requires the FP16 engine assets/weights/<name>.engine.
+# "torch" runs the modules. "trt" uses the FP16 engine cache/weights/<name>.engine.
 # A missing engine raises. It does not fall back to the module.
-# "torch" 走模块。"trt" 必须有 assets/weights/<name>.engine 这份 FP16 引擎。
+# "torch" 走模块。"trt" 使用 cache/weights/<name>.engine 这份 FP16 引擎。
 # 缺引擎直接报错，不退回模块。
 # Linux keeps this request. Windows uses torch unless TensorRT is already installed
 # or WAPR_BACKEND overrides it. See resolve_backend.
@@ -112,7 +112,7 @@ channels = {
 
 def weight_file(name):
     """
-    # Resolve one weight path from the source table or the installed user cache.
+    # Resolve one weight path in the shared source/wheel cache.
 
     ## Args
 
@@ -120,11 +120,11 @@ def weight_file(name):
 
     ## Returns
 
-        - Returns a Path under the release root or installed user cache.
+        - Returns a Path under cache/weights for both source and wheel use.
 
     ---
 
-    # 从源码路径表或安装后的用户缓存解析一份权重路径。
+    # 在源码与 wheel 共用缓存中解析一份权重路径。
 
     ## 参数
 
@@ -132,25 +132,12 @@ def weight_file(name):
 
     ## 返回
 
-        - 返回源码发布目录或安装后用户缓存下的 Path。
+        - 源码与 wheel 均返回 cache/weights 下的 Path。
 
 """
-    table = {}
-    if source_checkout:
-        # Keep the author's project-relative checkpoint mapping in a source checkout.
-        # 源码目录继续使用作者维护的项目相对权重路径表。
-        path = _ROOT / "assets" / "weights" / "PATHS.txt"
-        for line in path.read_text().splitlines():
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            key, rel = line.split()
-            table[key] = _ROOT / rel
-    else:
-        # A wheel excludes PATHS.txt; its four checkpoint names are fixed by the release.
-        # wheel 不包含 PATHS.txt；四份权重文件名由发布包确定。
-        for key in channels:
-            table[key] = Path(weights_dir()) / (key + ".pth")
+    # Source and wheel share the same checkpoint layout.
+    # 源码与 wheel 共用同一套权重目录。
+    table = {key: Path(weights_dir()) / (key + ".pth") for key in channels}
     if name not in table:
         raise KeyError(name)
     return table[name]

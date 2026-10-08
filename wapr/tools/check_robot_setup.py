@@ -41,7 +41,7 @@ def main():
     if sys.version_info[:2] != (3, 10):
         core_problems.append("Python 3.10 / Python 3.10")
     if sys.platform != "linux":
-        core_problems.append("Linux renderer / Linux 渲染环境")
+        core_problems.append("Robot simulation (mplib/SAPIEN) requires Linux / 机器人仿真需要 Linux")
 
     # These versions reproduce the environment used for the recorded episodes.
     # 这些版本是已记录仿真回合所用的环境，不是推断出的通用兼容区间。
@@ -140,14 +140,14 @@ def main():
             print("ROBOT_BRIDGE_PATH_NOTE", "Example 14 currently uses / 示例 14 当前使用", bridge.BRIDGE_ROOT, flush=True)
             print("ROBOT_BRIDGE_PATH_NOTE", "ManiSkill asset root would be / 官方资源文件根为", expected_root, flush=True)
 
-    # Example 16 consumes saved rows and poses from 12–14; example 17 uses the same rows.
-    # 示例 16 读取 12–14 保存的帧和位姿；示例 17 复用这些帧。
+    # Example 16 consumes saved rows and poses from 13–15; example 17 uses the same rows.
+    # 示例 16 读取 13–15 保存的帧和位姿；示例 17 复用这些帧。
     saved_problems = []
     saved_cases = (
-        ("12", os.path.join(known.OUT_DIR, "tracking"), ("rows.json", "sequence_poses.json", "meshes/bottle.ply", "meshes/box.ply")),
-        ("13 carrot", os.path.join(bridge.OUT_DIR, "carrot"), ("rows.json", "jobs.json", "jobs_poses.json", "mesh.ply")),
-        ("13 eggplant", os.path.join(bridge.OUT_DIR, "eggplant"), ("rows.json", "jobs.json", "jobs_poses.json", "mesh.ply")),
-        ("14", os.path.join(xarm.OUT_DIR, "cube"), ("rows.json", "jobs.json", "jobs_poses.json", "mesh.ply")),
+        ("13", os.path.join(known.OUT_DIR, "tracking"), ("rows.json", "sequence_poses.json", "meshes/bottle.ply", "meshes/box.ply")),
+        ("14 carrot", os.path.join(bridge.OUT_DIR, "carrot"), ("rows.json", "jobs.json", "jobs_poses.json", "mesh.ply")),
+        ("14 eggplant", os.path.join(bridge.OUT_DIR, "eggplant"), ("rows.json", "jobs.json", "jobs_poses.json", "mesh.ply")),
+        ("15", os.path.join(xarm.OUT_DIR, "cube"), ("rows.json", "jobs.json", "jobs_poses.json", "mesh.ply")),
     )
     for label, folder, names in saved_cases:
         missing = [name for name in names if not os.path.isfile(os.path.join(folder, name))]
@@ -165,8 +165,8 @@ def main():
 
     pose_ready = not core_problems and not pose_problems
     print("ROBOT_SETUP", "READY" if pose_ready else "INCOMPLETE", "Static checks only / 仅静态检查", flush=True)
-    print("ROBOT_EXAMPLE_13", "READY" if pose_ready and not bridge_problems else "INCOMPLETE", flush=True)
-    print("ROBOT_EXAMPLE_15", "READY" if pose_ready and not saved_problems and dino_ready else "INCOMPLETE", flush=True)
+    print("ROBOT_EXAMPLE_14", "READY" if pose_ready and not bridge_problems else "INCOMPLETE", flush=True)
+    print("ROBOT_EXAMPLE_16", "READY" if pose_ready and not saved_problems and dino_ready else "INCOMPLETE", flush=True)
     for problem in core_problems + pose_problems:
         print("ROBOT_MISSING", problem, flush=True)
     return 0 if pose_ready else 1

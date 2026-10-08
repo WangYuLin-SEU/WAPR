@@ -32,9 +32,10 @@ from PIL import Image
 release_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, release_dir)
 from wapr.bootstrap import ensure_optional
+from wapr import recipe
 from wapr.det2d import WAPRDet2D, onboard_meshes
 from wapr.download_assets import check_and_fetch_pack
-from wapr.resources import samples_dir
+from wapr.resources import samples_dir, outputs_dir, cache_dir
 from wapr.view import visualize_2d_detection
 
 # The default root is WAPR's downloaded LM-O sample. An external root must use the
@@ -46,9 +47,9 @@ input_root = os.environ.get('WAPR_DET2D_INPUT_ROOT', sample_root)
 image_path = os.path.join(input_root, 'test', '000002', 'rgb', '000001.png')
 models_dir = os.path.join(input_root, 'models')
 # Empty keeps rendered views and DINOv2 features on the GPU. For a reusable
-# bank, set os.path.join(release_dir, 'outputs', 'cache', 'det2d', 'lmo.pt') here.
+# bank, set os.path.join(cache_dir(), 'templates', 'det2d', 'lmo.pt') here.
 # 为空时渲染图和 DINOv2 特征留在显存。若需复用，可在此设为
-# os.path.join(release_dir, 'outputs', 'cache', 'det2d', 'lmo.pt')。
+# os.path.join(cache_dir(), 'templates', 'det2d', 'lmo.pt')。
 template_path = ''
 device = 'cuda:0'
 backend = 'trt'
@@ -56,10 +57,10 @@ backend = 'trt'
 # confidence 是 2D 阈值。分数不低于这个值才留下。
 confidence = 0.1
 # dino is vits14, vitb14, or vitl14. grounding is swinb or swint.
-# A missing file is downloaded into assets/weights/det2d. vitl14 + trt reuses
+# A missing file is downloaded into cache/weights/det2d. vitl14 + trt reuses
 # dino_patches_fp16.engine, or builds it when that engine does not match.
 # dino 取 vits14、vitb14、vitl14。grounding 取 swinb 或 swint。
-# 缺的文件下载到 assets/weights/det2d。vitl14 且 trt 时，沿用 dino_patches_fp16.engine，不匹配才构建。
+# 缺的文件下载到 cache/weights/det2d。vitl14 且 trt 时，沿用 dino_patches_fp16.engine，不匹配才构建。
 dino = 'vitl14'
 grounding = 'swinb'
 # show True opens a window until a key is pressed. image writes the same picture.
@@ -69,18 +70,18 @@ show = False
 # remain readable when the permissive detector threshold returns many boxes.
 # JSON 保留全部检测；只限制插图显示的高分结果，避免宽松阈值下标签遮挡画面。
 preview_top_k = 12
-output_path = os.path.join(release_dir, 'results', 'det2d', 'single_image.json')
-image_path_out = os.path.join(release_dir, 'results', 'det2d', 'single_image.jpg')
+output_path = os.path.join(outputs_dir(__file__), 'single_image.json')
+image_path_out = os.path.join(outputs_dir(__file__), 'single_image.jpg')
 
 
 def prepare_custom_cads():
-    """Save a one-object CAD bank at outputs/cache/det2d/custom.pt when called explicitly.
+    """Save a one-object CAD bank at cache/templates/det2d/custom.pt when called explicitly.
 
     Read input_root/models/obj_000001.ply in BOP millimeters, convert its
     vertices to meters, and return the saved bank path. The main flow builds
     the full bank in GPU memory instead.
 
-    手动调用时，把单物体 CAD 库保存到 outputs/cache/det2d/custom.pt。
+    手动调用时，把单物体 CAD 库保存到 cache/templates/det2d/custom.pt。
     读取 input_root/models/obj_000001.ply，将 BOP 毫米顶点换成米，返回库路径。
     主流程则在显存中建立全部物体的模板库。
     """
@@ -91,10 +92,11 @@ def prepare_custom_cads():
     if not isinstance(mesh, trimesh.Trimesh):
         raise TypeError('expected one mesh: %s' % mesh_path)
     mesh.vertices = np.asarray(mesh.vertices, dtype=np.float32) * .001
-    return onboard_meshes({1: mesh}, os.path.join(release_dir, 'outputs', 'cache', 'det2d', 'custom.pt'), device=device, dino=dino)
+    return onboard_meshes({1: mesh}, os.path.join(cache_dir(), 'templates', 'det2d', 'custom.pt'), device=device, dino=dino)
 
 
 if __name__ == '__main__':
+    recipe.visualize_path = outputs_dir(__file__)
     # Prepare optional detection before importing its mask codec.
     # 先准备可选检测功能，成功后再导入它的掩码编解码器。
     ensure_optional('det2d')

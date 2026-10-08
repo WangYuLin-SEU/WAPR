@@ -35,7 +35,7 @@ from step01_point_mask import (  # noqa: E402
     SAM3D_CONFIG,
     SAM3D_ROOT,
     sam3d_gaussian_backend,
-    sam3d_local_dino,
+    prepare_sam3d_dino_weights,
     sam3d_utils3d_names,
 )
 
@@ -466,7 +466,7 @@ class Sam3dSession:
         os.environ.setdefault("CUDA_VISIBLE_DEVICES", self.device.split(":")[-1])
         sam3d_utils3d_names()
         sam3d_gaussian_backend()
-        sam3d_local_dino()
+        prepare_sam3d_dino_weights()
         config = OmegaConf.load(SAM3D_CONFIG)
         config.rendering_engine = "pytorch3d"
         config.compile_model = False

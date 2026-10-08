@@ -35,17 +35,18 @@ sys.path.insert(0, str(ROOT))
 from wapr import WAPREstimator
 from wapr import recipe
 from wapr.download_assets import check_and_fetch_pack
-from wapr.resources import samples_dir
+from wapr.resources import samples_dir, outputs_dir
 from wapr.view import visualize_6d_pose
 
 
 if __name__ == "__main__":
+    recipe.visualize_path = outputs_dir(__file__)
     print("example 02  previous examples/01_one_rgb_detect_segment.py  next examples/03_published_boxes_to_pose.py", flush=True)
     # Download the four pose checkpoints if any file is missing:
-    # assets/weights/wapr_w_mask.pth, wapr_wo_mask.pth, sapr.pth, wbps.pth.
+    # cache/weights/wapr_w_mask.pth, wapr_wo_mask.pth, sapr.pth, wbps.pth.
     # These are WAPR, SAPR, and WBPS. Detector weights are not in this pack.
     # 四份位姿权重仅在文件缺失时下载：
-    # assets/weights/wapr_w_mask.pth、wapr_wo_mask.pth、sapr.pth、wbps.pth。
+    # cache/weights/wapr_w_mask.pth、wapr_wo_mask.pth、sapr.pth、wbps.pth。
     # 这是 WAPR、SAPR 和 WBPS。检测器权重不在该数据包中。
     check_and_fetch_pack("wapr_sapr_wbps")
     # Fetch this lesson's LM-O frame, in meters, when one of its required files is missing.

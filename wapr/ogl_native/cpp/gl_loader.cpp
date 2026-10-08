@@ -14,20 +14,24 @@ namespace wapr_ogl {
 
 template <typename T>
 static T load_fn(EGLDisplay, const char* name) {
-    // EGL returns a function pointer; WGL's wrapper returns void*.
-    // EGL 返回函数指针，WGL 包装返回 void*；显式转换使两种平台都能编译。
-    void* raw = reinterpret_cast<void*>(eglGetProcAddress(name));
 #ifdef _WIN32
+    // WGL's wrapper returns void* and uses integer sentinels for absent entry points.
+    // WGL 包装返回 void*，并用整数哨兵值表示不存在的入口。
+    void* raw = eglGetProcAddress(name);
     if (!raw || raw == reinterpret_cast<void*>(1) || raw == reinterpret_cast<void*>(2) ||
         raw == reinterpret_cast<void*>(3) || raw == reinterpret_cast<void*>(-1)) {
         raw = reinterpret_cast<void*>(GetProcAddress(GetModuleHandleA("opengl32.dll"), name));
     }
-#else
-    if (!raw) {
-        raw = dlsym(RTLD_DEFAULT, name);
-    }
-#endif
     return reinterpret_cast<T>(raw);
+#else
+    // EGL returns a function pointer; GCC requires an explicit conversion from dlsym.
+    // EGL 返回函数指针；GCC 要求显式转换 dlsym 的返回值。
+    void (*raw_fn)() = eglGetProcAddress(name);
+    if (!raw_fn) {
+        raw_fn = reinterpret_cast<void (*)()>(dlsym(RTLD_DEFAULT, name));
+    }
+    return reinterpret_cast<T>(raw_fn);
+#endif
 }
 
 bool load_gl_functions(GLFunctions& gl, EGLDisplay display) {

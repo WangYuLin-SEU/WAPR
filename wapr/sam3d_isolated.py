@@ -27,7 +27,7 @@ import threading
 import signal
 from concurrent.futures import ThreadPoolExecutor
 from importlib import metadata
-from wapr.resources import resource_root
+from wapr.resources import resource_root, cache_dir
 
 
 # Python 3.11 has the official Open3D 0.18.0 wheel. Python 3.12 does not.
@@ -38,31 +38,47 @@ OPEN3D_VERSION = "0.18.0"
 # 独立环境随用户选择的资源根目录保存；显式环境变量优先。
 SAM3D_ENV_ROOT = os.environ.get(
     "WAPR_SAM3D_ENV",
-    os.path.join(resource_root(), "environments", "sam3d"),
+    os.path.join(cache_dir(), "environments", "sam3d"),
 )
 SAM3D_PYTHON = os.path.join(SAM3D_ENV_ROOT, "bin", "python")
 
 
 def _worker_cache_environment(environment):
-    """Keep large temporary downloads and native caches on the resource volume.
+    """Keep worker caches on the resource volume and share only WAPR source.
 
-    大下载临时文件及原生缓存留在资源盘；保留用户显式的缓存路径。
+    工作进程缓存留在资源盘，仅共享 WAPR 源码；不借用基础环境的依赖。
     """
     # CUDA JIT reads UTF-8 source files even when the SSH login locale is ASCII.
     # SSH 登录区域设置可能为 ASCII；CUDA JIT 仍需读取 UTF-8 原生源码。
     environment['PYTHONUTF8'] = '1'
     from wapr.resources import resource_root
-    cache_root = resource_root()
+    cache_root = cache_dir()
     # pip's Ninja executable lives in the selected prefix; child JIT builds need it.
     # pip 安装的 Ninja 可执行文件位于所选前缀；子进程 JIT 编译需要该目录。
     environment["PATH"] = os.path.dirname(SAM3D_PYTHON) + os.pathsep + environment.get("PATH", "")
     paths = {"TMPDIR": os.path.join(cache_root, ".tmp"),
              "PIP_CACHE_DIR": os.path.join(cache_root, ".pip-cache"),
-             "TORCH_HOME": os.path.join(cache_root, "torchhub"),
              "TORCH_EXTENSIONS_DIR": os.path.join(cache_root, "native_extensions")}
     for key, directory in paths.items():
         environment.setdefault(key, directory)
         os.makedirs(environment[key], exist_ok=True)
+    # A site-packages parent would expose all caller dependencies to the child.
+    # 直接传 site-packages 父目录会让子进程读到基础环境的全部依赖；只链接 WAPR 包。
+    package_directory = os.path.realpath(os.path.dirname(__file__))
+    package_identity = hashlib.sha256(package_directory.encode("utf-8")).hexdigest()
+    module_directory = os.path.join(cache_root, "worker_modules", package_identity)
+    os.makedirs(module_directory, exist_ok=True)
+    package_link = os.path.join(module_directory, "wapr")
+    if not os.path.lexists(package_link):
+        try:
+            os.symlink(package_directory, package_link, target_is_directory=True)
+        except FileExistsError:
+            pass
+    if not os.path.islink(package_link) or os.path.realpath(package_link) != package_directory:
+        raise RuntimeError("Independent worker package path conflicts with existing files"
+                           " / 独立工作进程的包路径与已有文件冲突: " + package_link)
+    environment["PYTHONPATH"] = module_directory
+    environment["PYTHONNOUSERSITE"] = "1"
     return environment
 
 
@@ -210,8 +226,8 @@ def prepare_environment(allow_replacement=None, check_only=False):
         # Keep managed interpreter/cache downloads on the user data volume.
         # 独立解释器和下载缓存放在用户数据盘；尊重用户已有 UV_* 配置。
         from wapr.resources import resource_root
-        environment.setdefault("UV_PYTHON_INSTALL_DIR", os.path.join(resource_root(), "interpreters"))
-        environment.setdefault("UV_CACHE_DIR", os.path.join(resource_root(), ".uv-cache"))
+        environment.setdefault("UV_PYTHON_INSTALL_DIR", os.path.join(cache_dir(), "interpreters"))
+        environment.setdefault("UV_CACHE_DIR", os.path.join(cache_dir(), ".uv-cache"))
         environment.setdefault("UV_HTTP_TIMEOUT", "30")
         environment.setdefault("UV_HTTP_RETRIES", "1")
         user_python_mirror = any(environment.get(key) for key in
@@ -265,8 +281,6 @@ def prepare_environment(allow_replacement=None, check_only=False):
         with open(path, "w", encoding="utf-8") as stream:
             json.dump(request, stream)
         environment = os.environ.copy()
-        package_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        environment["PYTHONPATH"] = package_root + os.pathsep + environment.get("PYTHONPATH", "")
         # Exact CUDA requirements resolve on this official supplemental index.
         # 精确 CUDA 版本通过这个官方补充索引解析，普通依赖仍可使用测速源。
         environment["PIP_EXTRA_INDEX_URL"] = index
@@ -313,7 +327,7 @@ def _prepare_worker(path):
     from wapr.installation import install_requirements, _installed_requirements_healthy
     # A separate ABI prefix cannot borrow the caller's installed dependencies.
     # 独立 ABI 前缀不能借用调用者已有依赖；包含 wheel 核心及 SAM3D 准备入口依赖。
-    requirements = request["requirements"] + ["numpy", "trimesh", "Pillow", "huggingface-hub",
+    requirements = request["requirements"] + ["numpy", "trimesh", "Pillow", "huggingface-hub>=0.34,<1",
                                               "packaging", "requests", "PyYAML"]
     if request.get("probe_only"):
         status = "ready" if _installed_requirements_healthy(requirements) else "needs_preparation"
@@ -330,6 +344,13 @@ def prepare_reconstruction_environment(allow_replacement=None, check_only=False,
 
     在独立解释器内准备完整 SAM3D 软件栈；基础环境仅负责启动子进程。
     """
+    if not check_only:
+        # Check user access before downloading an otherwise unusable native stack.
+        # 先检查用户访问权限，避免下载完原生软件栈才发现模型不可用。
+        from wapr.reconstruction_setup import ensure_reconstruction_weights
+        access = ensure_reconstruction_weights(checkpoint_directory, check_only=True)
+        if access["status"] == "blocked":
+            return access
     bootstrap = prepare_environment(allow_replacement=allow_replacement, check_only=check_only)
     if bootstrap["status"] not in ("ready", "installed") or (check_only and bootstrap.get("install")):
         return bootstrap
@@ -340,8 +361,6 @@ def prepare_reconstruction_environment(allow_replacement=None, check_only=False,
         with open(path, "w", encoding="utf-8") as stream:
             json.dump(request, stream)
         environment = os.environ.copy()
-        package_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        environment["PYTHONPATH"] = package_root + os.pathsep + environment.get("PYTHONPATH", "")
         result = _run_preparation_worker("prepare-reconstruction-worker", path, environment)
         # Only the child imported the replaced native dependency; restart it once.
         # 只有子进程导入了被更换的原生依赖；仅重启该子进程一次，不重启基础环境。
@@ -382,7 +401,7 @@ def _prepare_cuda_toolchain(check_only=False):
     cuda_version = torch.version.cuda
     releases = {"12.4": "12.4.1", "12.1": "12.1.1", "11.8": "11.8.0"}
     candidates = [os.environ.get("CUDA_HOME", ""), "/usr/local/cuda-" + str(cuda_version), "/usr/local/cuda"]
-    cached_root = os.path.join(resource_root(), "toolchains", "cuda-" + str(cuda_version))
+    cached_root = os.path.join(cache_dir(), "toolchains", "cuda-" + str(cuda_version))
     candidates.append(cached_root)
     selected = None
     for directory in candidates:
@@ -401,7 +420,7 @@ def _prepare_cuda_toolchain(check_only=False):
             return {"status": "needs_toolchain", "cuda": cuda_version, "components": component_names,
                     "destination": cached_root, "system_cuda_unchanged": True}
         from wapr.det2d import _download_file
-        archive_root = os.path.join(resource_root(), "toolchains", "archives")
+        archive_root = os.path.join(cache_dir(), "toolchains", "archives")
         os.makedirs(archive_root, exist_ok=True)
         base_url = "https://developer.download.nvidia.com/compute/cuda/redist/"
         manifest_path = os.path.join(archive_root, "redistrib_" + releases[cuda_version] + ".json")
@@ -629,10 +648,6 @@ def _transfer_reconstruction(rgb, mask, request):
         with open(os.path.join(directory, "request.json"), "w", encoding="utf-8") as stream:
             json.dump(request, stream)
         environment = os.environ.copy()
-        # The child imports this installed wheel rather than another WAPR version.
-        # 子进程导入当前已安装 wheel，避免误用另一份 WAPR。
-        package_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        environment["PYTHONPATH"] = package_root + os.pathsep + environment.get("PYTHONPATH", "")
         environment = _worker_cache_environment(environment)
         completed = subprocess.run([SAM3D_PYTHON, os.path.abspath(__file__), "infer-example", directory],
                                    env=environment, check=False)
