@@ -109,6 +109,19 @@ def prepare_feature(feature, allow_replacement=None, check_only=False):
 
     只准备被请求的功能；更换已有库须明确同意，不安装无关可选功能。
     """
+    # Block unsupported recipes before importing Torch or starting installations.
+    # 不支持的方案在导入 Torch、启动安装前停止。
+    if sys.platform == "win32" and feature in ("sam3d", "robot", "roma"):
+        return {"feature": feature, "status": "blocked",
+                "reason": "This WAPR feature setup requires Linux; Windows is unsupported"
+                          " / 此 WAPR 功能安装方案需要 Linux，不支持 Windows"}
+    if feature == "det2d":
+        from wapr.resources import cache_dir
+        source_path = os.path.join(cache_dir(), "sources", "GroundingDINO")
+        if not os.path.isdir(source_path) and shutil.which("git") is None:
+            return {"feature": feature, "status": "blocked",
+                    "reason": "Git command-line tool is required. Install Git, add it to PATH, reopen the terminal and verify git --version"
+                              " / 需要 Git 命令行工具。请安装 Git 并加入 PATH，重开终端后用 git --version 确认"}
     from wapr.installation import install_requirements, prepare_optional
     if feature == "core":
         if check_only:
@@ -597,11 +610,18 @@ def fetch_example():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Prepare WAPR in the existing Python / 在当前 Python 准备 WAPR")
-    parser.add_argument("--feature", nargs="+", default=["core", "dinov2", "det2d", "sam2", "roma", "qwen", "unipose9d"], choices=[
+    parser.add_argument("--feature", nargs="+", default=None, choices=[
         "core", "dinov2", "det2d", "sam2", "sam3d", "roma", "qwen", "robot", "unipose9d", "compatible"])
     parser.add_argument("--check", action="store_true", help="Inspect without installing / 只检查，不安装")
     parser.add_argument("--yes", action="store_true", help="Explicitly approve shown package replacements / 明确同意包更换")
     arguments = parser.parse_args()
+    if arguments.feature is None:
+        arguments.feature = ["core", "dinov2", "det2d", "sam2", "roma", "qwen", "unipose9d"]
+        if sys.platform == "win32":
+            # Default preparation continues with supported features; explicit requests fail.
+            # 默认准备继续处理兼容功能；显式请求不支持的功能时仍报错。
+            arguments.feature.remove("roma")
+            print("WAPR_FEATURE_SKIPPED", "roma: current setup requires Linux / 当前安装方案需要 Linux", flush=True)
     approved = True if arguments.yes else None
     for requested_feature in arguments.feature:
         preparation = prepare_feature(requested_feature, allow_replacement=approved, check_only=arguments.check)

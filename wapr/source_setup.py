@@ -544,7 +544,7 @@ def _checkout(name, url, revision, compatibility=""):
         return os.path.abspath(path)
 
     if shutil.which("git") is None:
-        raise RuntimeError("git is required to fetch source / 获取源码需要 git")
+        raise RuntimeError("Git command-line tool is missing. Install Git, add it to PATH, reopen the terminal and retry (git --version). Windows: https://git-scm.com/download/win ; Ubuntu/Debian: sudo apt-get install git / 未找到 Git 命令行工具。请安装 Git 并加入 PATH，重开终端后用 git --version 确认，再重试")
     os.makedirs(parent, exist_ok=True)
     staging = tempfile.mkdtemp(prefix="." + name + "-", dir=parent)
     candidate = os.path.join(staging, "checkout")

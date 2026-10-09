@@ -370,6 +370,12 @@ def prepare_optional(feature, allow_replacement=None, check_only=False, source_r
     source_requirement supplies the selected RoMa checkout for one resolution.
     source_requirement 提供所选 RoMa 检出，以一次解析完成源码及其依赖计划。
     """
+    # Block unsupported recipes before importing Torch or starting installations.
+    # 不支持的方案在导入 Torch、启动安装前停止。
+    if sys.platform == "win32" and feature in ("sam3d", "robot", "roma"):
+        return {"feature": feature, "status": "blocked",
+                "reason": "This WAPR feature setup requires Linux; Windows is unsupported"
+                          " / 此 WAPR 功能安装方案需要 Linux，不支持 Windows"}
     notes = []
     if feature in ("det2d", "sam2"):
         # Ultralytics checks writability before creating its nested settings folder.

@@ -234,6 +234,8 @@ See the [Docs website](https://wangyulin-seu.github.io/WAPR/docs/?lang=en) for c
 
 ---
 
+Windows supports pose and detection examples 01–10. Examples 11–17 and the supplied SAM3D, robot and RoMa setups require Linux; default Windows preparation skips RoMa. Explicit requests for these unsupported setups stop with a platform message. Preparing GroundingDINO source requires the Git command-line tool on `PATH`; install Git and verify `git --version` before preparation.
+
 <a id="citation"></a>
 ## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg?v=color1" width="26" height="26" alt=""/> Citation and license
 

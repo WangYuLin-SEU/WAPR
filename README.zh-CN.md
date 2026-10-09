@@ -232,6 +232,8 @@ SAM2 点／框分割入口为 `wapr.sam2.predict_mask`。安装器为检测器�
 
 ---
 
+Windows 支持位姿与检测示例 01–10。示例 11–17 及当前提供的 SAM3D、机器人、RoMa 安装方案需要 Linux；Windows 默认准备跳过 RoMa，显式请求这些不支持的方案时会提示平台限制并退出。准备 GroundingDINO 源码需要 PATH 中可用的 Git 命令行工具，请提前安装 Git，并用 `git --version` 确认。
+
 <a id="citation"></a>
 ## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg?v=color1" width="26" height="26" alt=""/> 引用与许可
 

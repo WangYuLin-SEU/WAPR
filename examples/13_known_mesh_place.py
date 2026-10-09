@@ -37,6 +37,11 @@ import json
 import os
 import subprocess
 import sys
+
+# Stop unsupported examples before importing dependencies or preparing resources.
+# 不支持的平台在导入依赖、准备资源前停止。
+if __name__ == "__main__" and sys.platform == "win32":
+    raise SystemExit("Robot planning and its dependent examples require Linux / 机器人规划及其后续示例需要 Linux；Windows 不支持示例 13。")
 import time
 
 import cv2
