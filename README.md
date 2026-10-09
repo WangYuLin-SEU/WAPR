@@ -10,8 +10,6 @@
 
 <p align="center"><strong><code>ECCV 2026</code></strong></p>
 
-<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=en">Project page</a></p>
-
 <h3 align="center">A foundation model for unseen-object 6D pose estimation</h3>
 
 <p align="center">

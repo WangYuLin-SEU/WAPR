@@ -10,8 +10,6 @@
 
 <p align="center"><strong><code>ECCV 2026</code></strong></p>
 
-<p align="center"><a href="https://wangyulin-seu.github.io/WAPR/?lang=zh">项目宣传页</a></p>
-
 <h3 align="center">面向未见物体 6D 位姿估计的基础模型</h3>
 
 <p align="center">
