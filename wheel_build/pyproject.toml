@@ -13,7 +13,7 @@ build-backend = "setuptools.build_meta"
 name = "wapr"
 # Release version confirmed by the maintainer.
 # 作者确认的本次发行版本。
-version = "0.0.7"
+version = "0.0.8"
 description = "Wide-angle pose refinement for unseen object 6D pose estimation"
 authors = [{name = "Yulin Wang", email = "yulinwang@seu.edu.cn"}]
 readme = "README.md"

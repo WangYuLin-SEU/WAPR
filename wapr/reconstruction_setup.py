@@ -2,14 +2,41 @@
 # SPDX-License-Identifier: LGPL-2.1-only
 """Prepare SAM3D inference without its training environment.
 
-只准备 SAM3D 推理，不安装上游训练环境；凭据仅来自使用者本机。
+只准备 SAM3D 推理，不安装上游训练环境；模型默认从魔搭下载。
 """
+import hashlib
 import importlib
 import os
 import re
 import subprocess
 import sys
+import urllib.parse
+import urllib.request
 from pathlib import Path
+
+
+# Fixed ModelScope file revisions and hashes; model terms remain in LICENSE.
+# 固定魔搭文件版本与摘要；模型条款保存在 LICENSE。
+_SAM3D_ARTIFACTS = (
+    ('LICENSE', '64ec50f24a12eb631aceff750993d162d751dc25', 8204, 'b3a5a0e2d973ab80e6610ccf1cffc40756050d0ace3cd4fec879b3ec290b2e9b'),
+    ('checkpoints/pipeline.yaml', '64ec50f24a12eb631aceff750993d162d751dc25', 3548, '53c3d226b21df85c0bb3d16e6e4fa63abde0d6167525765eb929d02bfa9d358c'),
+    ('checkpoints/slat_decoder_gs.ckpt', '64ec50f24a12eb631aceff750993d162d751dc25', 171476155, 'f8077c36a06eaf890dd93cda1937411f793dea1eb80b3dd9329f2038ba84a111'),
+    ('checkpoints/slat_decoder_gs.yaml', '64ec50f24a12eb631aceff750993d162d751dc25', 576, '53f054e02a0c185f0a6885d30bb6ca0ec92efe0a98148688e7f05f7c26afe670'),
+    ('checkpoints/slat_decoder_gs_4.ckpt', '64ec50f24a12eb631aceff750993d162d751dc25', 170269801, '731a0eceaa47945b52aa27f650d695b2aea9cc70945751e5609e5cb5b49f0186'),
+    ('checkpoints/slat_decoder_gs_4.yaml', '64ec50f24a12eb631aceff750993d162d751dc25', 575, '3d1dfd4c56cdac56f30e0cf5eb310d4df973fe25c60ac0a462c86ca4e3bf8b48'),
+    ('checkpoints/slat_decoder_mesh.ckpt', '64ec50f24a12eb631aceff750993d162d751dc25', 363726862, '85907b37b67d8ce5b099a96629bdcfbd873eb407dee6b3aa9a75deb15038db33'),
+    ('checkpoints/slat_decoder_mesh.yaml', '64ec50f24a12eb631aceff750993d162d751dc25', 300, '8f46952764aa985c50109a56f0b4f07625cdb06457aaded74957d26f3520c69e'),
+    ('checkpoints/slat_encoder.ckpt', 'b7f2543810586d96ce6185e549f4d695e51560a8', 173263986, '6485623145535f42c8afa4cbb68ab9953e54e2f0c1cb1eaf95dcb41051e10181'),
+    ('checkpoints/slat_encoder.yaml', 'b7f2543810586d96ce6185e549f4d695e51560a8', 268, 'ca80da7f1395a2acef9c6cea30ec3ccc89321ef890c644860f316a4ef1e8ebdb'),
+    ('checkpoints/slat_generator.ckpt', '64ec50f24a12eb631aceff750993d162d751dc25', 4906537684, '91529bde8e7daa12d09618a66c319e3a5a6398db6b23b958cedcb1c3f28faabb'),
+    ('checkpoints/slat_generator.yaml', '64ec50f24a12eb631aceff750993d162d751dc25', 1986, '53029fadff6fe34a0344381a16d64d65d0567d603484952712e8969319559c4e'),
+    ('checkpoints/ss_decoder.ckpt', '64ec50f24a12eb631aceff750993d162d751dc25', 147609242, '6dac1cd7b7fda5a38e0614fadae441f1794f80e39ea2981f1ac8aff0a7e99340'),
+    ('checkpoints/ss_decoder.yaml', '64ec50f24a12eb631aceff750993d162d751dc25', 244, 'baacff269b664f84f7aa1896ebd66128065f6568cdb88d419d5c3d2ccb4193ae'),
+    ('checkpoints/ss_encoder.ckpt', 'b7f2543810586d96ce6185e549f4d695e51560a8', 119085402, 'dcc47810ac568b11fe6e4821ea1c8d6b960dfbda3e5f68e94c19f44b3bf9e83b'),
+    ('checkpoints/ss_encoder.yaml', 'b7f2543810586d96ce6185e549f4d695e51560a8', 231, 'd3df5e18b2cbe87697d319adce0fe7e4fb6266809ad9d2f8c502761739bc4a06'),
+    ('checkpoints/ss_generator.ckpt', '64ec50f24a12eb631aceff750993d162d751dc25', 6690136964, '225f40479e4cff4f39d6fa14c55be3abad1475bf55b61af3bec1e19ed2f6c146'),
+    ('checkpoints/ss_generator.yaml', '64ec50f24a12eb631aceff750993d162d751dc25', 5076, '3c265448bca7c057f94e3ef56adea3a895a10bcd9f15f992a41dd03fa35412cd'),
+)
 
 
 def _kaolin_requirement(torch):
@@ -94,36 +121,55 @@ def reconstruction_weights_status(checkpoint_directory=None):
 
 
 def ensure_reconstruction_weights(checkpoint_directory=None, check_only=False):
-    """Use local checkpoints, or download with the user's own gated-model access.
+    """Reuse local checkpoints or fetch the pinned ModelScope model files.
 
-    优先使用本地权重；缺失时只使用用户自己的受控模型访问权限下载。
+    复用本地权重，缺失时从魔搭获取固定版本模型文件。
     """
     result = reconstruction_weights_status(checkpoint_directory)
     if result["status"] == "ready":
         return result
-    from huggingface_hub import get_hf_file_metadata, get_token, hf_hub_download, hf_hub_url, snapshot_download
-    token = get_token()
-    if any(name != "MoGe/model.pt" for name in result["missing"]):
-        if not token:
-            result.update(status="blocked", reason="Request SAM3D access and log in with your own Hugging Face token / 请申请 SAM3D 访问权限，并使用自己的 Hugging Face token 登录")
-            return result
+    needs_sam3d = any(name != "MoGe/model.pt" for name in result["missing"])
+    base_url = "https://modelscope.cn/api/v1/models/facebook/sam-3d-objects/repo?"
+    if needs_sam3d:
+        pipeline = next(row for row in _SAM3D_ARTIFACTS if row[0] == "checkpoints/pipeline.yaml")
+        url = base_url + urllib.parse.urlencode({"Revision": pipeline[1], "FilePath": pipeline[0]})
         try:
-            url = hf_hub_url("facebook/sam-3d-objects", "checkpoints/pipeline.yaml", endpoint="https://huggingface.co")
-            get_hf_file_metadata(url, token=token)
-        except Exception as error:
-            result.update(status="blocked", reason="SAM3D access check failed / SAM3D 访问检查失败: " + type(error).__name__)
+            # Check a small configuration before preparing the native environment.
+            # 在准备原生环境前检查小配置文件，不读取或发送 Hugging Face 凭据。
+            with urllib.request.urlopen(url, timeout=30) as response:
+                content = response.read(pipeline[2] + 1)
+            if len(content) != pipeline[2] or hashlib.sha256(content).hexdigest() != pipeline[3]:
+                raise ValueError("ModelScope configuration checksum mismatch")
+        except (OSError, ValueError) as error:
+            result.update(status="blocked", reason="SAM3D ModelScope download is unavailable; check network access and retry"
+                          " / SAM3D 魔搭下载暂不可用，请检查网络后重试: " + type(error).__name__)
             return result
     if check_only:
         result["status"] = "download_required"
         return result
-    # Never send gated-model credentials to an implicit mirror.
-    # 不向隐式镜像发送受控模型凭据；第三方权重也不收入 WAPR wheel。
-    if any(name != "MoGe/model.pt" for name in result["missing"]):
-        parent = str(Path(result["directory"]).parent)
-        snapshot_download("facebook/sam-3d-objects", endpoint="https://huggingface.co", token=token,
-                          allow_patterns=["checkpoints/*.yaml", "checkpoints/*.ckpt", "LICENSE"],
-                          local_dir=parent, max_workers=2)
+    if needs_sam3d:
+        from wapr.det2d import _download_file
+        directory = Path(result["directory"])
+        for relative, revision, size, fingerprint in _SAM3D_ARTIFACTS:
+            target = directory.parent / "LICENSE" if relative == "LICENSE" else directory / Path(relative).name
+            if target.is_file() and target.stat().st_size > 0:
+                with target.open("rb") as stream:
+                    if not stream.read(40).startswith(b"version https://git-lfs"):
+                        continue
+            url = base_url + urllib.parse.urlencode({"Revision": revision, "FilePath": relative})
+            temporary = str(target) + ".download"
+            _download_file(url, temporary)
+            digest = hashlib.sha256()
+            with open(temporary, "rb") as stream:
+                for block in iter(lambda: stream.read(8 * 1024 * 1024), b""):
+                    digest.update(block)
+            if os.path.getsize(temporary) != size or digest.hexdigest() != fingerprint:
+                raise RuntimeError("SAM3D ModelScope file verification failed / SAM3D 魔搭文件校验失败: " + relative)
+            # Only complete, verified files become visible to the reconstruction loader.
+            # 只有完整且校验通过的文件才交给重建加载器。
+            os.replace(temporary, target)
     if "MoGe/model.pt" in result["missing"]:
+        from huggingface_hub import hf_hub_download
         hf_hub_download("Ruicheng/moge-vitl", "model.pt", endpoint="https://huggingface.co", token=False,
                         local_dir=str(Path(result["moge"]).parent))
     return reconstruction_weights_status(checkpoint_directory)
@@ -141,8 +187,8 @@ def prepare_reconstruction(allow_replacement=None, check_only=False, checkpoint_
     if sys.version_info[:2] >= (3, 12):
         return {"status": "blocked", "reason": "SAM3D's Open3D 0.18.0 recipe has no Python 3.12+ wheel; use a separately prepared compatible interpreter / SAM3D 的 Open3D 0.18.0 方案没有 Python 3.12+ wheel；请准备兼容的独立解释器"}
     if not check_only:
-        # Missing gated access must stop before native downloads and compilation.
-        # 缺少受控模型权限时，在原生依赖下载和编译之前停止。
+        # Unavailable model downloads must stop before native downloads and compilation.
+        # 模型下载不可用时，在原生依赖下载和编译之前停止。
         access = ensure_reconstruction_weights(checkpoint_directory, check_only=True)
         if access["status"] == "blocked":
             return access
@@ -192,8 +238,8 @@ def prepare_reconstruction(allow_replacement=None, check_only=False, checkpoint_
         # SciPy 与唯一的 cv2 发行也须兼容该 NumPy ABI；更换仍进入确认计划。
         requirements.extend(["numpy>=1.26.4,<2", "scipy<1.18", "opencv-python-headless<4.12"])
     plan = install_requirements(requirements, check_only=True)
-    # Dependency inspection must work before gated weights have been supplied.
-    # 用户尚未提供受控权重时也能检查依赖；检查模式不下载权重或安装库。
+    # Dependency inspection must work before model weights have been supplied.
+    # 用户尚未提供模型权重时也能检查依赖；检查模式不下载权重或安装库。
     result["dependency_plan"] = plan
     if check_only:
         result["weights"] = reconstruction_weights_status(checkpoint_directory)

@@ -210,7 +210,7 @@ python wapr_examples/02_one_category_one_instance.py
 
 首次准备包含资源下载与原生编译，仅 Qwen 快照就约 7.5 GB；TensorRT 和兼容独立环境可能另外需要数 GB。请将 `WAPR_CACHE_DIR` 放在空间充足的盘上，后续运行会复用已校验资源和编译结果。部分机器人跟踪示例首次使用时会准备可选 CUDA 光栅器；默认准备不包含它。
 
-SAM2.1 通过已安装的 **Ultralytics** 调用，不再检出或安装原生 SAM2。DINOv2 使用官方 **`torch.hub`** 入口并复用已有缓存，不再维护独立 DINOv2 源码目录。SAM3D 可使用兼容独立环境，受控模型需要用户自己的访问权限。
+SAM2.1 通过已安装的 **Ultralytics** 调用，不再检出或安装原生 SAM2。DINOv2 使用官方 **`torch.hub`** 入口并复用已有缓存，不再维护独立 DINOv2 源码目录。SAM3D 可使用兼容独立环境，默认从魔搭下载权重，并复用已有本地权重；使用仍须遵守上游模型许可。
 
 SAM2 点／框分割入口为 `wapr.sam2.predict_mask`。安装器为检测器选择兼容的 Transformers 4 与 Hugging Face Hub 版本；源码与 wheel 共用 bootstrap 准备流程，Windows 编译 WGL，Linux 编译 EGL。已有依赖的变更会先列出并征求同意。
 

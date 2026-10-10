@@ -345,8 +345,8 @@ def prepare_reconstruction_environment(allow_replacement=None, check_only=False,
     在独立解释器内准备完整 SAM3D 软件栈；基础环境仅负责启动子进程。
     """
     if not check_only:
-        # Check user access before downloading an otherwise unusable native stack.
-        # 先检查用户访问权限，避免下载完原生软件栈才发现模型不可用。
+        # Check model availability before downloading the native stack.
+        # 先检查模型可访问性，避免下载完原生软件栈才发现模型不可用。
         from wapr.reconstruction_setup import ensure_reconstruction_weights
         access = ensure_reconstruction_weights(checkpoint_directory, check_only=True)
         if access["status"] == "blocked":

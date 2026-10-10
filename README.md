@@ -210,7 +210,7 @@ python wapr_examples/02_one_category_one_instance.py
 
 First preparation includes downloads and native compilation. The Qwen snapshot alone is about 7.5 GB; TensorRT and an independent compatible environment can require several additional GB. Keep `WAPR_CACHE_DIR` on a volume with enough space. Later runs reuse verified resources and compiled components. Some robot tracking recipes prepare the optional CUDA rasterizer on first use; it is excluded from default setup.
 
-SAM2.1 is called through the installed **Ultralytics** package; no native SAM2 checkout or installation is required. DINOv2 uses the official **`torch.hub`** entry and reuses its existing cache; WAPR does not maintain a separate DINOv2 checkout. SAM3D may use an independent compatible environment and requires your own gated-model access.
+SAM2.1 is called through the installed **Ultralytics** package; no native SAM2 checkout or installation is required. DINOv2 uses the official **`torch.hub`** entry and reuses its existing cache; WAPR does not maintain a separate DINOv2 checkout. SAM3D may use an independent compatible environment. Its weights download from ModelScope by default; existing local weights are reused. The upstream model license still applies.
 
 The SAM2 point/box entry is `wapr.sam2.predict_mask`. Setup selects compatible Transformers 4 and Hugging Face Hub versions for the detector. Source and wheel share bootstrap preparation, with Windows WGL and Linux EGL builds. Existing dependency changes are shown for approval before installation.
 
