@@ -197,24 +197,24 @@ Generated-mesh alignment defaults to gray geometry for WAPR/SAPR refinement and 
 <a id="start"></a>
 ## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg?v=color1" width="26" height="26" alt=""/> Get started
 
-Use an existing compatible Linux or Windows NVIDIA GPU environment with CUDA-enabled PyTorch. OGL needs a CUDA toolkit and a C++ compiler; on Windows, prepare the MSVC C++ build tools. Install WAPR, prepare the runtime and common features, and export the bundled examples:
+Use Linux or Windows with an NVIDIA GPU and CUDA-enabled PyTorch. OpenGL rendering requires the CUDA toolkit and a C++ compiler (MSVC on Windows). Install Git and make sure `git --version` works before preparing detection.
 
 ```bash
 python -m pip install -U wapr
-python -m wapr.bootstrap
+python -m wapr.bootstrap --feature core dinov2 det2d sam2
 python -c "from wapr.bootstrap import export_examples; export_examples('wapr_examples')"
 python wapr_examples/02_one_category_one_instance.py
 ```
 
-`pip install wapr` installs the project package; `python -m wapr.bootstrap` prepares the current environment, including TensorRT, detection, SAM2, DINOv2, RoMa, Qwen and UniPose9D, plus shared demo resources. Robot and SAM3D preparation remains explicit. Use `--feature core` to prepare only pose inference. Existing PyTorch is retained; dependency replacements require confirmation. Unsupported combinations stop with their compatibility conditions. NVIDIA CUDA inference is not supported on macOS.
+This setup prepares **2D detection, segmentation and 6D pose estimation**, including TensorRT and OpenGL. It retains your existing PyTorch installation and asks for confirmation before replacing other installed dependencies. NVIDIA CUDA inference requires Linux or Windows.
 
-First preparation includes downloads and native compilation. The Qwen snapshot alone is about 7.5 GB; TensorRT and an independent compatible environment can require several additional GB. Keep `WAPR_CACHE_DIR` on a volume with enough space. Later runs reuse verified resources and compiled components. Some robot tracking recipes prepare the optional CUDA rasterizer on first use; it is excluded from default setup.
+**Add features when needed:**
 
-SAM2.1 is called through the installed **Ultralytics** package; no native SAM2 checkout or installation is required. DINOv2 uses the official **`torch.hub`** entry and reuses its existing cache; WAPR does not maintain a separate DINOv2 checkout. SAM3D may use an independent compatible environment. Its weights download from ModelScope by default; existing local weights are reused. The upstream model license still applies.
+- **Reconstruction:** see the [reconstruction setup](https://wangyulin-seu.github.io/WAPR/docs/install-extensions.html?lang=en) for SAM3D and RoMa. Language-guided examples also use Qwen and UniPose9D.
+- **Robotics:** follow the [robot simulation setup](https://wangyulin-seu.github.io/WAPR/docs/install-extensions.html?lang=en#robot).
+- **Tracking with an existing CAD model:** use the standard pose and tracking examples; reconstruction is optional.
 
-The SAM2 point/box entry is `wapr.sam2.predict_mask`. Setup selects compatible Transformers 4 and Hugging Face Hub versions for the detector. Source and wheel share bootstrap preparation, with Windows WGL and Linux EGL builds. Existing dependency changes are shown for approval before installation.
-
-Set an absolute `WAPR_CACHE_DIR` to choose the resource root. Source and wheel use `cache/weights/`, `cache/environments/`, shared `cache/samples/bop/lmo/` and `cache/samples/ycbineoat/`; each example writes to its own `outputs/<number_task>/`. Torch Hub respects the existing `TORCH_HOME`. See the [installation guide](https://wangyulin-seu.github.io/WAPR/docs/install-guide.html?lang=en) and [feature guide](https://wangyulin-seu.github.io/WAPR/docs/install-extensions.html?lang=en).
+The first setup downloads model resources and builds GPU components. Set `WAPR_CACHE_DIR` to an absolute path on a drive with sufficient space. Weights, environments and shared samples are stored in `cache/weights/`, `cache/environments/` and `cache/samples/`; visualizations are saved separately in `outputs/<number_task>/`. Subsequent runs reuse the cache. See the [installation guide](https://wangyulin-seu.github.io/WAPR/docs/install-guide.html?lang=en) for requirements and resource locations.
 
 Read [the first-pose walkthrough](https://wangyulin-seu.github.io/WAPR/docs/pose-one.html?lang=en) alongside this script; example 01 is not a prerequisite. The example's pose overlay is enabled by default; use `visualize` in [`wapr/recipe.py`](wapr/recipe.py) to enable or disable it. Example 02 uses a supplied annotated visible mask, not automatic 2D detection.
 

@@ -197,24 +197,26 @@ WBPS 在每个实例的组内选位姿；公开分数取该完整组的 `(100 - 
 <a id="start"></a>
 ## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg?v=color1" width="26" height="26" alt=""/> 快速开始
 
-复用兼容的 Linux 或 Windows NVIDIA GPU 环境及支持 CUDA 的 PyTorch。OGL 需要 CUDA toolkit 和 C++ 编译器；Windows 还需准备 MSVC C++ 构建工具。安装 WAPR、准备运行环境与常用功能，再导出随包示例：
+使用配有 NVIDIA GPU 和 CUDA 版 PyTorch 的 Linux 或 Windows 环境。OpenGL 渲染需要 CUDA toolkit 与 C++ 编译器；Windows 使用 MSVC。准备检测功能前，请安装 Git，并确认 `git --version` 可以运行。
 
 ```bash
 python -m pip install -U wapr
-python -m wapr.bootstrap
+python -m wapr.bootstrap --feature core dinov2 det2d sam2
 python -c "from wapr.bootstrap import export_examples; export_examples('wapr_examples')"
 python wapr_examples/02_one_category_one_instance.py
 ```
 
-`pip install wapr` 安装项目包；`python -m wapr.bootstrap` 在当前环境准备 TensorRT、检测、SAM2、DINOv2、RoMa、Qwen、UniPose9D 及共用示例资源。机器人和 SAM3D 仍需显式准备；只需要位姿推理时使用 `--feature core`。保留现有 PyTorch，更换已有依赖前需确认；不兼容的组合会停止并说明条件。macOS 不支持 NVIDIA CUDA 推理。
+上述命令准备 **2D 检测、分割和 6D 位姿估计**，包括 TensorRT 与 OpenGL。安装过程保留现有 PyTorch，更换其他已安装依赖前会请求确认。NVIDIA CUDA 推理支持 Linux 和 Windows。
 
-首次准备包含资源下载与原生编译，仅 Qwen 快照就约 7.5 GB；TensorRT 和兼容独立环境可能另外需要数 GB。请将 `WAPR_CACHE_DIR` 放在空间充足的盘上，后续运行会复用已校验资源和编译结果。部分机器人跟踪示例首次使用时会准备可选 CUDA 光栅器；默认准备不包含它。
+**按需添加扩展功能：**
 
-SAM2.1 通过已安装的 **Ultralytics** 调用，不再检出或安装原生 SAM2。DINOv2 使用官方 **`torch.hub`** 入口并复用已有缓存，不再维护独立 DINOv2 源码目录。SAM3D 可使用兼容独立环境，默认从魔搭下载权重，并复用已有本地权重；使用仍须遵守上游模型许可。
+- **重建：**按[重建安装说明](https://wangyulin-seu.github.io/WAPR/docs/install-extensions.html?lang=zh)准备 SAM3D 和 RoMa；语言引导示例另需 Qwen 和 UniPose9D。
+- **机器人：**参照[机器人仿真安装说明](https://wangyulin-seu.github.io/WAPR/docs/install-extensions.html?lang=zh#robot)。
+- **已有 CAD 模型的跟踪：**直接使用位姿与跟踪示例，无需准备重建扩展。
 
-SAM2 点／框分割入口为 `wapr.sam2.predict_mask`。安装器为检测器选择兼容的 Transformers 4 与 Hugging Face Hub 版本；源码与 wheel 共用 bootstrap 准备流程，Windows 编译 WGL，Linux 编译 EGL。已有依赖的变更会先列出并征求同意。
+首次准备会下载模型资源并编译 GPU 组件。将 `WAPR_CACHE_DIR` 设为容量充足磁盘上的绝对路径：权重、环境与共用小样分别存放在 `cache/weights/`、`cache/environments/`、`cache/samples/`；可视化结果单独保存在 `outputs/<编号_任务>/`。后续运行复用缓存。环境要求与资源位置见[安装引导](https://wangyulin-seu.github.io/WAPR/docs/install-guide.html?lang=zh)。
 
-通过绝对路径 `WAPR_CACHE_DIR` 指定资源根目录。源码与 wheel 统一使用 `cache/weights/`、`cache/environments/`、共用的 `cache/samples/bop/lmo/` 和 `cache/samples/ycbineoat/`；每个示例独立写入 `outputs/<编号_任务>/`。Torch Hub 尊重已有 `TORCH_HOME`。详见[安装引导](https://wangyulin-seu.github.io/WAPR/docs/install-guide.html?lang=zh)和[功能说明](https://wangyulin-seu.github.io/WAPR/docs/install-extensions.html?lang=zh)。
+示例 02 使用给定的可见区域掩码估计位姿，默认保存可视化结果；无需先运行示例 01。步骤见[首个位姿示例](https://wangyulin-seu.github.io/WAPR/docs/pose-one.html?lang=zh)。
 
 | 你的任务 | 建议入口 |
 | --- | --- |
