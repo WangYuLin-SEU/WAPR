@@ -120,14 +120,12 @@ if __name__ == "__main__":
 
     # 3. Render Scene A's mesh into a CAD template bank. Reuse an unchanged bank.
     # 3. 为 A 场景的重建网格生成 CAD 模板库；网格、贴图和类别编号不变时复用缓存。
-    # A changed encoder implementation selects another cache without overwriting earlier banks.
-    # 编码实现变化时使用另一份缓存；保留此前的模板库，不覆盖已有用户文件。
+    # Changed encoder code or reconstructed geometry selects another cache.
+    # 编码源码或重建几何变化时选择另一份缓存，不覆盖此前的模板库。
     with open(detector_module.__file__, "rb") as stream:
         encoder_source_hash = hashlib.sha256(stream.read()).hexdigest()
     bank_dir = os.path.join(cache_dir(), "templates", "12_cross_scene_pose", OBJECT_NAME)
     os.makedirs(bank_dir, exist_ok=True)
-    bank_path = os.path.join(bank_dir, "templates_" + encoder_source_hash + ".pt")
-    bank_meta_path = bank_path + ".source.json"
     with open(MESH_STEM + ".json", encoding="utf-8") as stream:
         layout = json.load(stream)
     mesh_files = [MESH_STEM + ".bin", MESH_STEM + ".json"]
@@ -139,6 +137,10 @@ if __name__ == "__main__":
             digest.update(stream.read())
     mesh_hash = digest.hexdigest()
     bank_source = {"mesh_sha256": mesh_hash, "obj_id": int(OBJ_ID)}
+    bank_identity = {**bank_source, "encoder_sha256": encoder_source_hash}
+    bank_key = hashlib.sha256(json.dumps(bank_identity, sort_keys=True).encode("utf-8")).hexdigest()
+    bank_path = os.path.join(bank_dir, "templates_" + bank_key + ".pt")
+    bank_meta_path = bank_path + ".source.json"
     previous_source = None
     if os.path.isfile(bank_meta_path):
         with open(bank_meta_path, encoding="utf-8") as stream:

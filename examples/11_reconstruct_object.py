@@ -190,11 +190,10 @@ def build_mesh(rgb, mask, name):
 
 """
 
-    # Use the same native compatibility boundary as the package bootstrap.
-    # 与包内准备入口使用相同原生兼容边界；不在旧位姿 Torch 中导入 SAM 烘焙模块。
-    supported_pair = (torch.__version__.split("+", 1)[0] == "2.5.1"
-                      and torch.version.cuda in ("11.8", "12.1", "12.4"))
-    if sys.version_info[:2] >= (3, 12) or sys.version_info[:2] < (3, 9) or not supported_pair:
+    # Reconstruction always uses its own cached interpreter; WAPR stays in this process.
+    # 重建统一使用缓存内独立解释器，WAPR 位姿计算留在当前进程。
+    from wapr.sam3d_isolated import SAM3D_ENV_ROOT
+    if os.path.realpath(sys.prefix) != os.path.realpath(SAM3D_ENV_ROOT):
         from wapr.sam3d_isolated import reconstruct_example
         return reconstruct_example(rgb, mask, CASE_DIR, device, SIZE_PATH, name)
 
@@ -350,6 +349,10 @@ def choose_size(estimator, rgb, depth_m, mask, k, mesh, row):
 
 if __name__ == "__main__":
     recipe.visualize_path = OUT_DIR
+    from wapr.installation import install_requirements
+    mesh_dependencies = install_requirements(["fast-simplification>=0.2,<1"])
+    if mesh_dependencies["status"] not in ("ready", "installed"):
+        raise RuntimeError("Mesh processing setup / 网格处理准备: " + str(mesh_dependencies))
     # Run the script stages directly in the entry block.
     # 在入口块中直接执行脚本各阶段。
     from wapr.estimator import WAPREstimator

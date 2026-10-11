@@ -136,8 +136,8 @@ def redraw():
     mesh = trimesh.load(os.path.join(folder, "mesh.ply"), force="mesh", process=False)
     task = {"key": "xarm_cube", "env_id": "PickCube-v1", "zh": "xArm6 把方块放到标记处",
             "en": "xArm6 sets the cube on the marker", "closing": "world_y"}
-    bridge.compose_video(task, rows, poses, mesh, "zh")
-    report = bridge.compose_video(task, rows, poses, mesh, "en")
+    bridge.compose_video(task, rows, poses, mesh, "zh", output_dir=OUT_DIR)
+    report = bridge.compose_video(task, rows, poses, mesh, "en", output_dir=OUT_DIR)
     print("REDREW", report["video"], report["frames"], flush=True)
 
 
@@ -251,6 +251,6 @@ if __name__ == "__main__":
     # 5. Estimate the saved motion frames only for post-hoc overlays and error reports.
     # 5. 估计保存的运动帧，仅用于事后叠图与误差报告；真值不反馈给抓取控制。
     poses = bridge.run_sequence(jobs_path) if jobs else {}
-    bridge.compose_video(task, rows, poses, mesh, "zh")
-    report = bridge.compose_video(task, rows, poses, mesh, "en")
+    bridge.compose_video(task, rows, poses, mesh, "zh", output_dir=OUT_DIR)
+    report = bridge.compose_video(task, rows, poses, mesh, "en", output_dir=OUT_DIR)
     print("WROTE", report["video"], flush=True)

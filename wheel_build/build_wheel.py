@@ -234,7 +234,6 @@ def build_source_wheel():
         metadata_path = os.path.join(SCRIPT_DIR, "pyproject.toml")
         with open(metadata_path, encoding="utf-8") as stream:
             metadata = stream.read()
-        metadata = metadata.replace('requires-python = "==3.10.*"', 'requires-python = ">=3.8"')
         metadata += '\n# Native sources compile on the target. Windows uses the bundled Khronos headers.\n'
         metadata += '# 本地源码在目标机器编译。Windows 使用包内的 Khronos 头。\n'
         metadata += '[tool.setuptools.exclude-package-data]\nwapr = ["**/*.so", "**/*.pyd", "**/*.pyc"]\n'

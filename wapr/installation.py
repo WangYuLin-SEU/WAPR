@@ -12,6 +12,58 @@ import sys
 import sysconfig
 import tempfile
 import glob
+import signal
+import threading
+import time
+from collections import deque
+
+
+# Bound one dependency resolution and one installation, including child builds.
+# 限制一次依赖解析及安装的总时间，包含子构建进程；单位为秒。
+RESOLUTION_TIMEOUT_S = 600
+INSTALL_TIMEOUT_S = 1800
+
+
+def _run_pip(command, environment, timeout_s):
+    """Stream redacted progress and stop the whole process group at the deadline.
+
+    实时输出隐藏下载地址后的进度；超过总时限终止整个子进程组。
+    """
+    tail = deque(maxlen=150)
+    process = subprocess.Popen(command, env=environment, encoding="utf-8", errors="replace",
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                               start_new_session=sys.platform != "win32")
+    def read_progress():
+        for line in process.stdout:
+            safe = re.sub(r"(?:https?|git\+https?)://\S+", "[download URL]", line)
+            tail.append(safe)
+            print(safe, end="", flush=True)
+    reader = threading.Thread(target=read_progress, daemon=True)
+    reader.start()
+    started = time.monotonic()
+    deadline = started + max(1, timeout_s)
+    try:
+        while True:
+            try:
+                code = process.wait(timeout=min(15, max(0.01, deadline - time.monotonic())))
+                break
+            except subprocess.TimeoutExpired:
+                if time.monotonic() >= deadline:
+                    raise
+                print("WAPR_INSTALL_RUNNING / 正在准备依赖", round(time.monotonic() - started), "s", flush=True)
+    except subprocess.TimeoutExpired:
+        if sys.platform == "win32":
+            subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"], capture_output=True)
+        else:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+        process.wait()
+        code = 124
+        tail.append("Total time limit reached / 已达到总时限\n")
+    reader.join(timeout=5)
+    return subprocess.CompletedProcess(command, code, "".join(tail))
 
 
 def _installed_requirements_healthy(requirements):
@@ -27,11 +79,18 @@ def _installed_requirements_healthy(requirements):
             requirement = pending.pop()
             if requirement.marker is not None and not requirement.marker.evaluate():
                 continue
-            # Direct sources must be resolved again; versions alone do not prove provenance.
-            # 直接源码地址必须重新解析；仅版本一致不能证明来源相同。
-            if requirement.url:
-                return False
+            # Check recorded source identity as well as package versions.
+            # 同时检查记录的源码来源与包版本。
             distribution = metadata.distribution(requirement.name)
+            if requirement.url:
+                # A pinned VCS install is reusable only when its recorded commit matches.
+                # 固定源码安装仅在已记录提交匹配时复用，避免每次调用重新下载。
+                direct = json.loads(distribution.read_text("direct_url.json") or "{}")
+                vcs = direct.get("vcs_info", {})
+                source_spec = requirement.url[4:] if requirement.url.startswith("git+") else requirement.url
+                source_url, separator, revision = source_spec.rpartition("@")
+                if not separator or vcs.get("commit_id") != revision or direct.get("url") != source_url:
+                    return False
             if not requirement.specifier.contains(distribution.version, prereleases=True):
                 return False
             identity = (distribution.metadata.get("Name", requirement.name), tuple(sorted(requirement.extras)))
@@ -62,6 +121,8 @@ def _installed_requirements_healthy(requirements):
                 module_name = "thop"
             elif name == "mani-skill":
                 module_name = "mani_skill"
+            elif name in ("opencv-python", "opencv-python-headless", "opencv-contrib-python", "opencv-contrib-python-headless"):
+                module_name = "cv2"
             elif name.startswith("spconv-cu"):
                 # CUDA distribution tags do not change the Python module name.
                 # CUDA 发行标签不改变 Python 模块名；已有包不能因此被误判为缺失。
@@ -120,12 +181,19 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
     subprocess_environment["PATH"] = sysconfig.get_path("scripts") + os.pathsep + subprocess_environment.get("PATH", "")
     # Pinned local source projects build against this interpreter's existing Torch.
     # 固定的本地源码项目使用当前解释器已有 Torch 编译，不另下载隔离构建 Torch。
-    build_args = ["--no-build-isolation"] if any(os.path.isdir(value) for value in requirements) else []
+    build_args = ["--no-build-isolation"] if any(os.path.isdir(value) or "git+" in value for value in requirements) else []
     result = {"status": "ready", "requirements": requirements, "install": [], "replace": []}
     if not requirements:
         return result
     if _installed_requirements_healthy(requirements):
         result["verified"] = "installed dependency metadata and imports / 已有依赖声明与导入"
+        return result
+    if check_only:
+        # Inspection is offline; exact replacement plans belong to explicit installation.
+        # 检查模式只读本地，不联网解析；精确更换计划在用户启动安装后生成。
+        result.update(status="needs_dependencies", inspection="local",
+                      reason="Dependencies are missing, incompatible or need source verification; run setup to resolve a plan"
+                             " / 依赖缺失、不兼容或需核对源码；运行安装入口后生成计划")
         return result
     try:
         pip_version = metadata.version("pip")
@@ -134,8 +202,8 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
         return result
     version_numbers = re.match(r"(\d+)\.(\d+)", pip_version)
     if version_numbers is None or tuple(map(int, version_numbers.groups())) < (22, 2):
-        # This release supports Python 3.8 and provides the required dry-run report.
-        # 此发行支持 Python 3.8，并提供安装前所需的 dry-run 报告。
+        # This baseline provides the required installation dry-run report.
+        # 此基线发行提供安装前所需的 dry-run 报告。
         planning_pip = "25.0.1"
         pip_change = {"name": "pip", "installed": pip_version, "target": planning_pip, "action": "replace"}
         result.update(status="approval_required", install=[pip_change], replace=[pip_change],
@@ -149,8 +217,8 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
         if not approved:
             result["status"] = "declined"
             return result
-        completed = subprocess.run([sys.executable, "-m", "pip", "install", "--no-deps", "pip==" + planning_pip],
-                                   env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        completed = _run_pip([sys.executable, "-m", "pip", "install", "--no-deps", "pip==" + planning_pip],
+                             subprocess_environment, INSTALL_TIMEOUT_S)
         if completed.returncode != 0:
             result.update(status="failed", exit_code=completed.returncode,
                           reason=re.sub(r"(?:https?|git\+https?)://\S+", "[download URL omitted / 下载地址已隐藏]", completed.stdout))
@@ -162,63 +230,67 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
     for distribution in metadata.distributions():
         name = distribution.metadata.get("Name")
         if name:
-            installed[re.sub(r"[-_.]+", "-", name).lower()] = distribution.version
+            # Keep the first visible distribution; parent metadata must not overwrite it.
+            # 同名发行保留搜索顺序中的首项，父环境元数据不得覆盖当前环境。
+            normalized_name = re.sub(r"[-_.]+", "-", name).lower()
+            installed.setdefault(normalized_name, distribution.version)
     # First preserve every installed version, then try the protected GPU stack.
     # 首先保留全部已有版本，再尝试保留 GPU 软件栈；任何替换仍须确认。
-    protected = [name + "==" + installed[name]
-                 for name in ("torch", "torchvision", "torchaudio", "numpy") if name in installed]
-    with tempfile.TemporaryDirectory(prefix="wapr-install-plan-") as temporary_dir:
+    from packaging.requirements import Requirement, InvalidRequirement
+    requested = []
+    for value in requirements:
+        try:
+            requested.append(Requirement(value))
+        except InvalidRequirement:
+            continue
+    protected = []
+    for name in ("torch", "torchvision", "torchaudio", "numpy"):
+        if name not in installed:
+            continue
+        # An explicit incompatible requirement already needs a reviewed replacement.
+        # 显式要求与当前版本冲突时直接生成更换计划，不先执行必败的约束解析。
+        conflicts = any(re.sub(r"[-_.]+", "-", item.name).lower() == name
+                        and (item.marker is None or item.marker.evaluate())
+                        and not item.specifier.contains(installed[name], prereleases=True) for item in requested)
+        if not conflicts:
+            protected.append(name + "==" + installed[name])
+    from wapr.resources import cache_dir
+    temporary_root = os.path.join(cache_dir(), ".tmp")
+    os.makedirs(temporary_root, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="wapr-install-plan-", dir=temporary_root) as temporary_dir:
         constraint_path = os.path.join(temporary_dir, "existing.txt")
         report_path = os.path.join(temporary_dir, "report.json")
         with open(constraint_path, "w", encoding="utf-8") as stream:
-            stream.write("\n".join(name + "==" + version for name, version in sorted(installed.items())) + "\n")
+            stream.write("\n".join(protected) + "\n")
         from wapr.download_route import choose_pypi_route, _metadata_index
         pypi_route = choose_pypi_route()
-        # One index for this resolution. A measured mirror is not mixed with another index.
-        # 这一次解析只用一个索引。测得的镜像不与另一个索引混用。
         index_args = ["--index-url", _metadata_index(pypi_route)]
-        command = [sys.executable, "-m", "pip", "install", "--dry-run", "--report", report_path,
-                   "--timeout", "120", "--retries", "5"] + index_args + build_args
+        # A single pinned VCS refresh changes provenance even at the same version.
+        # 单个固定源码更新即使版本号相同也改变来源；依赖须在此前单独准备。
+        vcs_refresh = len(requirements) == 1 and " @ git+" in requirements[0]
+        refresh_args = ["--force-reinstall", "--no-deps"] if vcs_refresh else []
         print("WAPR_INSTALL_RESOLVE / 解析依赖", requirements, flush=True)
-        if any(value.startswith("tensorrt") for value in requirements):
-            print("WAPR_INSTALL_RESOLVE / TensorRT's upstream backend may download its large libraries during resolution"
-                  " / TensorRT 上游后端可能在解析阶段下载大型库文件", flush=True)
-        constrained = subprocess.run(command + ["-c", constraint_path] + requirements,
-                                     env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        use_constraints = constrained.returncode == 0
-        resolution = constrained
-        if not use_constraints:
-            with open(constraint_path, "w", encoding="utf-8") as stream:
-                stream.write("\n".join(protected) + "\n")
-            resolution = subprocess.run(command + ["-c", constraint_path] + requirements,
-                                        env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            use_constraints = resolution.returncode == 0
-        if not use_constraints:
-            resolution = subprocess.run(command + requirements, encoding="utf-8", errors="replace",
-                                        env=subprocess_environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if resolution.returncode != 0 and pypi_route.get("reason") == "measured" and pypi_route.get("name") != "official":
-            print("WAPR_DOWNLOAD_ROUTE", {"kind": "pypi", "reason": "index_failed_use_official"}, flush=True)
-            with open(constraint_path, "w", encoding="utf-8") as stream:
-                stream.write("\n".join(name + "==" + version for name, version in sorted(installed.items())) + "\n")
+        deadline = time.monotonic() + RESOLUTION_TIMEOUT_S
+        indexes = [index_args]
+        if pypi_route.get("reason") == "measured" and pypi_route.get("name") != "official":
+            indexes.append(["--index-url", "https://pypi.org/simple"])
+        # Resolve once with GPU constraints; relax only for a dependency conflict.
+        # 首先保护 GPU 依赖，仅明确的版本冲突才放宽；所有替换仍需下方确认。
+        use_constraints = True
+        for index_args in indexes:
             command = [sys.executable, "-m", "pip", "install", "--dry-run", "--report", report_path,
-                       "--timeout", "120", "--retries", "5", "--index-url", "https://pypi.org/simple"] + build_args
-            constrained = subprocess.run(command + ["-c", constraint_path] + requirements,
-                                         env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            use_constraints = constrained.returncode == 0
-            resolution = constrained
-            if not use_constraints:
-                with open(constraint_path, "w", encoding="utf-8") as stream:
-                    stream.write("\n".join(protected) + "\n")
-                resolution = subprocess.run(command + ["-c", constraint_path] + requirements,
-                                            env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                use_constraints = resolution.returncode == 0
-            if not use_constraints:
-                resolution = subprocess.run(command + requirements, encoding="utf-8", errors="replace",
-                                            env=subprocess_environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                use_constraints = resolution.returncode == 0
+                       "--timeout", "30", "--retries", "1"] + index_args + build_args + refresh_args
+            resolution = _run_pip(command + ["-c", constraint_path] + requirements,
+                                  subprocess_environment, deadline - time.monotonic())
+            use_constraints = resolution.returncode == 0
+            conflict = "ResolutionImpossible" in resolution.stdout
+            if conflict and time.monotonic() < deadline:
+                resolution = _run_pip(command + requirements, subprocess_environment, deadline - time.monotonic())
+                use_constraints = False
+            if resolution.returncode == 0 or conflict or time.monotonic() >= deadline:
+                break
         if resolution.returncode != 0:
-            reason = re.sub(r"(?:https?|git\+https?)://\S+", "[download URL omitted / 下载地址已隐藏]", resolution.stdout)
-            result.update(status="blocked", reason=reason)
+            result.update(status="blocked", reason=resolution.stdout)
             return result
         with open(report_path, encoding="utf-8") as stream:
             report = json.load(stream)
@@ -296,10 +368,10 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
                 requested_wheels.extend(name + "==" + version for name, version in entry["remove"].items())
             # Obtain rollback files before removing the working cv2 provider.
             # 卸载可用 cv2 之前先准备恢复文件；下载失败不会改变环境。
-            staged = subprocess.run([sys.executable, "-m", "pip", "download", "--no-deps", "--only-binary=:all:",
+            staged = _run_pip([sys.executable, "-m", "pip", "download", "--no-deps", "--only-binary=:all:",
                                      "--timeout", "120", "--retries", "5", "--dest", staged_directory]
                                     + index_args + requested_wheels,
-                                    env=subprocess_environment, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                    subprocess_environment, INSTALL_TIMEOUT_S)
             if staged.returncode != 0:
                 result.update(status="failed", exit_code=staged.returncode,
                               reason="OpenCV replacement/rollback download failed; existing provider retained / OpenCV 替换或恢复包下载失败，保留已有发行")
@@ -333,8 +405,7 @@ def install_requirements(requirements, allow_replacement=None, check_only=False)
         if use_constraints:
             install_command += ["-c", constraint_path]
         print("WAPR_INSTALL_PACKAGES / 安装依赖", [entry["name"] for entry in result["install"]], flush=True)
-        completed = subprocess.run(install_command + build_args + targets, encoding="utf-8", errors="replace",
-                                   env=subprocess_environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        completed = _run_pip(install_command + build_args + (["--force-reinstall"] if vcs_refresh else []) + targets, subprocess_environment, INSTALL_TIMEOUT_S)
         result["status"] = "installed" if completed.returncode == 0 else "failed"
         result["exit_code"] = completed.returncode
         # Replacing loaded binary modules does not replace their in-memory libraries.
@@ -489,16 +560,22 @@ def prepare_optional(feature, allow_replacement=None, check_only=False, source_r
         try:
             mplib_version = metadata.version("mplib")
         except metadata.PackageNotFoundError:
-            preview = install_requirements(requirements, check_only=True)
-            if preview["status"] not in ("ready", "approval_required"):
-                preview.update(feature=feature, notes=notes)
-                return preview
-            mplib_version = next((entry["target"] for entry in preview["install"]
-                                  if entry["name"] == "mplib"), None)
+            # The supported robot recipe uses this upstream planning release.
+            # 机器人方案采用该上游规划发行；直接声明候选，避免先下载一轮解析。
+            mplib_version = "0.1.1"
+            requirements.append("mplib==0.1.1")
         if mplib_version == "0.1.1":
             # SciPy 1.18 and OpenCV 4.12+ require NumPy 2; resolve all three together.
             # SciPy 1.18 与 OpenCV 4.12 及以上要求 NumPy 2，三者必须一起解析。
             requirements.extend(["numpy<2", "scipy<1.18", "opencv-python<4.12"])
+            # Keep the installed exporter compatible when selecting NumPy 1.
+            # 选择 NumPy 1 时同时约束已有导出器，避免其 ml-dtypes 依赖仍要求 NumPy 2。
+            try:
+                onnx_version = metadata.version("onnx")
+            except metadata.PackageNotFoundError:
+                onnx_version = None
+            if onnx_version is not None:
+                requirements.append("onnx==" + onnx_version)
             notes.append("mplib 0.1.1 uses the validated NumPy 1 / SciPy <1.18 / OpenCV <4.12 candidate; existing replacements still require approval / mplib 0.1.1 使用实测 NumPy 1、SciPy <1.18、OpenCV <4.12 候选组合；替换已有库仍需同意")
     result = install_requirements(requirements, allow_replacement=allow_replacement, check_only=check_only)
     result.update(feature=feature, notes=notes)
@@ -507,12 +584,6 @@ def prepare_optional(feature, allow_replacement=None, check_only=False, source_r
         # 非 Linux 的依赖标记会跳过 mplib。继续建场景会在原生代码里崩溃。
         result.update(status="blocked",
                       reason="Robot planning needs mplib, which publishes Linux wheels only / 机器人规划需要 mplib，发行包只有 Linux wheel")
-    # A dry-run cannot import packages that its plan has not installed yet.
-    # dry-run 尚未安装计划中的新包，不能用导入失败覆盖有效安装计划。
-    if check_only and result.get("install"):
-        if result["status"] == "ready":
-            result["status"] = "installable"
-        return result
     if result["status"] in ("ready", "installed") and feature in ("det2d", "qwen"):
         # Importing Transformers alone can succeed with Torch models disabled.
         # 仅导入 Transformers 可能成功，但其 Torch 模型实际上已被禁用。

@@ -180,6 +180,10 @@ def prepare_reconstruction(allow_replacement=None, check_only=False, checkpoint_
 
     按已有 Torch 构建原生推理依赖；不更换 Torch，不安装完整训练清单。
     """
+    from wapr.sam3d_isolated import SAM3D_ENV_ROOT, prepare_reconstruction_environment
+    if os.path.realpath(sys.prefix) != os.path.realpath(SAM3D_ENV_ROOT):
+        return prepare_reconstruction_environment(allow_replacement=allow_replacement,
+                                                   check_only=check_only, checkpoint_directory=checkpoint_directory)
     if sys.platform != "linux":
         return {"status": "blocked", "reason": "SAM3D native path requires Linux / SAM3D 原生路径需要 Linux"}
     if sys.version_info[:2] < (3, 9):
@@ -213,8 +217,15 @@ def prepare_reconstruction(allow_replacement=None, check_only=False, checkpoint_
     requirements = ["torchvision", "omegaconf", "hydra-core", "iopath", "xatlas", "open3d==0.18.0",
                     "loguru", "tqdm", "safetensors", "optree", "astor", "easydict", "scipy",
                     "pyvista", "pymeshfix", "igraph", "lightning==2.3.3", "einops", "timm",
-                    "setuptools<81", "wheel", "ninja", "opencv-python-headless", "plyfile"]
-    requirements.append(_kaolin_requirement(torch))
+                    "setuptools<81", "wheel", "ninja", "opencv-python-headless", "plyfile",
+                    "fast-simplification>=0.2,<1", "numpy>=1.26.4,<2", "scipy<1.18",
+                    "opencv-python-headless<4.12",
+                    "gsplat"]
+    from importlib.metadata import version
+    requirements.extend(["torch==" + torch.__version__, "torchvision==" + version("torchvision")])
+    # Local inspection must not query a wheel index for a missing package.
+    # 本地检查缺失依赖时不查询联网 wheel 索引。
+    requirements.append("kaolin==0.18.0" if check_only else _kaolin_requirement(torch))
     # Sparse kernels do not link the Torch extension ABI. The CUDA 11/12 runtime
     # families are candidates, not a claim that all compiler/GPU pairs work.
     # 稀疏内核不链接 Torch 扩展 ABI；CUDA 11/12 发行是待实测候选，不承诺所有组合可用。
@@ -237,33 +248,10 @@ def prepare_reconstruction(allow_replacement=None, check_only=False, checkpoint_
         # Keep SciPy and the single cv2 provider compatible with that NumPy ABI.
         # SciPy 与唯一的 cv2 发行也须兼容该 NumPy ABI；更换仍进入确认计划。
         requirements.extend(["numpy>=1.26.4,<2", "scipy<1.18", "opencv-python-headless<4.12"])
-    plan = install_requirements(requirements, check_only=True)
-    # Dependency inspection must work before model weights have been supplied.
-    # 用户尚未提供模型权重时也能检查依赖；检查模式不下载权重或安装库。
-    result["dependency_plan"] = plan
     if check_only:
-        result["weights"] = reconstruction_weights_status(checkpoint_directory)
-        if plan["status"] not in ("ready", "plan_ready", "approval_required"):
-            result["status"] = plan["status"]
-        return result
-    # OpenCV distributions share cv2 files; pip metadata does not flag this collision.
-    # OpenCV 多种发行共用 cv2 文件，pip 元数据无法识别此类覆盖风险。
-    from importlib.metadata import PackageNotFoundError, version
-    opencv_existing = []
-    for distribution in ("opencv-python", "opencv-python-headless", "opencv-contrib-python", "opencv-contrib-python-headless"):
-        try:
-            opencv_existing.append({"name": distribution, "version": version(distribution)})
-        except PackageNotFoundError:
-            pass
-    opencv_new = [entry for entry in plan.get("install", [])
-                  if entry["name"].startswith("opencv-") and not entry.get("installed")]
-    if opencv_existing and opencv_new:
-        result.update(status="blocked", dependency_plan=plan, existing_opencv=opencv_existing,
-                      reason="OpenCV distributions would overwrite cv2; explicit environment review required / OpenCV 多种发行可能覆盖 cv2，需先明确审核环境变更")
-        return result
-    if any(entry["name"] in ("torch", "torchvision", "torchaudio") for entry in plan.get("replace", [])):
-        result.update(status="blocked", dependency_plan=plan,
-                      reason="Reconstruction requires changing the protected Torch stack; retain this environment / 重建需要更换受保护 Torch 软件栈；保留当前环境")
+        plan = install_requirements(requirements, check_only=True)
+        result.update(status=plan["status"], dependency_plan=plan,
+                      weights=reconstruction_weights_status(checkpoint_directory))
         return result
     weights = ensure_reconstruction_weights(checkpoint_directory, check_only=False)
     result["weights"] = weights
@@ -272,6 +260,15 @@ def prepare_reconstruction(allow_replacement=None, check_only=False, checkpoint_
     dependencies = install_requirements(requirements, allow_replacement=allow_replacement)
     if dependencies["status"] not in ("ready", "installed"):
         return dependencies
+    pinned_gaussians = install_requirements(
+        ["gsplat @ git+https://github.com/nerfstudio-project/gsplat.git@2323de5905d5e90e035f792fe65bad0fedd413e7"],
+        allow_replacement=allow_replacement)
+    if pinned_gaussians["status"] not in ("ready", "installed"):
+        return pinned_gaussians
+    # Texture baking and utils3d use these kernels even with OpenGL pose rendering.
+    # 纹理烘焙及 utils3d 需要这些内核；位姿使用 OpenGL 不免除重建依赖。
+    from wapr.source_setup import prepare_raster_source
+    prepare_raster_source(allow_replacement=allow_replacement)
     # The caller supplies a mask; this inference path does not import SAM2.
     # 调用者已提供 mask，此推理路径不导入 SAM2，不获取其无关源码。
     sam3d_source = _checkout("sam-3d-objects", "https://github.com/facebookresearch/sam-3d-objects.git", SAM3D_REVISION, "sam3d")
@@ -315,15 +312,33 @@ def prepare_reconstruction(allow_replacement=None, check_only=False, checkpoint_
     # An import proves setup completion, not inference success or a 16GB memory bound.
     # 导入只证明准备完成，不等于推理成功或 16GB 显存可运行。
     os.environ["LIDRA_SKIP_INIT"] = "true"
+    importlib.invalidate_caches()
     try:
         importlib.import_module("sam3d_objects.pipeline.inference_pipeline_pointmap")
+        import nvdiffrast.torch as raster
+        from gsplat import rasterization
+        context = raster.RasterizeCudaContext()
+        vertices = torch.tensor([[[-0.5, -0.5, 0, 1], [0.5, -0.5, 0, 1], [0, 0.5, 0, 1]]], device="cuda", dtype=torch.float32)
+        triangles = torch.tensor([[0, 1, 2]], device="cuda", dtype=torch.int32)
+        pixels, _ = raster.rasterize(context, vertices, triangles, resolution=[8, 8])
+        assert bool((pixels[..., 3] > 0).any())
+        colors, alpha, _ = rasterization(
+            means=torch.tensor([[0., 0., 3.]], device="cuda"),
+            quats=torch.tensor([[1., 0., 0., 0.]], device="cuda"),
+            scales=torch.full((1, 3), 0.1, device="cuda"),
+            opacities=torch.ones(1, device="cuda"), colors=torch.ones((1, 3), device="cuda"),
+            viewmats=torch.eye(4, device="cuda")[None],
+            Ks=torch.tensor([[[8., 0., 4.], [0., 8., 4.], [0., 0., 1.]]], device="cuda"), width=8, height=8)
+        assert bool(torch.isfinite(colors).all()) and bool((alpha > 0).any())
+        torch.cuda.synchronize()
+        del context, pixels, vertices, triangles, colors, alpha
     except Exception as error:
         detail = re.sub(r"https?://\S+", "[URL omitted / 地址已隐藏]", str(error))
         result.update(status="blocked", reason="SAM3D inference import failed / SAM3D 推理导入失败: " + type(error).__name__ + " " + detail)
         return result
     result.update(status="ready", source=sam3d_source, native_wheel=native_wheel,
                   source_paths=[sam3d_source, utils_source, moge_source],
-                  inference_verified=False)
+                  native_kernels_verified=True, inference_verified=False)
     return result
 
 
@@ -332,10 +347,8 @@ def reconstruct(rgb, mask, checkpoint_directory=None, allow_replacement=None):
 
     在单张 RGB/mask 上执行已有未编译的顶点颜色网格方案；不改变推理步数。
     """
-    import torch
-    from packaging.version import Version
-    old_torch = Version(torch.__version__.split("+", 1)[0]) != Version("2.5.1") or torch.version.cuda not in ("11.8", "12.1", "12.4")
-    if sys.version_info[:2] >= (3, 12) or sys.version_info[:2] < (3, 9) or old_torch:
+    from wapr.sam3d_isolated import SAM3D_ENV_ROOT
+    if os.path.realpath(sys.prefix) != os.path.realpath(SAM3D_ENV_ROOT):
         from wapr.sam3d_isolated import reconstruct as reconstruct_isolated
         return reconstruct_isolated(rgb, mask, checkpoint_directory=checkpoint_directory,
                                     allow_replacement=allow_replacement)

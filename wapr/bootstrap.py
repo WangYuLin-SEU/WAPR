@@ -10,6 +10,7 @@ import argparse
 import glob
 import hashlib
 import html
+import importlib
 import importlib.util
 import json
 import os
@@ -129,15 +130,11 @@ def prepare_feature(feature, allow_replacement=None, check_only=False):
         prepare_runtime(allow_replacement=allow_replacement)
         return {"feature": "core", "status": "ready"}
     if feature == "sam3d":
-        import torch
-        supported_pair = (torch.__version__.split("+", 1)[0] == "2.5.1"
-                          and torch.version.cuda in ("11.8", "12.1", "12.4"))
-        if sys.version_info[:2] >= (3, 12) or sys.version_info[:2] < (3, 9) or not supported_pair:
-            # Keep the pose interpreter; prepare SAM3D in the compatible interpreter.
-            # 保留位姿解释器；仅在兼容的独立解释器准备 SAM3D。
-            from wapr.sam3d_isolated import prepare_reconstruction_environment
-            return prepare_reconstruction_environment(allow_replacement=allow_replacement,
-                                                       check_only=check_only)
+        from wapr.sam3d_isolated import SAM3D_ENV_ROOT, prepare_reconstruction_environment
+        if os.path.realpath(sys.prefix) != os.path.realpath(SAM3D_ENV_ROOT):
+            # Always isolate reconstruction dependencies from the pose environment.
+            # 重建依赖统一放在缓存中的独立环境，不混入位姿环境。
+            return prepare_reconstruction_environment(allow_replacement=allow_replacement, check_only=check_only)
         from wapr.reconstruction_setup import prepare_reconstruction
         return prepare_reconstruction(allow_replacement=allow_replacement, check_only=check_only)
     if feature == "roma":
@@ -153,7 +150,7 @@ def prepare_feature(feature, allow_replacement=None, check_only=False):
         results = []
         for name in ("dinov2", "det2d", "robot", "sam2", "roma", "qwen", "sam3d", "unipose9d"):
             plan = prepare_feature(name, allow_replacement=False, check_only=True)
-            if not check_only and plan.get("status") in ("ready", "installable", "dependencies_present", "approval_required", "needs_source", "needs_interpreter", "native_build_required"):
+            if not check_only and plan.get("status") in ("ready", "installable", "dependencies_present", "approval_required", "needs_source", "needs_interpreter", "needs_preparation", "needs_dependencies", "native_build_required"):
                 try:
                     plan = prepare_feature(name, allow_replacement=allow_replacement)
                 except (RuntimeError, OSError, subprocess.SubprocessError) as error:
@@ -175,7 +172,7 @@ def prepare_feature(feature, allow_replacement=None, check_only=False):
             source_parent = os.path.join(cache_dir(), "sources")
             candidate = os.path.join(source_parent, source_name)
             if os.path.isdir(candidate):
-                source = prepare_source(feature)
+                source = candidate
         else:
             source = prepare_source(feature)
     result = prepare_optional(feature, allow_replacement=allow_replacement, check_only=check_only,
@@ -188,7 +185,6 @@ def prepare_feature(feature, allow_replacement=None, check_only=False):
             # 不安装依赖或权重；检查现有推理源码的真实 API。
             if source not in sys.path:
                 sys.path.insert(0, source)
-            import importlib
             try:
                 module = importlib.import_module("romatch")
                 if not callable(getattr(module, "roma_outdoor", None)):
@@ -214,14 +210,13 @@ def prepare_feature(feature, allow_replacement=None, check_only=False):
         for source_path in source_paths:
             if source_path not in sys.path:
                 sys.path.insert(0, source_path)
+        importlib.invalidate_caches()
         if feature == "unipose9d":
-            import importlib
             module = importlib.import_module("unipose9d_inference")
             for name in ("estimate_pose", "load_pose_model", "set_seed"):
                 if not callable(getattr(module, name, None)):
                     raise RuntimeError("UniPose9D API missing / UniPose9D API 缺失: " + name)
         elif feature == "roma":
-            import importlib
             module = importlib.import_module("romatch")
             if not callable(getattr(module, "roma_outdoor", None)):
                 raise RuntimeError("RoMa API missing / RoMa API 缺失: roma_outdoor")
@@ -616,12 +611,7 @@ if __name__ == "__main__":
     parser.add_argument("--yes", action="store_true", help="Explicitly approve shown package replacements / 明确同意包更换")
     arguments = parser.parse_args()
     if arguments.feature is None:
-        arguments.feature = ["core", "dinov2", "det2d", "sam2", "roma", "qwen", "unipose9d"]
-        if sys.platform == "win32":
-            # Default preparation continues with supported features; explicit requests fail.
-            # 默认准备继续处理兼容功能；显式请求不支持的功能时仍报错。
-            arguments.feature.remove("roma")
-            print("WAPR_FEATURE_SKIPPED", "roma: current setup requires Linux / 当前安装方案需要 Linux", flush=True)
+        arguments.feature = ["core", "dinov2", "det2d", "sam2"]
     approved = True if arguments.yes else None
     for requested_feature in arguments.feature:
         preparation = prepare_feature(requested_feature, allow_replacement=approved, check_only=arguments.check)

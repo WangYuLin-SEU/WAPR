@@ -43,6 +43,13 @@ SAM3D_ENV_ROOT = os.environ.get(
 SAM3D_PYTHON = os.path.join(SAM3D_ENV_ROOT, "bin", "python")
 
 
+def _temporary_directory(prefix):
+    """Keep interprocess requests on the resource disk. / 进程间请求留在资源盘。"""
+    directory = os.path.join(cache_dir(), ".tmp")
+    os.makedirs(directory, exist_ok=True)
+    return tempfile.TemporaryDirectory(prefix=prefix, dir=directory)
+
+
 def _worker_cache_environment(environment):
     """Keep worker caches on the resource volume and share only WAPR source.
 
@@ -51,6 +58,7 @@ def _worker_cache_environment(environment):
     # CUDA JIT reads UTF-8 source files even when the SSH login locale is ASCII.
     # SSH 登录区域设置可能为 ASCII；CUDA JIT 仍需读取 UTF-8 原生源码。
     environment['PYTHONUTF8'] = '1'
+    environment.setdefault('MAX_JOBS', '2')
     from wapr.resources import resource_root
     cache_root = cache_dir()
     # pip's Ninja executable lives in the selected prefix; child JIT builds need it.
@@ -58,7 +66,9 @@ def _worker_cache_environment(environment):
     environment["PATH"] = os.path.dirname(SAM3D_PYTHON) + os.pathsep + environment.get("PATH", "")
     paths = {"TMPDIR": os.path.join(cache_root, ".tmp"),
              "PIP_CACHE_DIR": os.path.join(cache_root, ".pip-cache"),
-             "TORCH_EXTENSIONS_DIR": os.path.join(cache_root, "native_extensions")}
+             "TORCH_EXTENSIONS_DIR": os.path.join(cache_root, "native_extensions"),
+             "TORCH_HOME": os.path.join(cache_root, "torch"),
+             "HF_HOME": os.path.join(cache_root, "huggingface")}
     for key, directory in paths.items():
         environment.setdefault(key, directory)
         os.makedirs(environment[key], exist_ok=True)
@@ -164,7 +174,7 @@ def prepare_environment(allow_replacement=None, check_only=False):
     """
     if sys.platform != "linux" or platform.machine() != "x86_64":
         return {"status": "blocked", "reason": "This verified isolated recipe requires Linux x86_64 / 此已核验独立方案需要 Linux x86_64"}
-    if os.path.realpath(SAM3D_PYTHON) == os.path.realpath(sys.executable):
+    if os.path.realpath(SAM3D_ENV_ROOT) == os.path.realpath(sys.prefix):
         return {"status": "blocked", "reason": "The selected interpreter is the caller / 所选解释器是调用者本身"}
     try:
         torch_version = metadata.version("torch")
@@ -276,7 +286,7 @@ def prepare_environment(allow_replacement=None, check_only=False):
     requirements = ["torch==" + torch_version, "torchvision==" + vision_version]
     request = {"requirements": requirements, "allow_replacement": allow_replacement,
                "check_only": check_only, "index": index, "probe_only": True}
-    with tempfile.TemporaryDirectory(prefix="wapr-sam3d-prepare-") as directory:
+    with _temporary_directory(prefix="wapr-sam3d-prepare-") as directory:
         path = os.path.join(directory, "request.json")
         with open(path, "w", encoding="utf-8") as stream:
             json.dump(request, stream)
@@ -287,6 +297,9 @@ def prepare_environment(allow_replacement=None, check_only=False):
         result = _run_preparation_worker("prepare-worker", path, environment)
         # A healthy prepared prefix is usable offline; only missing stacks consult indexes.
         # 健康的已有前缀可以离线使用；只有缺失软件栈才查询索引。
+        if result["status"] == "needs_preparation" and check_only:
+            result.update(isolated_python=SAM3D_PYTHON, inspection="local")
+            return result
         if result["status"] == "needs_preparation":
             try:
                 for name, version in (("torch", torch_version), ("torchvision", vision_version)):
@@ -356,7 +369,7 @@ def prepare_reconstruction_environment(allow_replacement=None, check_only=False,
         return bootstrap
     request = {"allow_replacement": allow_replacement, "check_only": check_only,
                "checkpoint_directory": os.fspath(checkpoint_directory) if checkpoint_directory is not None else None}
-    with tempfile.TemporaryDirectory(prefix="wapr-sam3d-full-prepare-") as directory:
+    with _temporary_directory(prefix="wapr-sam3d-full-prepare-") as directory:
         path = os.path.join(directory, "request.json")
         with open(path, "w", encoding="utf-8") as stream:
             json.dump(request, stream)
@@ -633,7 +646,7 @@ def _transfer_reconstruction(rgb, mask, request):
     import numpy as np
     import trimesh
     from PIL import Image
-    if os.path.realpath(SAM3D_PYTHON) == os.path.realpath(sys.executable):
+    if os.path.realpath(SAM3D_ENV_ROOT) == os.path.realpath(sys.prefix):
         raise RuntimeError("SAM3D interpreter must differ from the caller / SAM3D 解释器必须与调用者不同")
     if rgb.dtype != np.uint8 or rgb.ndim != 3 or rgb.shape[2] != 3 or mask.shape != rgb.shape[:2]:
         raise ValueError("Expected uint8 RGB and matching mask / 需要 uint8 RGB 与同尺寸 mask")
@@ -643,7 +656,7 @@ def _transfer_reconstruction(rgb, mask, request):
                                                    checkpoint_directory=request.get("checkpoint_directory"))
     if prepared["status"] not in ("ready", "installed"):
         raise RuntimeError("SAM3D isolated preparation did not complete / SAM3D 独立准备未完成: " + json.dumps(prepared, ensure_ascii=False))
-    with tempfile.TemporaryDirectory(prefix="wapr-sam3d-inference-") as directory:
+    with _temporary_directory(prefix="wapr-sam3d-inference-") as directory:
         np.savez(os.path.join(directory, "input.npz"), rgb=rgb, mask=mask)
         with open(os.path.join(directory, "request.json"), "w", encoding="utf-8") as stream:
             json.dump(request, stream)
@@ -701,14 +714,8 @@ def _example_worker(directory):
     if request["size_path"] == "outline":
         mesh = reconstruct_mesh(rgb, mask)
     elif request["size_path"] == "unipose":
-        # Baking requests Gaussian views and a CUDA rasterizer; plain meshes do not.
-        # 烘焙才需要高斯视图和 CUDA 光栅器；普通顶点色网格不安装这些组件。
-        from wapr.installation import install_requirements
-        baking_dependencies = install_requirements(["gsplat"], allow_replacement=request.get("allow_replacement"))
-        if baking_dependencies["status"] not in ("ready", "installed"):
-            raise RuntimeError("SAM baking dependencies / SAM 烘焙依赖: " + json.dumps(baking_dependencies))
-        from wapr.source_setup import prepare_raster_source
-        prepare_raster_source(allow_replacement=request.get("allow_replacement"))
+        # Shared reconstruction setup has already checked baking kernels.
+        # 共用重建准备已检查烘焙内核，此处不重复解析或安装依赖。
         from step02_bake_mesh import apply_bake_budget, texture_config
         from fast_sam3d.session import Sam3dSession
         apply_bake_budget()

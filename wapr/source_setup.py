@@ -19,6 +19,8 @@ import subprocess
 import sys
 import tempfile
 import tarfile
+import gzip
+import zlib
 import urllib.request
 import urllib.parse
 import zipfile
@@ -295,6 +297,36 @@ def prepare_ycbineoat(sequence):
     url = "https://archive.cs.rutgers.edu/archive/a/2020/pracsys/Bowen/iros2020/YCBInEOAT/" + sequence + ".tar.gz"
     if not archive_path.is_file():
         _download_file(url, str(archive_path))
+    # Validate compression to EOF, then record this downloaded revision's fingerprint.
+    # 校验压缩流直至末尾，记录本次归档版本指纹；不把上游新版误判成损坏。
+    integrity_path = cache / (sequence + ".integrity.json")
+    archive_stat = archive_path.stat()
+    signature = {"size": archive_stat.st_size, "mtime_ns": archive_stat.st_mtime_ns,
+                 "ctime_ns": archive_stat.st_ctime_ns, "url": url}
+    previous = {}
+    if integrity_path.is_file():
+        try:
+            previous = json.loads(integrity_path.read_text())
+        except (ValueError, OSError):
+            previous = {}
+    if any(previous.get(key) != value for key, value in signature.items()):
+        try:
+            with gzip.open(archive_path, "rb") as compressed:
+                while compressed.read(8 * 1024 * 1024):
+                    pass
+            digest = hashlib.sha256()
+            with archive_path.open("rb") as stream:
+                for block in iter(lambda: stream.read(8 * 1024 * 1024), b""):
+                    digest.update(block)
+        except (OSError, EOFError, zlib.error) as error:
+            raise RuntimeError("Sequence archive is damaged; retained for inspection. Replace this archive before retrying"
+                               " / 序列压缩文件损坏，已保留；请更换此归档后重试: " + str(archive_path)) from error
+        signature["sha256"] = digest.hexdigest()
+        if previous.get("sha256") and previous["sha256"] != signature["sha256"]:
+            print("WAPR_SEQUENCE_REVISION_CHANGED / 序列归档版本已变化", sequence, flush=True)
+        temporary_marker = integrity_path.with_suffix(".tmp")
+        temporary_marker.write_text(json.dumps(signature), encoding="utf-8")
+        os.replace(temporary_marker, integrity_path)
     with tempfile.TemporaryDirectory(dir=cache) as staging:
         files = {}
         with tarfile.open(archive_path, "r:gz") as archive:
@@ -327,7 +359,7 @@ def prepare_ycbineoat(sequence):
             destination.parent.mkdir(parents=True, exist_ok=True)
             if destination.exists():
                 if not destination.is_file() or hashlib.sha256(destination.read_bytes()).digest() != hashlib.sha256((Path(staging) / relative).read_bytes()).digest():
-                    raise RuntimeError("Existing sequence differs; retained / 已有序列不同，保留原件: " + relative)
+                    raise RuntimeError("Archive content differs from the existing sample; retain both and choose a separate cache for this revision / 归档内容与已有小样不同，均已保留；请为此版本选择独立缓存: " + relative)
             else:
                 # Move verified missing files; avoid a second full sequence on disk.
                 # 移动已审核的缺失文件，避免磁盘同时保存两份完整序列。

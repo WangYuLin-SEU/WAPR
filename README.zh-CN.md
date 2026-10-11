@@ -197,7 +197,7 @@ WBPS 在每个实例的组内选位姿；公开分数取该完整组的 `(100 - 
 <a id="start"></a>
 ## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg?v=color1" width="26" height="26" alt=""/> 快速开始
 
-使用配有 NVIDIA GPU 和 CUDA 版 PyTorch 的 Linux 或 Windows 环境。OpenGL 渲染需要 CUDA toolkit 与 C++ 编译器；Windows 使用 MSVC。准备检测功能前，请安装 Git，并确认 `git --version` 可以运行。
+使用 Python 3.10 或更高版本，以及配有 NVIDIA GPU 和 CUDA 版 PyTorch 的 Linux 或 Windows 环境。OpenGL 渲染需要 CUDA toolkit 与 C++ 编译器；Windows 使用 MSVC。准备检测功能前，请安装 Git，并确认 `git --version` 可以运行。
 
 ```bash
 python -m pip install -U wapr
@@ -234,7 +234,7 @@ python wapr_examples/02_one_category_one_instance.py
 
 ---
 
-Windows 支持位姿与检测示例 01–10。示例 11–17 及当前提供的 SAM3D、机器人、RoMa 安装方案需要 Linux；Windows 默认准备跳过 RoMa，显式请求这些不支持的方案时会提示平台限制并退出。准备 GroundingDINO 源码需要 PATH 中可用的 Git 命令行工具，请提前安装 Git，并用 `git --version` 确认。
+Windows 支持位姿与检测示例 01–10。示例 11–17 及当前提供的 SAM3D、机器人、RoMa 安装方案需要 Linux；重建与机器人环境按需单独准备。Windows 显式请求这些方案时会提示平台限制并退出。准备 GroundingDINO 源码需要 PATH 中可用的 Git 命令行工具，请提前安装 Git，并用 `git --version` 确认。
 
 <a id="citation"></a>
 ## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg?v=color1" width="26" height="26" alt=""/> 引用与许可

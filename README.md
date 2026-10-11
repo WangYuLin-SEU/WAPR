@@ -197,7 +197,7 @@ Generated-mesh alignment defaults to gray geometry for WAPR/SAPR refinement and 
 <a id="start"></a>
 ## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/start.svg?v=color1" width="26" height="26" alt=""/> Get started
 
-Use Linux or Windows with an NVIDIA GPU and CUDA-enabled PyTorch. OpenGL rendering requires the CUDA toolkit and a C++ compiler (MSVC on Windows). Install Git and make sure `git --version` works before preparing detection.
+Use Python 3.10 or newer on Linux or Windows with an NVIDIA GPU and CUDA-enabled PyTorch. OpenGL rendering requires the CUDA toolkit and a C++ compiler (MSVC on Windows). Install Git and make sure `git --version` works before preparing detection.
 
 ```bash
 python -m pip install -U wapr
@@ -234,7 +234,7 @@ See the [Docs website](https://wangyulin-seu.github.io/WAPR/docs/?lang=en) for c
 
 ---
 
-Windows supports pose and detection examples 01–10. Examples 11–17 and the supplied SAM3D, robot and RoMa setups require Linux; default Windows preparation skips RoMa. Explicit requests for these unsupported setups stop with a platform message. Preparing GroundingDINO source requires the Git command-line tool on `PATH`; install Git and verify `git --version` before preparation.
+Windows supports pose and detection examples 01–10. Examples 11–17 and the supplied SAM3D, robot and RoMa setups require Linux. Reconstruction and robot environments are prepared separately on request. Explicit requests for these unsupported setups stop with a platform message. Preparing GroundingDINO source requires the Git command-line tool on `PATH`; install Git and verify `git --version` before preparation.
 
 <a id="citation"></a>
 ## <img src="https://raw.githubusercontent.com/WangYuLin-SEU/WAPR/website/pages/assets/readme/icons/citation.svg?v=color1" width="26" height="26" alt=""/> Citation and license

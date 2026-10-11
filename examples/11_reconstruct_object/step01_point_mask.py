@@ -1150,7 +1150,7 @@ def fit_axis_scales(mesh, pose, depth_m, mask, K, locked_axes=()):
 
     search = mesh
     if len(mesh.faces) > int(ASPECT_SEARCH_FACES):
-        search = mesh.simplify_quadric_decimation(int(ASPECT_SEARCH_FACES))
+        search = mesh.simplify_quadric_decimation(face_count=int(ASPECT_SEARCH_FACES))
     runtime = runtime_for(device)
     bbox = np.array([[0.0, 0.0, float(width), float(height)]], dtype=np.float32)
     blank = np.zeros((height, width, 3), dtype=np.uint8)
@@ -1804,7 +1804,7 @@ def save_viewer_mesh(mesh, path_stem):
         view = mesh.copy()
         source_colors = vertex_colors_u8(mesh)
         if len(view.faces) > 20000:
-            view = view.simplify_quadric_decimation(20000)
+            view = view.simplify_quadric_decimation(face_count=20000)
         vertices = np.asarray(view.vertices, dtype=np.float32)
         faces = np.asarray(view.faces, dtype=np.uint32)
         colors = vertex_colors_u8(view)

@@ -110,7 +110,7 @@ jobs:
               assert {'LICENSE', 'AUTHORS.md', 'THIRD_PARTY_NOTICES.txt', 'WEIGHTS_LICENSE.txt'} <= set(licenses)
               assert all(license_root + name in members for name in licenses)
           assert metadata['Name'] == 'wapr' and metadata['Version'] == str(version)
-          assert metadata['Requires-Python'] == '>=3.8'
+          assert metadata['Requires-Python'] == '>=3.10'
           digest = hashlib.sha256(wheel.read_bytes()).hexdigest()
           (directory / 'SHA256SUMS').write_text(digest + '  ' + wheel.name + '\n')
           print('VERIFIED_WHEEL', wheel.name, digest)

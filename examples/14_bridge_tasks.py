@@ -591,7 +591,7 @@ def draw_frame(rgb, camera_k, extrinsic, mesh, pred_world, gt_world, title):
     return np.asarray(image)
 
 
-def compose_video(task, rows, poses, mesh, lang):
+def compose_video(task, rows, poses, mesh, lang, output_dir=None):
     """Write the clip and a poster. The outline uses the convex hull.
 
     写出视频和海报。轮廓用凸包。
@@ -644,14 +644,15 @@ def compose_video(task, rows, poses, mesh, lang):
                 (0, 190, 255),
             )
         frames.append(painted)
-    os.makedirs(PAGE_DIR, exist_ok=True)
-    video_path = os.path.join(PAGE_DIR, "%s.mp4" % stem)
+    output_dir = PAGE_DIR if output_dir is None else output_dir
+    os.makedirs(output_dir, exist_ok=True)
+    video_path = os.path.join(output_dir, "%s.mp4" % stem)
     writer = imageio.get_writer(video_path, fps=VIDEO_FPS, codec="libx264", quality=8, macro_block_size=1)
     for frame in frames:
         writer.append_data(np.ascontiguousarray(frame))
     writer.close()
     poster = frames[min(len(frames) // 3, len(frames) - 1)]
-    imageio.imwrite(os.path.join(PAGE_DIR, "%s.jpg" % stem), poster)
+    imageio.imwrite(os.path.join(output_dir, "%s.jpg" % stem), poster)
     report = {
         "key": task["key"],
         "env_id": task["env_id"],

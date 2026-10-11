@@ -648,7 +648,11 @@ if __name__ == "__main__":
         prerequisite_files.extend(os.path.join(tracking_folder, name) for name in ("rows.json", "sequence_poses.json", "meshes/bottle.ply", "meshes/box.ply"))
     missing_inputs = [path for path in prerequisite_files if not os.path.isfile(path)]
     if missing_inputs:
-        raise FileNotFoundError("Run examples 13–15 to produce saved inputs / 请先运行示例 13–15 生成前置结果:\n" + "\n".join(missing_inputs))
+        raise FileNotFoundError(
+            "Run examples 13 (including `python examples/13_known_mesh_place.py track`), 14, and 15 "
+            "to produce saved inputs / 请运行示例 13（包括 `python examples/13_known_mesh_place.py track`）、"
+            "14 和 15 生成前置结果:\n" + "\n".join(missing_inputs)
+        )
     estimator = WAPREstimator(device=DEVICE)
     # The pose crops stay on the OpenGL runtime inside the estimator.
     # The tracked region is a full-frame depth, the same CUDA raster path the

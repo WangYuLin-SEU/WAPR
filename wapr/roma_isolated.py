@@ -4,12 +4,46 @@
 
 RoMa 及其 OpenCV 依赖留在独立解释器；匹配像素返回基础位姿流程。
 """
+import atexit
 import json
+import socket
+import threading
 import os
 import subprocess
 import sys
-import tempfile
+from wapr.sam3d_isolated import _temporary_directory
 
+
+# One worker owns the GPU model for this caller's lifetime.
+# 每个调用进程保留一个工作进程，模型驻留到调用进程退出。
+_match_worker = None
+_match_channel = None
+_match_owner = None
+_match_lock = threading.Lock()
+
+
+def _close_match_worker():
+    """Release only this process's matching worker. / 仅释放当前进程拥有的匹配工作进程。"""
+    global _match_worker, _match_channel, _match_owner
+    if _match_owner != os.getpid():
+        _match_worker = _match_channel = None
+        return
+    if _match_channel is not None:
+        _match_channel.close()
+    if _match_worker is not None and _match_worker.poll() is None:
+        try:
+            _match_worker.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            _match_worker.terminate()
+            try:
+                _match_worker.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                _match_worker.kill()
+                _match_worker.wait()
+    _match_worker = _match_channel = None
+
+
+atexit.register(_close_match_worker)
 
 def _matching_weights(device):
     """Fetch the same upstream checkpoints through the resumable package downloader.
@@ -59,7 +93,7 @@ def prepare_environment(allow_replacement=None, check_only=False):
     prepared = sam3d_isolated.prepare_environment(allow_replacement, check_only)
     if prepared["status"] not in ("ready", "installed"):
         return prepared
-    with tempfile.TemporaryDirectory(prefix="wapr-roma-prepare-") as directory:
+    with _temporary_directory(prefix="wapr-roma-prepare-") as directory:
         path = os.path.join(directory, "request.json")
         with open(path, "w", encoding="utf-8") as stream:
             json.dump({"allow_replacement": allow_replacement, "check_only": check_only}, stream)
@@ -78,14 +112,11 @@ def match_pixels(src_rgb, dst_rgb, device, coarse_res, upsample_res, num):
     import numpy as np
     import torch
     from wapr.sam3d_isolated import SAM3D_PYTHON, _worker_cache_environment
-    prepared = prepare_environment()
-    if prepared["status"] not in ("ready", "installed"):
-        raise RuntimeError("RoMa independent preparation / RoMa 独立准备: " + json.dumps(prepared, ensure_ascii=False))
     src_rgb, dst_rgb = np.asarray(src_rgb), np.asarray(dst_rgb)
     for value in (src_rgb, dst_rgb):
         if value.dtype != np.uint8 or value.ndim != 3 or value.shape[2] != 3:
             raise ValueError("RoMa expects uint8 RGB HWC / RoMa 需要 uint8 RGB HWC")
-    with tempfile.TemporaryDirectory(prefix="wapr-roma-match-") as directory:
+    with _temporary_directory(prefix="wapr-roma-match-") as directory:
         input_path = os.path.join(directory, "input.npz")
         output_path = os.path.join(directory, "pixels.npz")
         request_path = os.path.join(directory, "request.json")
@@ -97,11 +128,33 @@ def match_pixels(src_rgb, dst_rgb, device, coarse_res, upsample_res, num):
                    "coarse_res": coarse_res, "upsample_res": upsample_res, "num": num}
         with open(request_path, "w", encoding="utf-8") as stream:
             json.dump(request, stream)
-        environment = _worker_cache_environment(os.environ.copy())
-        completed = subprocess.run([SAM3D_PYTHON, os.path.abspath(__file__), "match", request_path],
-                                   env=environment, check=False)
-        if completed.returncode != 0:
-            raise RuntimeError("RoMa independent matching failed / RoMa 独立匹配失败: " + str(completed.returncode))
+        global _match_worker, _match_channel, _match_owner
+        with _match_lock:
+            if _match_owner != os.getpid() or _match_worker is None or _match_worker.poll() is not None:
+                _close_match_worker()
+                prepared = prepare_environment()
+                if prepared["status"] not in ("ready", "installed"):
+                    raise RuntimeError("RoMa preparation / RoMa 准备: " + json.dumps(prepared, ensure_ascii=False))
+                parent_socket, child_socket = socket.socketpair()
+                parent_socket.settimeout(600)
+                environment = _worker_cache_environment(os.environ.copy())
+                try:
+                    _match_worker = subprocess.Popen(
+                        [SAM3D_PYTHON, os.path.abspath(__file__), "serve", str(child_socket.fileno())],
+                        env=environment, pass_fds=(child_socket.fileno(),))
+                    _match_channel = parent_socket.makefile("rwb", buffering=0)
+                    _match_owner = os.getpid()
+                finally:
+                    parent_socket.close()
+                    child_socket.close()
+            try:
+                _match_channel.write((json.dumps(request) + "\n").encode("utf-8"))
+                response = json.loads(_match_channel.readline())
+                if not response.get("ok"):
+                    raise RuntimeError(response.get("error", "RoMa worker failed / RoMa 工作进程失败"))
+            except Exception:
+                _close_match_worker()
+                raise
         with np.load(output_path, allow_pickle=False) as result:
             src_xy, dst_xy, weight = result["src_xy"].copy(), result["dst_xy"].copy(), result["weight"].copy()
             cpu_rng, cuda_rng = result["cpu_rng"].copy(), result["cuda_rng"].copy()
@@ -123,22 +176,34 @@ def _worker(mode, path):
 """
     with open(path, encoding="utf-8") as stream:
         request = json.load(stream)
-    from wapr.bootstrap import prepare_feature
-    prepared = prepare_feature("roma", allow_replacement=request.get("allow_replacement"),
-                               check_only=request.get("check_only", False))
     if mode == "prepare":
+        from wapr.bootstrap import prepare_feature
+        prepared = prepare_feature("roma", allow_replacement=request.get("allow_replacement"),
+                                   check_only=request.get("check_only", False))
         print(json.dumps(prepared, ensure_ascii=False), flush=True)
-        return 0 if prepared["status"] in ("ready", "installed", "approval_required", "installable") else 1
-    if prepared["status"] not in ("ready", "installed"):
-        raise RuntimeError(json.dumps(prepared, ensure_ascii=False))
+        return 0 if prepared["status"] in ("ready", "installed", "approval_required", "installable", "needs_dependencies") else 1
+    return _match_request(request, {})
+
+
+def _match_request(request, models):
+    """Reuse a model for matching settings, preserving caller sampling state.
+
+    相同匹配设置复用模型，保留调用者采样状态。
+    """
     import numpy as np
     import torch
     from PIL import Image
     from romatch import roma_outdoor
-    weights, dinov2_weights = _matching_weights(request["device"])
-    model = roma_outdoor(device=request["device"], coarse_res=request["coarse_res"],
-                         upsample_res=request["upsample_res"], symmetric=False, use_custom_corr=False,
-                         weights=weights, dinov2_weights=dinov2_weights)
+    key = (str(request["device"]), request["coarse_res"], request["upsample_res"])
+    if models.get("key") != key:
+        models.clear()
+        weights, dinov2_weights = _matching_weights(request["device"])
+        models["model"] = roma_outdoor(device=request["device"], coarse_res=request["coarse_res"],
+                                      upsample_res=request["upsample_res"], symmetric=False, use_custom_corr=False,
+                                      weights=weights, dinov2_weights=dinov2_weights)
+        models["key"] = key
+        print("WAPR_ROMA_MODEL_LOADED", os.getpid(), key, flush=True)
+    model = models["model"]
     with np.load(request["input_path"], allow_pickle=False) as values:
         src_rgb, dst_rgb = values["src_rgb"].copy(), values["dst_rgb"].copy()
         torch.set_rng_state(torch.from_numpy(values["cpu_rng"].copy()))
@@ -155,7 +220,30 @@ def _worker(mode, path):
     return 0
 
 
+def _serve(descriptor):
+    """Serve local requests over an inherited socket; no network listener or installer.
+
+    通过继承的本地 socket 接收请求；不监听网络，不重复启动安装器。
+    """
+    from wapr.resources import cache_dir
+    source = os.path.join(cache_dir(), "sources", "RoMa")
+    if source not in sys.path:
+        sys.path.insert(0, source)
+    models = {}
+    with socket.socket(fileno=descriptor) as channel, channel.makefile("rwb", buffering=0) as stream:
+        for line in stream:
+            try:
+                _match_request(json.loads(line), models)
+                response = {"ok": True, "pid": os.getpid()}
+            except Exception as error:
+                response = {"ok": False, "error": type(error).__name__ + ": " + str(error)}
+            stream.write((json.dumps(response) + "\n").encode("utf-8"))
+    return 0
+
+
 if __name__ == "__main__":
-    if len(sys.argv) != 3 or sys.argv[1] not in ("prepare", "match"):
+    if len(sys.argv) != 3 or sys.argv[1] not in ("prepare", "match", "serve"):
         raise SystemExit("Expected worker mode and request path / 需要工作模式与请求文件")
+    if sys.argv[1] == "serve":
+        raise SystemExit(_serve(int(sys.argv[2])))
     raise SystemExit(_worker(sys.argv[1], sys.argv[2]))

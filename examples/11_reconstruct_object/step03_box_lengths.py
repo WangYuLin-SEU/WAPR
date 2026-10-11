@@ -44,7 +44,7 @@ UNIPOSE_ROOT = os.path.join(cache_dir(), "sources", "UniPose9D")
 UNIPOSE_INFER = os.path.join(UNIPOSE_ROOT, "infer")
 if DEMO_DIR not in sys.path:
     sys.path.insert(0, DEMO_DIR)
-if UNIPOSE_INFER not in sys.path:
+if os.path.isdir(UNIPOSE_INFER) and UNIPOSE_INFER not in sys.path:
     sys.path.insert(0, UNIPOSE_INFER)
 
 from pose_frame_align import (  # noqa: E402
