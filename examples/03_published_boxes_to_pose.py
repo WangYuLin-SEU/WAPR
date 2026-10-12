@@ -140,7 +140,6 @@ if __name__ == "__main__":
     wanted = {int(obj_id) for obj_id in obj_ids}
     estimator = WAPREstimator(device=device)
     meshes = {}
-    warmed_shapes = set()
     for scene_id, im_id in frames:
         mesh_setup_seconds = 0.0
         rgb, depth_m, K = load_bop_rgbd(bop_path, dataset, scene_id, im_id)
@@ -183,11 +182,10 @@ if __name__ == "__main__":
         # One forward for every kept instance. The masks are already known, and each instance keeps its own mesh.
         # 一次前向估计全部留下的实例。mask 已经有了，每个实例用自己的网格。
         pose_instances = instances
-        shape = (tuple(depth_m.shape), tuple(estimator.renderer.cached_mesh_id(item["mesh"]) for item in pose_instances))
         warmup_seconds = 0.0
-        if pose_instances and shape not in warmed_shapes:
+        if pose_instances and not getattr(estimator, "_frame_pose_warmed", False):
             warmup_seconds = estimator.warmup_pose(rgb, depth_m, K, pose_instances)
-            warmed_shapes.add(shape)
+            estimator._frame_pose_warmed = True
         # Synchronize the complete batch; exclude mesh setup, warmup and drawing.
         # 同步完整批量调用；网格准备、预热和绘图均在预热后的计时外。
         torch.cuda.synchronize(estimator.device)

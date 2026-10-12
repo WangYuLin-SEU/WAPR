@@ -468,17 +468,16 @@ def _track_camera_frames(estimator, runtime, dino, frames, init_poses, meshes, m
     states = {}
     written = []
     times_ms = []
-    warmed_shapes = set()
+    tracking_warmed = False
     for jobs in frames:
         if not jobs:
             continue
         rgb, depth_m, K = read_rgb_depth(jobs[0])
         height, width = depth_m.shape
         persistent_jobs = [job for job in jobs if job["name"] in states]
-        warm_shape = (height, width, tuple(job["name"] for job in persistent_jobs))
-        if persistent_jobs and warm_shape not in warmed_shapes:
+        if persistent_jobs and not tracking_warmed:
             warm_tracking_path(estimator, runtime, dino, persistent_jobs, states, meshes, mesh_ids)
-            warmed_shapes.add(warm_shape)
+            tracking_warmed = True
         torch.cuda.synchronize()
         started = time.perf_counter()
         tokens, grid = dino_tokens(dino, rgb)
@@ -686,17 +685,16 @@ if __name__ == "__main__":
         # 2. Each camera has independent states; all tracks on its current image update together.
         # 2. 每路相机独立保留状态；该相机当前图像上的所有轨迹一起更新。
         for camera_name, frames in streams.items():
-            states, times_ms, warmed_shapes = {}, [], set()
+            states, times_ms, tracking_warmed = {}, [], False
             for jobs in frames:
                 if not jobs:
                     continue
                 rgb, depth_m, K = read_rgb_depth(jobs[0])
                 height, width = depth_m.shape
                 persistent_jobs = [job for job in jobs if job["name"] in states]
-                warm_shape = (height, width, tuple(job["name"] for job in persistent_jobs))
-                if persistent_jobs and warm_shape not in warmed_shapes:
+                if persistent_jobs and not tracking_warmed:
                     warm_tracking_path(estimator, runtime, dino, persistent_jobs, states, meshes, mesh_ids)
-                    warmed_shapes.add(warm_shape)
+                    tracking_warmed = True
                 torch.cuda.synchronize()
                 started = time.perf_counter()
                 # One image encoding shared by bottle, box, and every other track of this frame.

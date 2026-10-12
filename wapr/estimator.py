@@ -962,6 +962,10 @@ class WAPREstimator:
                 rgb, depth_m, K, instances, n_view=n_view, n_inplane=n_inplane,
             )
         torch.cuda.synchronize(self.device)
+        # Successful explicit warmup also satisfies subsequent automatic frame warmup.
+        # 显式预热成功后，后续帧入口无需再次自动预热；空批次不标记完成。
+        if len(instances):
+            self._frame_pose_warmed = True
         return time.perf_counter() - started
 
     def estimate_one_category_one_instance(self, rgb, depth_m, K, mesh, diameter_m, bbox_xywh=None, mask=None, n_view=None, n_inplane=None):

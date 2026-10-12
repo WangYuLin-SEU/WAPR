@@ -22,7 +22,6 @@ import time
 import numpy as np
 import torch
 
-from wapr.estimator import resolve_view_counts
 
 
 def _rgb_uint8(rgb):
@@ -321,18 +320,17 @@ def estimate_frame_many_categories_many_instances(
     missing = [obj_id for obj_id in allowed if obj_id not in meshes]
     if missing:
         raise KeyError("obj_id %s is not in meshes" % missing)
-    detector_shape = (tuple(rgb_u8.shape), tuple(allowed))
-    detector_warmed = getattr(detector, "_frame_warmed_shapes", set())
+    # Warm once per detector, independently of frame size or selected classes.
+    # 每个检测器只自动预热一次，不随图像尺寸或类别名单重复。
     detector_warmup_seconds = 0.0
-    if detector_shape not in detector_warmed:
+    if not getattr(detector, "_frame_detector_warmed", False):
         torch.cuda.synchronize(estimator.device)
         warm_started = time.perf_counter()
         for _ in range(3):
             detector.detect_many_categories_many_instances(rgb_u8, obj_ids=allowed, score_min=score_2d_min)
         torch.cuda.synchronize(estimator.device)
         detector_warmup_seconds = time.perf_counter() - warm_started
-        detector_warmed.add(detector_shape)
-        detector._frame_warmed_shapes = detector_warmed
+        detector._frame_detector_warmed = True
     torch.cuda.synchronize(estimator.device)
     frame_started = time.perf_counter()
     instances, timing = detector.detect_many_categories_many_instances(rgb_u8, obj_ids=allowed, score_min=score_2d_min)
@@ -372,25 +370,18 @@ def estimate_frame_many_categories_many_instances(
         fields.append(field)
     if skipped_no_depth:
         print("POSE_SKIP_NO_DEPTH", skipped_no_depth, flush=True)
-    # Setup and warmup are separate from the returned pose time. New GPU shapes
-    # are warmed once; no pose from these discarded calls updates a track.
-    # 资源准备和预热与返回的位姿时间分开。新 GPU 形状只预热一次，丢弃的
-    # 预热位姿不会用于更新跟踪状态。
+    # Resource preparation is separate from timing; only the first valid batch warms.
+    # 资源准备与计时分开；仅首个有效实例批次自动预热，结果不更新轨迹。
     torch.cuda.synchronize(estimator.device)
     detector_and_filter_seconds = time.perf_counter() - frame_started
     prepared = estimator._pose_meshes([item["mesh"] for item in items])
     mesh_setup_seconds = estimator.last_mesh_setup_seconds
     for item, mesh in zip(items, prepared):
         item["mesh"] = mesh
-    view_count, inplane_count = resolve_view_counts(n_view, n_inplane)
-    warm_shape = (tuple(depth.shape), view_count * inplane_count,
-                  tuple((estimator.renderer.cached_mesh_id(item["mesh"]), item.get("mask") is not None) for item in items))
-    warmed = getattr(estimator, "_frame_warmed_pose_shapes", set())
     warmup_seconds = 0.0
-    if items and warm_shape not in warmed:
+    if items and not getattr(estimator, "_frame_pose_warmed", False):
         warmup_seconds = estimator.warmup_pose(rgb_u8, depth, K, items, n_view=n_view, n_inplane=n_inplane)
-        warmed.add(warm_shape)
-        estimator._frame_warmed_pose_shapes = warmed
+        estimator._frame_pose_warmed = True
     torch.cuda.synchronize(estimator.device)
     started = time.perf_counter()
     estimated = estimator.estimate_many_categories_many_instances(rgb_u8, depth, K, items, n_view=n_view, n_inplane=n_inplane)

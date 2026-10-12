@@ -491,7 +491,6 @@ def estimate_sequence(path):
         jobs = json.load(stream)
     estimator = WAPREstimator(device=DEVICE)
     meshes = {}
-    warmed_shapes = set()
     written = []
     frame_jobs = {}
     for job in jobs:
@@ -516,10 +515,9 @@ def estimate_sequence(path):
             instances.append({"mesh": meshes[mesh_path], "diameter_m": float(job["diameter_m"]), "mask": mask})
             valid_jobs.append(job)
         try:
-            shape = (tuple(depth_m.shape), tuple(estimator.renderer.cached_mesh_id(item["mesh"]) for item in instances))
-            if instances and shape not in warmed_shapes:
+            if instances and not getattr(estimator, "_frame_pose_warmed", False):
                 warmup_seconds = estimator.warmup_pose(rgb, depth_m, camera_k, instances)
-                warmed_shapes.add(shape)
+                estimator._frame_pose_warmed = True
                 print("POSE_WARMUP_SECONDS", warmup_seconds, flush=True)
             torch.cuda.synchronize(DEVICE)
             pose_started = time.perf_counter()

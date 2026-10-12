@@ -157,7 +157,6 @@ if __name__ == "__main__":
         dets = load_detections(det_json, score_thr=score_thr)
         estimator = WAPREstimator(device=device)
         meshes = {}
-        warmed_shapes = set()
         rows = []
         for (scene_id, im_id), recs in sorted(dets.items()):
             mesh_setup_seconds = 0.0
@@ -189,11 +188,10 @@ if __name__ == "__main__":
             # the published detector's runtime and the JSON input filter above.
             # 3. 全部保留实例调用一次位姿估计。此计时不含已公布检测器的运行时间
             # 及上方 JSON 输入过滤耗时。
-            shape = (tuple(depth_m.shape), tuple((estimator.renderer.cached_mesh_id(item["mesh"]), item.get("mask") is not None) for item in instances))
             warmup_seconds = 0.0
-            if instances and shape not in warmed_shapes:
+            if instances and not getattr(estimator, "_frame_pose_warmed", False):
                 warmup_seconds = estimator.warmup_pose(rgb, depth_m, K, instances)
-                warmed_shapes.add(shape)
+                estimator._frame_pose_warmed = True
             print("POSE_PREPARATION", estimator.model_setup_seconds,
                   mesh_setup_seconds, warmup_seconds, flush=True)
             torch.cuda.synchronize(device)
