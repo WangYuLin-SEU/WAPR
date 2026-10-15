@@ -116,7 +116,7 @@ The certificates included in this repository are shown below; click to view the 
 </p>
 
 
-<p align="center">Frames 80–109: WAPR on the left and TACO motion-capture reference on the right. Image-contour overlap and 6D pose error are different metrics.</p>
+<p align="center">Frames 80–109: each tracking frame uses the final SAPR update. WAPR on the left and TACO motion-capture reference on the right. Image-contour overlap and 6D pose error are different metrics.</p>
 
 
 ---
