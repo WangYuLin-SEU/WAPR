@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+
+
+<!--
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Localization and detection examples — WAPR docs</title>
+<script>
+    (function () {
+      var lang = "en";
+      try { lang = localStorage.getItem("wapr-lang") === "zh" ? "zh" : "en"; } catch (e) {}
+      document.documentElement.setAttribute("data-lang", lang);
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    })();
+  </script>
+<link href="../assets/project.css?v=bar14" rel="stylesheet"/>
+<link href="docs.css?v=62" rel="stylesheet"/>
+<link href="../favicon.ico?v=11" rel="icon" type="image/x-icon"/>
+<link href="../assets/wapr-icon-32.png?v=11" rel="icon" sizes="32x32" type="image/png"/>
+<link href="../assets/wapr-icon-180.png?v=11" rel="apple-touch-icon" sizes="180x180"/>
+<link href="../assets/table-layout.css?v=1" rel="stylesheet"/><script src="section-routes.js?v=59"></script><link href="data-bop.html" rel="prev"/><link href="data-own.html" rel="next"/><link rel="stylesheet" href="../assets/github-docs.css?v=3"/>
+<script src="../assets/site-runtime.js?v=1"></script>
+</head>
+<body class="project docs" data-title-en="Localization and detection examples — WAPR docs" data-title-zh="定位与检测示例 — WAPR 文档">
+<div aria-hidden="true" class="mast-spacer"></div>
+<header class="mast">
+<a class="mast-hero-link" href="../index.html"><img alt="WAPR, wide-angle pose refinement" class="mast-hero" height="724" src="../assets/wapr-banner-1440.webp" srcset="../assets/wapr-banner-768.webp 768w, ../assets/wapr-banner-1440.webp 1440w, ../assets/wapr-banner-2172.webp 2172w" sizes="(max-width: 800px) 100vw, 1200px" fetchpriority="high" width="2172"/></a>
+<div aria-hidden="true" class="mast-scrim"></div>
+<div class="docs-top">
+<a class="docs-home" href="../index.html">WAPR</a>
+<nav aria-label="Site" class="docs-jump">
+<a href="../index.html"><span class="en">Home</span><span class="zh">主页</span></a>
+<a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"><span class="en">Paper</span><span class="zh">论文</span></a>
+<a href="https://github.com/WangYuLin-SEU/WAPR"><span class="en">Code</span><span class="zh">代码</span></a>
+</nav>
+<div class="lang-switch" role="group">
+<button data-set-lang="en" type="button">EN</button>
+<button data-set-lang="zh" type="button">中文</button>
+</div>
+</div>
+</header><script src="../assets/banner.js?v=18"></script>
+<div class="docs-shell">
+<nav aria-label="Documentation / 教程目录" class="docs-nav"><a href="index.html"><span class="en">Overview</span><span class="zh">概览</span></a><a class="sub" href="index-modules.html"><span class="en">How the modules work together</span><span class="zh">模块如何衔接</span></a><a class="sub" href="index-routes.html"><span class="en">Choose a route for your scene</span><span class="zh">根据场景选择入口</span></a><a class="sub" href="index-performance.html"><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></a><a class="sub" href="index-examples.html"><span class="en">Example overview</span><span class="zh">示例总览</span></a><a href="install.html"><span class="en">Installation</span><span class="zh">安装</span></a><a class="sub" href="install-guide.html"><span class="en">Installation guide</span><span class="zh">安装引导</span></a><a class="sub" href="install-core.html"><span class="en">Detection and pose setup</span><span class="zh">检测与位姿环境</span></a><a class="sub" href="install-extensions.html"><span class="en">Extension setup</span><span class="zh">扩展环境</span></a><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a><a class="sub" href="data-resources.html"><span class="en">Datasets and model resources</span><span class="zh">数据集与模型资源</span></a><a class="sub" href="data-bop-folder.html"><span class="en">Read the BOP sample</span><span class="zh">读取 BOP 示例数据</span></a><a class="sub" href="data-frame.html"><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></a><a class="sub" href="data-bop.html"><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></a><a aria-current="page" class="sub" href="data-sixd-loc.html"><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></a><a class="sub" href="data-own.html"><span class="en">Custom data</span><span class="zh">自定义数据</span></a><a href="det2d.html"><span class="en">2D detection and segmentation</span><span class="zh">2D 检测与分割</span></a><a class="sub" href="det2d-templates.html"><span class="en">CAD templates and feature encoding</span><span class="zh">CAD 模板与特征编码</span></a><a class="sub" href="det2d-call.html"><span class="en">Detector usage and evaluation</span><span class="zh">检测器使用与评估</span></a><a href="pose.html"><span class="en">6D pose tasks and interfaces</span><span class="zh">6D 位姿任务与接口</span></a><a class="sub" href="pose-one.html"><span class="en">One category, one instance</span><span class="zh">单类别、单实例</span></a><a class="sub" href="pose-loc.html"><span class="en">6D pose localization and detection</span><span class="zh">6D 位姿定位与检测</span></a><a class="sub" href="pose-track.html"><span class="en">6D pose tracking</span><span class="zh">6D 位姿跟踪</span></a><a class="sub" href="pose-backend-scaling.html"><span class="en">Inference and renderer scaling</span><span class="zh">推理与渲染后端性能</span></a><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a><a class="sub" href="applications-robi.html"><span class="en">ROBI detection experiments</span><span class="zh">ROBI 检测实验</span></a><a class="sub" href="applications-ycbineoat.html"><span class="en">YCBInEOAT single-object pose tracking</span><span class="zh">YCBInEOAT 单物体位姿跟踪</span></a><a class="sub" href="applications-taco.html"><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></a><a class="sub" href="applications-reconstruct.html"><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></a><a class="sub" href="applications-robot.html"><span class="en">Robot simulation</span><span class="zh">机器人仿真</span></a><a href="credits.html"><span class="en">Acknowledgments and references</span><span class="zh">致谢与参考资料</span></a></nav>
+<main class="docs-main"><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="top"><a href="data-bop.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></strong></a><a href="data-own.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Custom data</span><span class="zh">自定义数据</span></strong></a></nav><nav aria-label="Breadcrumb / 章节路径" class="docs-breadcrumb"><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a></nav><h1 id="sixd-loc"><img class="sec-icon" src="../assets/readme/icons/citation.svg" width="24" height="24" alt="" aria-hidden="true"/> <span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></h1><p class="zh">下方 IC-BIN<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: IC-BIN" href="#reference-icbin-data" id="reference-icbin-data-ref-zh" role="doc-noteref">[3]</a></sup> 调用展示保存对照的接口，需要 IC-BIN 的 RGB-D、内参和双物体模板库；上一页的 LM-O<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: LM-O data" href="#license-lmo-data" id="license-lmo-data-ref-zh" role="doc-noteref">[2]</a></sup> 输入不能复现这张图。随包可直接执行的 LM-O 教程分别运行 <code>examples/04_6d_localization.py</code> 或 <code>examples/05_bop_6d_detection.py</code>。</p><p class="en">The IC-BIN<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: IC-BIN" href="#reference-icbin-data" id="reference-icbin-data-ref-en" role="doc-noteref">[3]</a></sup> calls below show the interface for the saved comparison. They require IC-BIN RGB-D, camera intrinsics and its two-mesh detector bank; the LM-O<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: LM-O data" href="#license-lmo-data" id="license-lmo-data-ref-en" role="doc-noteref">[2]</a></sup> inputs from the preceding page cannot reproduce this picture. Run <code>examples/04_6d_localization.py</code> or <code>examples/05_bop_6d_detection.py</code> for the included, fully executable LM-O lessons.</p>
+<p class="en">Localization assumes the object categories and their counts are known before reading the image. <code>examples/04_6d_localization.py</code> uses eight LM-O categories, one instance each. The IC-BIN comparison below restricts the search to object 1 and retains 14 poses; object 2 is excluded even though its CAD is in the bank. The first image shows 2D proposals before the count limit, and the second shows the retained poses ranked by <code>score_6d</code>. This recorded figure uses a 0.35 detection floor; the current omitted-argument default is 0.1 and may produce a different proposal set.</p>
+<p class="zh">定位任务在读图前已给定类别及每类实例数。<code>examples/04_6d_localization.py</code> 使用 LM-O 的八个类别，每类一个实例。下方 IC-BIN 对照只搜索物体 1 并保留 14 条位姿；物体 2 虽在 CAD 库中，却不参与这次定位。第一张图是数量约束前的 2D 候选，第二张图是按 <code>score_6d</code> 排序后保留的位姿。此记录图使用 0.35 的检测阈值；如今省略参数时默认值为 0.1，可能得到不同的候选集合。</p>
+<p class="en">Example 04 applies the recipe's category and count variables. Its default is LM-O; the independent IC-BIN illustration here uses its stated category/count choices. The illustration's scores are not console output of the default script.</p><p class="zh">示例 04 使用配置中的类别与数量变量，默认数据集为 LM-O。本页独立 IC-BIN 插图采用所述的类别与数量设置；插图分数不作为默认脚本的控制台输出。</p>
+<div class="nb-cell">
+<div class="nb-in">
+<span class="nb-prompt">In [5b]</span>
+<pre data-example="examples/04_6d_localization.py" data-example-lines="125:130"><code>poses, timing, detections = estimate_frame_many_categories_many_instances(
+    estimator, detector, rgb, depth_m, K, pose_meshes,
+    obj_ids=obj_ids,
+    inst_count=inst_count,
+)
+print("det_ms", timing["total_ms"], "detections", len(detections), "instances", len(poses), flush=True)</code></pre><p class="nb-source"><span class="en">Source: examples/04_6d_localization.py, lines 125–130</span><span class="zh">代码来源：examples/04_6d_localization.py，第 125–130 行</span></p></div>
+<div class="nb-out">
+<span class="nb-prompt">Out [5b]</span>
+<div>
+<img decoding="async" loading="lazy" alt="IC-BIN scene 1 image 26, 34 boxes of object 1" src="figures/guide_icbin_loc2d.jpg?v=1"/>
+<img decoding="async" loading="lazy" alt="IC-BIN scene 1 image 26, 14 poses kept by score_6d" src="figures/guide_icbin_loc6d.jpg?v=1"/>
+<p class="nb-cap"><span class="en">IC-BIN scene 1, image 26. The first picture is the 2D step: only object 1, 34 boxes, and the number is <code>score_2d</code>. The second picture is the return: 14 poses, and the number is <code>score_6d</code>. The lowest of the 14 is 0.848.</span><span class="zh">IC-BIN 场景 1，第 26 帧。第一张是 2D 这一步：只有物体 1，34 个框，数字是 <code>score_2d</code>。第二张是返回的结果：14 条位姿，数字是 <code>score_6d</code>。这 14 条里最低的是 0.848。</span></p>
+</div>
+</div>
+</div>
+<h2 data-inline-section="" id="sixd-det"><span class="en">6D pose detection</span><span class="zh">6D 位姿检测</span></h2><p class="zh">下方 IC-BIN 调用展示保存对照的接口，需要 IC-BIN 的 RGB-D、内参和双物体模板库；上一页的 LM-O 输入不能复现这张图。随包可直接执行的 LM-O 教程分别运行 <code>examples/04_6d_localization.py</code> 或 <code>examples/05_bop_6d_detection.py</code>。</p><p class="en">The IC-BIN calls below show the interface for the saved comparison. They require IC-BIN RGB-D, camera intrinsics and its two-mesh detector bank; the LM-O inputs from the preceding page cannot reproduce this picture. Run <code>examples/04_6d_localization.py</code> or <code>examples/05_bop_6d_detection.py</code> for the included, fully executable LM-O lessons.</p>
+<p class="en">Detection does not assume an instance count. On the same IC-BIN frame, both CAD categories are searched and all accepted regions proceed to batched pose estimation. The figures below show the 2D candidates followed by their estimated 6D poses. This run uses a 0.35 detection floor to retain the weaker object-2 proposals; the current omitted-argument default is 0.1. A 0.50 floor would remove object 2 on this frame. The 2D gate and optional WBPS pose gate act at different stages. Here, <code>score_6d_min=None</code> retains all estimated poses, including incorrect and duplicate outputs; annotated poses and instance counts are not used to select them.</p>
+<p class="zh">检测不预设实例数量。同一帧 IC-BIN 图像中，两种 CAD 类别均参与搜索，保留的区域进入批量计算位姿估计。下方依次展示 2D 候选及其对应的 6D 位姿。本次运行采用 0.35 的检测阈值，以保留较弱的物体 2 候选；省略参数时当前默认值为 0.1。若在此帧使用 0.50，物体 2 会被过滤。2D 检测阈值与可选的 WBPS 位姿阈值作用于不同阶段。这里设置 <code>score_6d_min=None</code>，保留所有估计位姿，包括误检与重复输出；筛选不使用标注位姿或实例数量。</p>
+<p class="en">Example 05 uses its selected CAD library without a count prior. Its default is LM-O scene 2, image 1. The independent IC-BIN illustration uses scene 1, image 26 and the settings stated here.</p><p class="zh">示例 05 使用选定 CAD 库，不提供数量先验；默认读取 LM-O 场景 2 第 1 帧。独立 IC-BIN 插图使用场景 1 第 26 帧及本页所述设置。</p>
+<div class="nb-cell">
+<div class="nb-in">
+<span class="nb-prompt">In [5c]</span>
+<pre data-example="examples/05_bop_6d_detection.py" data-example-lines="112:129"><code>detector = WAPRDet2D(template, device=device, backend=det_backend)
+meshes = {}
+for obj_id in obj_ids:
+    mesh, diameter_m = load_mesh_m(bop_path, dataset, obj_id)
+    if obj_id in object_names:
+        mesh.metadata["name"] = str(object_names[obj_id])
+    meshes[obj_id] = (mesh, diameter_m)
+estimator = WAPREstimator(device=device)
+prepared = estimator.prepare_meshes([pair[0] for pair in meshes.values()])
+mesh_setup_seconds = estimator.last_mesh_setup_seconds
+pose_meshes = {obj_id: (mesh, pair[1]) for (obj_id, pair), mesh in zip(meshes.items(), prepared)}
+rgb, depth_m, K = load_bop_rgbd(bop_path, dataset, scene_id, im_id)
+print("rgb", tuple(rgb.shape), "depth_m", tuple(depth_m.shape), "K", tuple(K.shape), flush=True)
+# This call discovers classes and instances before refining their 6D poses.
+# 这次调用先发现类别与实例，再修正各实例的 6D 位姿。
+poses, timing, detections = estimate_frame_many_categories_many_instances(estimator, detector, rgb, depth_m, K, pose_meshes)
+print("POSE_TIMING", timing, "model_setup_seconds", estimator.model_setup_seconds,
+      "initial_mesh_setup_seconds", mesh_setup_seconds, flush=True)</code></pre><p class="nb-source"><span class="en">Source: examples/05_bop_6d_detection.py, lines 112–129</span><span class="zh">代码来源：examples/05_bop_6d_detection.py，第 112–129 行</span></p></div>
+<div class="nb-out">
+<span class="nb-prompt">Out [5c]</span>
+<div>
+<img decoding="async" loading="lazy" alt="IC-BIN scene 1 image 26, 2D detection candidates of object 1 and object 2" src="figures/guide_icbin_det2d.jpg?v=20261005"/>
+<p class="nb-cap"><span class="en">2D candidates on IC-BIN scene 1, image 26. Each row gives an object id, <code>score_2d</code> and <code>bbox_xywh</code>. Object 1 has 33 candidates and object 2 has 9. Blue and orange rectangles identify the two CAD categories; no per-frame category-presence or instance-count prior is supplied.</span><span class="zh">IC-BIN 场景 1 第 26 帧的 2D 候选。每行给出物体编号、<code>score_2d</code> 与 <code>bbox_xywh</code>；物体 1 有 33 个候选，物体 2 有 9 个。蓝色与橙色矩形分别表示两个 CAD 类别，未提供本帧中物体是否出现或实例数量的先验。</span></p>
+<img decoding="async" loading="lazy" alt="IC-BIN scene 1 image 26, all 42 estimated 6D poses with projected object contours, 3D bounding boxes and score_6d labels" src="figures/guide_icbin_det6d.jpg?v=20261005"/>
+<p class="nb-cap"><span class="en">Saved 6D detection outputs: 42 poses estimated in batches, with 12 initial hypotheses per candidate region. Projected object mesh contours and 3D bounding boxes use blue for category 1 and orange for category 2; labels report <code>score_6d</code>, not <code>score_2d</code>. All 42 outputs are shown without a pose-score gate, instance-count cap or additional pose NMS.</span><span class="zh">保存的 6D 检测输出：每个候选区域生成 12 条初始候选姿态，批量估计得到 42 条位姿。物体网格模型的投影轮廓与 3D 包围盒按类别着色，物体 1 为蓝色、物体 2 为橙色；标签显示 <code>score_6d</code>，与上图的 <code>score_2d</code> 区分。图中保留全部 42 条输出，未使用位姿分数阈值、实例数量截断或额外的位姿 NMS。</span></p>
+<div class="figure-notes"><p class="en">The displayed poses use OpenGL + TensorRT<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: tensorrt-cu12" href="#license-package-tensorrt-cu12" id="license-package-tensorrt-cu12-ref-en" role="doc-noteref">[1]</a></sup> FP16 on RTX 5090. After three complete warmup calls, ten CUDA-synchronized calls give medians of 276.9 ms for 2D detection, 595.7 ms for the pose stage and 899.2 ms for the complete detection-to-pose call, including output assembly. Loading, CAD/template preparation, warmup, drawing and final pose NMS are excluded; hot mesh preparation/packing/upload counters remain unchanged. Stage medians are not an additive decomposition of the complete-call median. See the saved prediction record.</p><p class="zh">图中位姿使用 RTX 5090、OpenGL + TensorRT<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: tensorrt-cu12" href="#license-package-tensorrt-cu12" id="license-package-tensorrt-cu12-ref-zh" role="doc-noteref">[1]</a></sup> FP16 计算。三次完整预热后，十次 CUDA 同步调用的中位数为：2D 检测 276.9 毫秒，位姿阶段 595.7 毫秒，检测到位姿的连续调用合计 899.2 毫秒，包含结果整理。不含加载、CAD 与模板准备、预热、绘图及最终位姿 NMS；计时中网格准备、打包、上传计数均不增加。各阶段中位数不必相加等于完整调用中位数。详见保存的预测记录。</p></div>
+</div>
+</div>
+</div>
+<section aria-label="References and licenses / 参考文献与许可" class="license-notes"><h2 data-inline-section="true"><span class="en">References and licenses</span><span class="zh">参考文献与许可</span></h2><ol><li id="license-package-tensorrt-cu12"><strong>tensorrt-cu12 — Other/Proprietary License</strong>. <span><span class="en">Runtime dependency; dependencies and model/data assets retain their own licenses.</span><span class="zh">运行依赖；依赖及模型/数据资源保留各自许可。</span></span> · <a href="https://github.com/nvidia/tensorrt"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/package-tensorrt-cu12/LICENSE.txt"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a> <a aria-label="Back to mention / 返回正文" href="#license-package-tensorrt-cu12-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-package-tensorrt-cu12-ref-zh" role="doc-backlink">↩</a></li><li id="license-lmo-data"><strong>LM-O data — CC-BY-SA-4.0</strong>. <span><span class="en">Data and model excerpt, not the loader code.</span><span class="zh">数据与模型摘录，不是读取代码。</span></span> · <a href="https://bop.felk.cvut.cz/datasets/#LM-O"><span class="en">Original source</span><span class="zh">原始来源</span></a> · <a href="https://github.com/thodan/bop_toolkit"><span class="en">GitHub: BOP toolkit</span><span class="zh">GitHub：BOP 工具集</span></a><div class="reference-citation">Brachmann et al. Learning 6D Object Pose Estimation Using 3D Object Coordinates. ECCV 2014. · <a href="https://doi.org/10.1007/978-3-319-10605-2_35"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-lmo-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-lmo-data-ref-zh" role="doc-backlink">↩</a></div></li><li id="reference-icbin-data"><strong>IC-BIN</strong> · <a href="https://bop.felk.cvut.cz/datasets/#IC-BIN"><span class="en">Official BOP dataset page</span><span class="zh">BOP 官方数据页</span></a><div class="reference-citation">Doumanoglou et al. Recovering 6D Object Pose and Predicting Next-Best-View in the Crowd. CVPR 2016. · <a href="https://openaccess.thecvf.com/content_cvpr_2016/html/Doumanoglou_Recovering_6D_Object_CVPR_2016_paper.html"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#reference-icbin-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#reference-icbin-data-ref-zh" role="doc-backlink">↩</a></div></li></ol><p><span class="en">Model weights and dataset/task assets may have separate terms. WAPR's source license does not replace them.</span><span class="zh">模型权重、数据集与任务资源可能有独立条款；WAPR 源码许可不替代这些许可。</span></p></section><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="bottom"><a href="data-bop.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></strong></a><a href="data-own.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Custom data</span><span class="zh">自定义数据</span></strong></a></nav><footer class="site-author">© 2026 <a href="credits.html#authorship">Yulin Wang</a> · <span><span class="en">Code and website author</span><span class="zh">代码与网站作者</span></span></footer></main>
+</div>
+<script src="../assets/lang.js"></script>
+<script src="nav.js?v=34"></script>
+<script src="../assets/three.min.js"></script>
+<script src="../assets/studio_grid.js?v=2"></script>
+<script src="own_view.js?v=20261006-perf1"></script>
+<script src="../assets/table-layout.js?v=1"></script></body>
+</html>

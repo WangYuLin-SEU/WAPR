@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+
+<!--
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>WAPR: A Foundation Model for Wide-Angle Refinement in Unseen Object Pose Estimation</title>
+<meta name="description" content="WAPR (ECCV 2026) refines unseen-object 6D poses from RGB-D, camera intrinsics, a metric mesh, and a mask or box. Training covers rotation perturbations up to 90°."/>
+<link rel="canonical" href="https://wangyulin-seu.github.io/WAPR/"/>
+<meta property="og:title" content="WAPR: A Foundation Model for Wide-Angle Refinement in Unseen Object Pose Estimation"/>
+<meta property="og:description" content="WAPR (ECCV 2026) refines unseen-object 6D poses from RGB-D, camera intrinsics, a metric mesh, and a mask or box. Training covers rotation perturbations up to 90°."/>
+<meta property="og:url" content="https://wangyulin-seu.github.io/WAPR/"/>
+<meta property="og:image" content="https://wangyulin-seu.github.io/WAPR/assets/wapr-banner-1440.webp"/>
+<meta property="og:type" content="website"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="WAPR: A Foundation Model for Wide-Angle Refinement in Unseen Object Pose Estimation"/>
+<meta name="twitter:description" content="WAPR (ECCV 2026) refines unseen-object 6D poses from RGB-D, camera intrinsics, a metric mesh, and a mask or box. Training covers rotation perturbations up to 90°."/>
+<meta name="twitter:image" content="https://wangyulin-seu.github.io/WAPR/assets/wapr-banner-1440.webp"/>
+
+<script>
+    (function () {
+      var lang = "en";
+      try { lang = localStorage.getItem("wapr-lang") === "zh" ? "zh" : "en"; } catch (e) {}
+      document.documentElement.setAttribute("data-lang", lang);
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    })();
+  </script>
+<link href="assets/project.css?v=bar14" rel="stylesheet"/>
+<link href="assets/showcase.css?v=79" rel="stylesheet"/>
+<link href="assets/robi_compare.css?v=2" rel="stylesheet"/>
+<link href="assets/table-layout.css?v=1" rel="stylesheet"/>
+<link href="favicon.ico?v=11" rel="icon" type="image/x-icon"/>
+<link href="assets/wapr-icon-32.png?v=11" rel="icon" sizes="32x32" type="image/png"/>
+<link href="assets/wapr-icon-180.png?v=11" rel="apple-touch-icon" sizes="180x180"/>
+<link rel="stylesheet" href="assets/github-docs.css?v=3"/>
+<script src="assets/site-runtime.js?v=1"></script>
+<link rel="sitemap" type="application/xml" href="sitemap.xml"/>
+</head>
+<body class="project" data-title-en="WAPR: A Foundation Model for Wide-Angle Refinement in Unseen Object Pose Estimation" data-title-zh="WAPR：未见物体位姿估计中的广角修正基础模型">
+<div aria-hidden="true" class="mast-spacer"></div>
+<header class="mast">
+<img alt="WAPR, wide-angle pose refinement" class="mast-hero" height="724" src="assets/wapr-banner-1440.webp" srcset="assets/wapr-banner-768.webp 768w, assets/wapr-banner-1440.webp 1440w, assets/wapr-banner-2172.webp 2172w" sizes="(max-width: 800px) 100vw, 1200px" fetchpriority="high" width="2172"/>
+<div aria-hidden="true" class="mast-scrim"></div>
+<div class="langbar">
+<a class="mast-brand" href="./">WAPR</a>
+<nav aria-label="Site" class="mast-jump">
+<a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"><span class="en">Paper</span><span class="zh">论文</span></a>
+<a href="docs/"><span class="en">Docs</span><span class="zh">文档</span></a>
+<a href="https://github.com/WangYuLin-SEU/WAPR"><span class="en">Code</span><span class="zh">代码</span></a>
+</nav>
+<div class="lang-switch" role="group">
+<button data-set-lang="en" type="button">EN</button>
+<button data-set-lang="zh" type="button">中文</button>
+</div>
+</div>
+</header>
+<main class="pub">
+<header class="hero">
+<h1>
+<span class="en"><span class="accent">WAPR</span>: A Foundation Model for Wide-Angle Refinement in Unseen Object Pose Estimation</span>
+<span class="zh"><span class="accent">WAPR</span>：未见物体位姿估计中的广角修正基础模型</span>
+</h1>
+<p class="venue">ECCV 2026</p>
+<p class="authors"><span class="en">Yulin Wang<sup>*1</sup>   Mengting Hu<sup>*1</sup>   Hongli Li<sup>2</sup>   Jianghao Zhou<sup>1</sup>   Chen Luo<sup>1</sup></span><span class="zh">王宇林<sup>*1</sup>   胡梦婷<sup>*1</sup>   李红丽<sup>2</sup>   周江澔<sup>1</sup>   罗晨<sup>1</sup></span></p>
+<p class="affil"><span class="en"><sup>1</sup>Southeast University    <sup>2</sup>Purdue University</span><span class="zh"><sup>1</sup>东南大学    <sup>2</sup>普渡大学</span></p>
+<p class="equal"><span class="en"><sup>*</sup>Equal contribution. LNCS 17016, pp. 221–239.</span><span class="zh"><sup>*</sup>共同一作。LNCS 17016，第 221–239 页。</span></p>
+</header>
+<p class="lead"><span class="en">WAPR refines the 6D pose of an object absent from pose-model training. Provide RGB-D, camera intrinsics, a metric mesh, and a mask or box. Training covers candidate rotation errors up to 90°. The default recipe uses 12 hypotheses, three WAPR updates, two SAPR updates, and WBPS ranking. A metric mesh is still required at inference.</span><span class="zh">WAPR 修正位姿模型训练时未见过的物体的 6D 位姿。输入为 RGB-D、相机内参、米制网格，以及 mask 或框。训练覆盖高达 90° 的候选旋转误差。默认流程使用 12 个候选、三次 WAPR 更新、两次 SAPR 更新，再由 WBPS 排序。推理时仍需提供米制网格。</span></p>
+<section class="block">
+<h2><img class="sec-icon" src="assets/readme/icons/citation.svg" width="24" height="24" alt="" aria-hidden="true"/><span class="en">Abstract</span><span class="zh">摘要</span></h2>
+<p class="en">WAPR addresses pose refinement when the initial rotation may be far from the target. It is trained with candidate rotation errors up to 90°. The paper's fast setting reports inference within one second per frame and throughput up to 25 detected instances per second. The release's <a href="docs/pose-backend-scaling.html#backend-scaling-instances">RTX 5090 OpenGL + TensorRT FP16 benchmark</a> <strong class="performance-highlight">processes 100 supplied instances in 1.11–1.14 s, approximately 88–90 instances/s in the warmed batch pose stage</strong>, with twelve candidates per instance; this measurement excludes 2D detection and NMS. This release provides masked and unmasked WAPR checkpoints, SAPR (Small-Angle Pose Refinement), and WBPS (Within-and-Between Pose Score): the first two refine candidate poses, and WBPS ranks them. All four foundation-model checkpoints were trained on the <a href="docs/data-resources.html#sa6d">SA6D dataset</a>. “Unseen” means the object was absent from pose-model training; a metric object mesh is still needed at inference time. The demonstrations then connect this model-based refiner to 2D detection, 6D localization and detection, tracking, and mesh reconstruction.</p>
+<p class="zh">WAPR 处理初始旋转与目标位姿相差较大时的位姿修正，训练时覆盖高达 90° 的候选旋转误差。论文快速设定报告单帧 1 秒以内推理、最高每秒 25 个检测实例。发布版的 <a href="docs/pose-backend-scaling.html#backend-scaling-instances">RTX 5090、OpenGL + TensorRT FP16 实验</a>以每实例十二个候选，<strong class="performance-highlight">在预热后的批量位姿阶段用 1.11–1.14 秒处理 100 个指定实例，约每秒 88–90 个实例</strong>；该测量不含 2D 检测与 NMS。本发布包提供带掩码与不带掩码的 WAPR 权重、SAPR（小角位姿修正）及 WBPS（组内与组间位姿评分）：前两者修正候选位姿，WBPS 对结果排序。这四份基础模型权重均基于 <a href="docs/data-resources.html#sa6d">SA6D 数据集</a>训练。“未见”指位姿模型训练时未使用该物体；推理时仍需提供米制物体网格模型。后续演示将这一位姿修正模型接入 2D 检测、6D 定位与检测、跟踪和物体网格模型重建流程。</p>
+</section>
+<section class="block" id="capabilities">
+<h2><img class="sec-icon" src="assets/readme/icons/method.svg" width="24" height="24" alt="" aria-hidden="true"/><span class="en">RGB-D pose refinement, batch inference and tracking</span><span class="zh">RGB-D 位姿修正、批量推理与跟踪</span></h2>
+<p class="en">WAPR provides masked and mask-free wide-angle refinement, SAPR small-angle refinement, and WBPS pose scoring. It accepts masks or boxes and processes supplied instances in batches without per-object pose-model fine-tuning. Examples cover 6D localization, detection, pose tracking, optional mesh reconstruction and robot simulation.</p>
+<p class="zh">WAPR 提供带掩码与无掩码广角修正、SAPR 小角修正及 WBPS 位姿评分。支持 mask 或框，并批量处理给定实例，无需逐物体微调位姿模型。示例涵盖 6D 定位、检测、位姿跟踪、可选网格重建及机器人仿真。</p>
+<p class="en"><a href="#tracking">Large-motion tracking and recovery comparisons</a> · <a href="docs/install-guide.html">Install WAPR</a> · <a href="docs/data-own.html">Input requirements</a></p>
+<p class="zh"><a href="#tracking">大运动跟踪与补救对照</a> · <a href="docs/install-guide.html?lang=zh">安装 WAPR</a> · <a href="docs/data-own.html?lang=zh">输入要求</a></p>
+</section>
+<section class="block showcase" id="awards">
+<h2><img class="sec-icon" src="assets/readme/icons/award.svg" width="24" height="24" alt="" aria-hidden="true"/><span class="en">Awards</span><span class="zh">奖项</span></h2>
+<div class="pair bpc-pair">
+<figure class="award-card">
+<a href="awards/bpc-oneshot.jpg"><img alt="Perception Challenge for Bin-picking, Best One-shot Solution and 4th Place" decoding="async" loading="lazy" src="awards/bpc-oneshot.jpg"/></a>
+<figcaption><b><span class="en">Perception Challenge for Bin-picking</span><span class="zh">料箱抓取感知挑战</span></b><span class="en">Best One-shot Solution, 4th Place. This result is from WAPR alone.</span><span class="zh">最佳单次方案，第 4 名。这是纯 WAPR 的工作拿到的结果。</span></figcaption>
+</figure>
+<figure class="award-card">
+<a href="awards/bpc-second.jpg"><img alt="Perception Challenge for Bin-picking, Second Place" decoding="async" loading="lazy" src="awards/bpc-second.jpg"/></a>
+<figcaption><b><span class="en">Perception Challenge for Bin-picking</span><span class="zh">料箱抓取感知挑战</span></b><span class="en">Second Place. Based on FRTPose-WAPR.</span><span class="zh">第二名。基于 FRTPose-WAPR。</span></figcaption>
+</figure>
+</div>
+<p class="en">The following certificates are from the <a href="https://bop.felk.cvut.cz/challenges/bop-challenge-2025/">BOP Challenge 2025</a> at the 10th International Workshop on Recovering 6D Object Pose, ICCV 2025. They name FRTPose-WAPR system submissions with different 2D detectors; they do not measure the WAPR refiner in isolation. The two bin-picking certificates above distinguish a WAPR-only solution from an FRTPose-WAPR system. The <a href="https://drive.google.com/file/d/1lvOBAm_sGfMaFB2-gjKrLMMctM-h09Ys/view">official award collection</a> lists 14 BOP award entries for the team's submissions, counted by award category and track, across seven certificates.</p>
+<p class="zh">以下奖状来自 ICCV 2025 第 10 届 6D 物体位姿恢复国际研讨会的 <a href="https://bop.felk.cvut.cz/challenges/bop-challenge-2025/">BOP Challenge 2025</a>。奖状署名为搭配不同 2D 检测器的 FRTPose-WAPR 系统提交，不能解读为 WAPR 位姿修正模型的单独评测。上面两张料箱抓取奖状分别对应纯 WAPR 方案和 FRTPose-WAPR 系统。<a href="https://drive.google.com/file/d/1lvOBAm_sGfMaFB2-gjKrLMMctM-h09Ys/view">官方奖状合集</a>列出团队各提交共 14 项 BOP 获奖记录，按奖项类别与赛道计数，共七张奖状。</p>
+<p class="en">Only six of those seven BOP certificates are shown below. The remaining certificate recognizes 2D detection using a retrained YOLO model, independently of WAPR, so it is omitted from this WAPR showcase.</p>
+<p class="zh">下方仅展示这七张 BOP 奖状中的六张。另一张来自重新训练的 YOLO 模型在 2D 检测上的获奖，与 WAPR 无关，因此不在这里展示。</p>
+<div class="award-grid">
+<figure class="award-card">
+<a href="awards/bop-t12-overall-default.jpg"><img alt="BOP Challenge 2025, Track 1 and Track 2, Overall Best and Best Method Using Default Detections" decoding="async" loading="lazy" src="awards/bop-t12-overall-default.jpg"/></a>
+<figcaption><b><span class="en">Track 1 and Track 2</span><span class="zh">赛道 1 与赛道 2</span></b><span class="en">FRTPose-WAPR.v2 (Multi 2D / Default Detections): Overall Best and Best Method Using Default Detections.</span><span class="zh">FRTPose-WAPR.v2（多种 2D 检测／默认检测）：总最佳、使用默认检测的最佳方法。</span></figcaption>
+</figure>
+<figure class="award-card">
+<a href="awards/bop-t8.jpg"><img alt="BOP Challenge 2025, Track 8, Best Single-View Method, Best Fast Method, and Best Method Using Default Detections" decoding="async" loading="lazy" src="awards/bop-t8.jpg"/></a>
+<figcaption><b><span class="en">Track 8</span><span class="zh">赛道 8</span></b><span class="en">FRTPose-WAPR (YOLOv11): Best Single-View Method, Best Fast Method, and Best Method Using Default Detections.</span><span class="zh">FRTPose-WAPR（YOLOv11）：最佳单视角方法、最佳快速方法、使用默认检测的最佳方法。</span></figcaption>
+</figure>
+<figure class="award-card">
+<a href="awards/bop-t1-fast.jpg"><img alt="BOP Challenge 2025, Track 1, Best Fast Method" decoding="async" loading="lazy" src="awards/bop-t1-fast.jpg"/></a>
+<figcaption><b><span class="en">Track 1</span><span class="zh">赛道 1</span></b><span class="en">FRTPose-WAPR.v2 (MUSE): Best Fast Method.</span><span class="zh">FRTPose-WAPR.v2（MUSE）：最佳快速方法。</span></figcaption>
+</figure>
+<figure class="award-card">
+<a href="awards/bop-t12-default.jpg"><img alt="BOP Challenge 2025, Track 1 and Track 2, Best Method Using Default Detections" decoding="async" loading="lazy" src="awards/bop-t12-default.jpg"/></a>
+<figcaption><b><span class="en">Track 1 and Track 2</span><span class="zh">赛道 1 与赛道 2</span></b><span class="en">FRTPose-WAPR.v2 (Default Detections): Best Method Using Default Detections.</span><span class="zh">FRTPose-WAPR.v2（默认检测）：使用默认检测的最佳方法。</span></figcaption>
+</figure>
+<figure class="award-card">
+<a href="awards/bop-t10-single-default.jpg"><img alt="BOP Challenge 2025, Track 10, Best Single-View Method and Best Method Using Default Detections" decoding="async" loading="lazy" src="awards/bop-t10-single-default.jpg"/></a>
+<figcaption><b><span class="en">Track 10</span><span class="zh">赛道 10</span></b><span class="en">FRTPose-WAPR.v2 (Default Detection): Best Single-View Method and Best Method Using Default Detections.</span><span class="zh">FRTPose-WAPR.v2（默认检测）：最佳单视角方法、使用默认检测的最佳方法。</span></figcaption>
+</figure>
+<figure class="award-card">
+<a href="awards/bop-t10-fast.jpg"><img alt="BOP Challenge 2025, Track 10, Best Fast Method" decoding="async" loading="lazy" src="awards/bop-t10-fast.jpg"/></a>
+<figcaption><b><span class="en">Track 10</span><span class="zh">赛道 10</span></b><span class="en">FRTPose-WAPR.v2 (SAM6D / MUSE): Best Fast Method.</span><span class="zh">FRTPose-WAPR.v2（SAM6D／MUSE）：最佳快速方法。</span></figcaption>
+</figure>
+</div>
+</section>
+<section class="block showcase" id="wide">
+<h2><img class="sec-icon" src="assets/readme/icons/rotate.svg" width="24" height="24" alt="" aria-hidden="true"/><span class="en">Wide-angle correction</span><span class="zh">广角修正</span></h2>
+<p class="en">The comparison isolates rotational correction. For each object, the translation is fixed at its ground-truth value, and WAPR, MegaPose's RGB-D refiner, and FoundationPose's refiner receive the same perturbed rotation for five updates. The initial errors are 100° for the TUD-L dragon about the camera Y axis, 80° for the LM-O driller about the camera X axis, and 120° for the YCB-V clamp about an oblique axis. The figures report the residual rotation error after refinement. These individual cases illustrate why the localization and detection examples below can begin with a small set of coarse pose hypotheses; they are not an aggregate accuracy benchmark.</p>
+<p class="zh">这一对照实验单独考察旋转修正能力。每个物体的平移固定为真值，WAPR、MegaPose 的 RGB-D 位姿修正模型和 FoundationPose 的位姿修正模型从相同的扰动旋转出发，各更新五次。初始误差分别为：TUD-L 恐龙绕相机 Y 轴旋转 100°，LM-O 电钻绕相机 X 轴旋转 80°，YCB-V 夹钳绕斜轴旋转 120°。下方图片给出修正后的剩余旋转误差。这些单独案例说明后续定位和检测为何可以从少量粗候选姿态出发；它们不代表汇总精度指标。</p>
+<div class="wide-comparison-scroll" tabindex="0" role="region" aria-label="Rotation comparison / 旋转对照"><table class="wide-comparison-table"><caption><span class="en">Residual rotation error after five updates</span><span class="zh">五次更新后的剩余旋转误差</span></caption><thead><tr><th scope="col"><span class="en">Dataset</span><span class="zh">数据集</span></th><th scope="col"><span class="en">Object</span><span class="zh">物体</span></th><th scope="col"><span class="en">Initial rotation</span><span class="zh">初始旋转</span></th><th scope="col"><span class="en">WAPR</span><span class="zh">WAPR</span></th><th scope="col"><span class="en">MegaPose</span><span class="zh">MegaPose</span></th><th scope="col"><span class="en">FoundationPose</span><span class="zh">FoundationPose</span></th></tr></thead><tbody><tr><th scope="row">TUD-L</th><td><span class="en">dragon</span><span class="zh">恐龙</span></td><td><span class="en">Camera Y axis, 100°</span><span class="zh">相机 Y 轴，100°</span></td><td>0°</td><td>174°</td><td>≈95°</td></tr><tr><th scope="row">LM-O</th><td><span class="en">driller</span><span class="zh">电钻</span></td><td><span class="en">Camera X axis, 80°</span><span class="zh">相机 X 轴，80°</span></td><td>4°</td><td>113°</td><td>106°</td></tr><tr><th scope="row">YCB-V</th><td><span class="en">clamp</span><span class="zh">夹钳</span></td><td><span class="en">Oblique axis, 120°</span><span class="zh">斜轴，120°</span></td><td>2°</td><td>90°</td><td>65°</td></tr></tbody></table></div>
+<p class="en">Translation is fixed to ground truth and all refiners receive the same initial rotation. The clamp has a 180° symmetry; its error uses the nearer equivalent pose. The 100° and 120° cases exceed the 90° training perturbation range. These are individual cases, not aggregate accuracy. This five-update comparison differs from the default three-WAPR/two-SAPR recipe.</p>
+<p class="zh">平移固定为真值，各方法接收相同初始旋转。夹钳具有 180° 对称，误差取较近等价姿态。100°、120° 案例超出 90° 训练扰动范围。这些是单独案例，不是汇总精度；五次更新对照不同于默认三次 WAPR、两次 SAPR 的流程。</p>
+<figure class="poster-fig wide-strip">
+<a href="demo/wide/tudl_dragon.jpg?v=4"><img alt="TUD-L dragon refined for five steps from a 100 degree yaw" decoding="async" loading="lazy" src="demo/wide/tudl_dragon.jpg?v=4"/></a>
+<figcaption><span class="en">TUD-L, the dragon, from a 100° turn about the camera Y axis. The second column is that same initial pose, drawn in the row’s color. WAPR is at 0° after five updates. MegaPose’s refiner turns the other way and ends at 174°. FoundationPose’s refiner stays near 95°.</span><span class="zh">TUD-L 的恐龙，绕相机 Y 轴转了 100°。第二列是这同一个初始位姿，用这一行的颜色画出。WAPR 五次更新之后是 0°。MegaPose 的位姿修正模型转到另一边，结束时是 174°。FoundationPose 的位姿修正模型停在大约 95°。</span></figcaption>
+</figure>
+<div class="pair wide-pair">
+<figure class="poster-fig">
+<a href="demo/wide/lmo_driller.jpg?v=2"><img alt="LM-O driller after five updates from an 80 degree start" decoding="async" loading="lazy" src="demo/wide/lmo_driller.jpg?v=2"/></a>
+<figcaption><span class="en">LM-O, the driller, five updates from an 80° turn about the camera X axis. The second column is that same initial pose, drawn in the row’s color. WAPR is at 4°. MegaPose goes to 113°. FoundationPose goes to 106°.</span><span class="zh">LM-O 的电钻，绕相机 X 轴转 80°，更新五次。第二列是这同一个初始位姿，用这一行的颜色画出。WAPR 是 4°。MegaPose 走到 113°。FoundationPose 走到 106°。</span></figcaption>
+</figure>
+<figure class="poster-fig">
+<a href="demo/wide/ycbv_clamp.jpg?v=4"><img alt="YCB-V clamp after five updates from a 120 degree oblique start" decoding="async" loading="lazy" src="demo/wide/ycbv_clamp.jpg?v=4"/></a>
+<figcaption><span class="en">YCB-V, the clamp, from a 120° turn. The axis points right, down, and toward the camera. The second column is that same initial pose, drawn in the row’s color. WAPR ends at 2°. MegaPose stays at 90°. FoundationPose stays at 65°. The clamp has a 180° symmetry, so the degrees are the angle to the nearer of the two poses.</span><span class="zh">YCB-V 的夹钳，转了 120°。转轴朝右、朝下，并朝向相机。第二列是这同一个初始位姿，用这一行的颜色画出。WAPR 结束时是 2°。MegaPose 停在 90°。FoundationPose 停在 65°。夹钳有一条 180° 对称，图上的角度是到这两个姿态里较近的那个。</span></figcaption>
+</figure>
+</div>
+</section>
+<section class="block showcase" id="showcase">
+<h2><img class="sec-icon" src="assets/readme/icons/pose.svg" width="24" height="24" alt="" aria-hidden="true"/><span class="en">6D localization</span><span class="zh">6D 定位</span></h2>
+<p class="en">Localization assumes the object categories and their instance counts are known, while candidate image regions are supplied by the 2D detector. In this visualization, every box with a detector score of at least 0.35 is considered for each known CAD model without using the detector's category label. Each box starts from 12 pose candidates: four tetrahedral viewing directions and three in-plane rotations per direction. The full refinement recipe applies three WAPR updates followed by two SAPR updates; WBPS then ranks the resulting poses for each object by <code class="inline">score_6d</code>. The candidate count and update schedule are the repository defaults. The controls below compare those predictions with the dataset's ground-truth poses.</p>
+<p class="zh">定位任务预先给定物体类别及各类别的实例数量，候选图像区域则由 2D 检测器提供。在本页可视化中，分数不低于 0.35 的每个检测框都用于评估各个已知 CAD 模型，不采用检测器给出的类别标签。每个框生成 12 个初始位姿：正四面体的四个视线方向，每个方向取三种面内旋转。完整修正流程依次执行三次 WAPR 更新和两次 SAPR 更新，再按 WBPS 返回的 <code class="inline">score_6d</code> 对每个物体的结果排序。候选数量和更新次数均为仓库默认设置。下方控件可将预测结果与数据集真值位姿对照。</p>
+<p class="en">The left contour is the boundary of the mask taken directly from that object's rendered depth. The 3D bbox uses the same pose. The switch shows the predicted pose or the ground-truth pose. Predicted instances use distinct non-green contour colors; green contours denote ground truth. Click inside a contour or on an object mesh in the 3D view, and that object is highlighted on both sides. The point cloud is the sensor depth. Each instance on the right is displayed as a textured object mesh at the same pose.</p>
+<p class="zh">左侧轮廓是直接用该物体的渲染深度算出 mask 之后的边界。3D 包围盒用的是同一个姿态。开关显示预测位姿或真值位姿。预测实例使用不同的非绿色轮廓，绿色轮廓仅表示真值。点击轮廓内部，或右侧 3D 视图中的物体网格模型，左右会一起高亮该物体。点云来自传感器深度。右侧各实例以对应位姿的带纹理物体网格模型显示。</p>
+<p class="demo-statement"><span class="en"><strong>Interpreting the overlays.</strong> The prediction and ground-truth views project their respective stored poses with the selected object mesh and camera intrinsics. An annotation overlay that misses the visible object indicates a disagreement among the image, annotation, object mesh, or camera calibration; this view alone cannot identify its cause. Compare the sensor point cloud and both overlays before interpreting a pose error.</span><span class="zh"><strong>叠加图的解读。</strong>预测视图与真值视图分别使用对应的位姿、所选物体网格和相机内参投影。若标注轮廓偏离图像中的物体，说明图像、标注、物体网格模型或相机标定之间存在不一致；仅凭这张图无法判定原因。解读位姿误差前，可对照传感器点云及两种轮廓。</span></p>
+<div class="demo-tools">
+<div class="demo-switchers">
+<div class="demo-pager" id="demo-pager"></div>
+<div class="scene-pager" id="scene-pager"></div>
+</div>
+<div class="pose-switch" role="group">
+<button aria-pressed="true" data-pose="pred" type="button"><span class="en">Predicted</span><span class="zh">预测</span></button>
+<button data-pose="gt" type="button"><span class="en">Ground truth</span><span class="zh">真值</span></button>
+</div>
+</div>
+<div aria-live="polite" class="demo-frame-caption" role="note">
+<span class="demo-frame-caption-label"><span class="en">Displayed frame</span><span class="zh">当前帧</span></span>
+<p class="demo-note"><span class="en" id="demo-note-en"></span><span class="zh" id="demo-note-zh"></span></p>
+</div>
+<div class="demo-stage">
+<div class="demo-photo">
+<canvas height="480" id="demo-image" width="640"></canvas>
+<div aria-live="polite" class="demo-load-status" id="demo-photo-status" role="status">
+<span class="en">Preparing the frame…</span><span class="zh">正在准备图像…</span>
+<button hidden="" type="button"><span class="en">Retry</span><span class="zh">重试</span></button>
+</div>
+<div class="demo-chips" id="demo-chips"></div>
+</div>
+<div class="demo-cloud-panel">
+<div class="demo-cloud-wrap">
+<canvas id="demo-cloud"></canvas>
+<div aria-live="polite" class="demo-load-status" id="demo-cloud-status" role="status">
+<span class="en">Preparing the point cloud…</span><span class="zh">正在准备点云…</span>
+<button hidden="" type="button"><span class="en">Retry</span><span class="zh">重试</span></button>
+</div>
+</div>
+<aside class="demo-controls-hint" role="note">
+<strong><span class="en">Controls</span><span class="zh">操作提示</span></strong>
+<ul>
+<li><span class="en">Switch frames in the second row above: six-digit scene folders for multiple scenes, or image ids within one scene.</span><span class="zh">上方第二行可切换帧：多个场景显示六位场景目录，同一场景显示图像编号。</span></li>
+<li><span class="en">Select an instance, then drag to orbit that copy. Scroll to zoom; right-drag or Shift-drag to pan.</span><span class="zh">选中一个实例后，拖拽可绕该实例旋转；同类的多份实例分别选择。滚轮缩放，右键或按住 Shift 拖拽可平移。</span></li>
+<li><span class="en">Drag the object meshes below to rotate them; scroll to zoom.</span><span class="zh">下方物体网格可拖拽旋转，滚轮缩放。</span></li>
+</ul>
+</aside>
+</div>
+</div>
+<p class="mesh-strip-caption" hidden="" id="mesh-strip-caption"><span class="en">Object meshes in this frame</span><span class="zh">本帧的物体网格</span></p>
+<div class="mesh-strip" id="mesh-strip">
+<div class="mesh-strip-stage" id="mesh-strip-stage">
+<canvas id="mesh-strip-canvas"></canvas>
+<div class="mesh-strip-frames" id="mesh-strip-frames"></div>
+</div>
+<div class="mesh-strip-labels" id="mesh-strip-labels"></div>
+</div>
+</section>
+<section class="block showcase" id="lmo-det">
+<h2><img class="sec-icon" src="assets/readme/icons/multi.svg" width="24" height="24" alt="" aria-hidden="true"/><span class="en">6D detection &amp; 2D detection</span><span class="zh">6D 检测 &amp; 2D 检测</span></h2>
+<p class="en">Detection removes the fixed-count assumption used in localization. The 2D score threshold selects candidate boxes. WAPR and SAPR refine multiple boxes in one batch while keeping each box’s pose hypotheses together; WBPS ranks hypotheses within each box. For poses of the same object, rendered silhouettes with IoU above 0.5 are suppressed in favor of the pose with the higher <code class="inline">score_6d</code>. The remaining poses retain their WBPS scores. In this visualization, a score of 0.5 marks each result chip with a blue or gray dot; the color distinguishes the displayed pose-score groups and is not an additional filtering step or a calibrated probability.</p>
+<p class="zh">检测任务不预先限定实例数量。流程先按 2D 分数阈值选择候选框。WAPR 与 SAPR 将多个框的候选姿态批量计算修正，同时保留每个框的独立分组；WBPS 再在各组内选出位姿。对于同一物体，若两个位姿的渲染轮廓 IoU 大于 0.5，则保留 <code class="inline">score_6d</code> 更高的结果。其余位姿保留各自的 WBPS 分数。本页以 0.5 为界，用蓝色或灰色圆点标记结果控件；颜色用于区分展示的位姿分数组，并非额外的过滤步骤，也不表示校准后的概率。</p>
+<p class="en"><code class="inline">wapr.det2d</code> performs CAD-conditioned 2D detection and segmentation. Its object identities come from the supplied object-mesh library; the test frame does not provide a list of present objects or their instance counts. GroundingDINO proposes boxes from the generic prompt <code class="inline">items .</code>, SAM 2.1-L segments their visible regions, and DINOv2 ViT-L/14 matches the masked crops to rendered mesh templates. Each object has 42 template views with four in-plane rotations per view. The number beside a box is a fused matching score used for ranking and thresholding, not a calibrated probability. Same-category mask suppression removes overlapping duplicates while allowing multiple instances of a category. The <a href="docs/det2d.html">detector guide</a> details the features, score gate, and template preparation.</p>
+<p class="zh"><code class="inline">wapr.det2d</code> 执行基于 CAD 的 2D 检测与分割。物体类别来自提供的物体网格模型库；测试帧不提供当前出现物体的名单或实例数量。GroundingDINO 用通用提示词 <code class="inline">items .</code> 生成候选框，SAM 2.1-L 分割可见区域，DINOv2 ViT-L/14 将掩码裁剪与渲染网格模板匹配。每个物体有 42 个模板视角，每个视角再取四种面内旋转。框旁数值是用于排序与阈值过滤的融合匹配分数，并非校准概率。同类掩码抑制移除重叠候选，但允许同类多个实例。特征、分数阈值与建库过程见<a href="docs/det2d.html">检测器指南</a>。</p>
+<figure class="lmo-comparison">
+<figcaption class="lmo-comparison-caption">
+<span class="lmo-comparison-label"><span class="en">Figure note</span><span class="zh">图注</span></span>
+<span class="lmo-comparison-text">
+<span class="en"><strong>Top left</strong> shows 2D boxes with scores at or above 0.35; <strong>top right</strong> shows candidates remaining after a 0.50 detection-score gate and rendered-silhouette suppression. <strong>Bottom left</strong> projects contours and 3D boxes with WBPS scores; <strong>bottom right</strong> overlays the object meshes on the sensor point cloud.<span class="lmo-comparison-detail">LM-O scene 2, image 307. At the 0.35 detection floor, 48 RGB-derived candidates are found; ten pass the 0.50 pose-input gate and nine remain after same-category silhouette suppression. RTX 5090 medians over 30 calls after three warmups: 2D 0.282 s, 6D 0.134 s, continuously timed detector + pose 0.419 s. Rendering, WAPR/SAPR and WBPS batch all ten instances, with independent object attention. Poses, scores, contours and timing labels use this saved run. Original 2D boxes remain; candidate order and categories were checked, but original mask hashes were not saved. Model/engine loading, template construction, mesh centering/normals/packing/GL upload, warmup and drawing are excluded. Click a result or mesh to highlight it; drag to orbit and scroll to zoom.</span></span>
+<span class="zh"><strong>左上</strong>展示分数不低于 0.35 的 2D 候选框；<strong>右上</strong>展示经过 0.50 检测分数阈值及渲染轮廓抑制后的候选。<strong>左下</strong>投影轮廓和 3D 包围盒，并标出 WBPS 分数；<strong>右下</strong>将物体网格模型叠放在传感器深度点云上。<span class="lmo-comparison-detail">LM-O 场景 2 第 307 帧。以 0.35 阈值从 RGB 检测得到 48 个候选，十个通过 0.50 位姿输入阈值，同类轮廓抑制后展示九个。RTX 5090 预热三次、测量三十次，中位数为 2D 0.282 秒、6D 0.134 秒、检测与位姿连续计时 0.419 秒。渲染、WAPR/SAPR 和 WBPS 均批量处理十个实例，注意力保持每物体独立。位姿、分数、轮廓和耗时来自该保存记录。原 2D 框保留，已核对候选顺序和类别；原图未保存 mask 摘要。不计加载、模板构建、引擎编译和绘图。点击结果或网格可联动高亮，拖动旋转，滚轮缩放。</span></span>
+</span>
+</figcaption>
+<div class="lmo-row">
+<figure>
+<canvas height="480" id="lmo-all-canvas" width="640"></canvas>
+<figcaption><span class="en">2D bboxes, score ≥ 0.35</span><span class="zh">2D 包围盒，分数 ≥ 0.35</span></figcaption>
+</figure>
+<figure>
+<canvas height="480" id="lmo-det-canvas" width="640"></canvas>
+<figcaption><span class="en">After the detection-score gate and pose suppression</span><span class="zh">检测分数阈值与位姿抑制之后</span></figcaption>
+</figure>
+<div class="lmo-pose-card">
+<div class="lmo-pose-views">
+<figure>
+<canvas height="480" id="lmo-pose-canvas" width="640"></canvas>
+<figcaption><span class="en">6D pose</span><span class="zh">6D 位姿</span></figcaption>
+</figure>
+<figure>
+<div class="lmo-cloud-wrap">
+<canvas id="lmo-cloud"></canvas>
+</div>
+<figcaption><span class="en">3D scene</span><span class="zh">3D 场景</span></figcaption>
+</figure>
+</div>
+<div class="lmo-results">
+<div class="lmo-results-header">
+<div>
+<h3 id="lmo-results-title"><span class="en">6D pose results</span><span class="zh">6D 位姿结果</span></h3>
+<p class="lmo-results-hint"><span class="en">Select a result to highlight the same instance in both views.</span><span class="zh">点击结果，在上方两幅图中高亮同一实例。</span></p>
+</div>
+<div class="lmo-results-legend">
+<span class="lmo-legend-item"><i aria-hidden="true" class="lmo-legend-dot lmo-legend-high"></i>score_6d ≥ 0.5</span>
+<span class="lmo-legend-item"><i aria-hidden="true" class="lmo-legend-dot lmo-legend-low"></i>score_6d &lt; 0.5</span>
+</div>
+</div>
+<div aria-labelledby="lmo-results-title" class="lmo-chips" id="lmo-chips" role="group"></div>
+</div>
+</div>
+</div>
+</figure>
+</section>
+<section class="block showcase" id="tracking">
+<h2><img class="sec-icon" src="assets/readme/icons/tracking.svg" width="24" height="24" alt="" aria-hidden="true"/><span class="en">6D tracking</span><span class="zh">6D 跟踪</span></h2>
+<p class="en">In the recorded large-motion mustard sequence <code>mustard_easy_00_02</code>, updating poses every 32 frames gives WAPR 100% ADD recall and 4.6 mm mean ADD, versus FoundationPose’s 68.2% and 36.3 mm. FoundationPose loses accurate tracking in parts of this comparison. Both methods start from the same predicted mask; neither reinitializes poses in this sequence. Recall uses ADD below 0.1 object diameter. These are sequence-specific results.</p>
+<p class="zh">在录制的大运动芥末瓶序列 <code>mustard_easy_00_02</code> 中，每 32 帧更新一次位姿，WAPR 的 ADD 达标率为 100%、平均 ADD 为 4.6 mm；FoundationPose 分别为 68.2% 和 36.3 mm，对照中部分帧出现跟踪失效。双方从同一预测掩码开始，该序列均不重新初始化位姿。达标阈值为物体直径的 0.1 倍；这些是此序列的结果。</p>
+<p class="en">Lost-track recovery is a separate optional workflow using DINOv2 candidate search and pose scoring. The sugar-box example retains failed predictions and demonstrates recovery behavior; it does not guarantee recovery for every sequence.</p>
+<p class="zh">跟踪丢失补救是单独的可选流程，使用 DINOv2 候选搜索及位姿评分。糖盒案例保留失败预测并展示补救表现，不保证所有序列都能恢复。</p>
+
+<p class="en">Cracker and mustard initialize from predicted masks; sugar uses a shared supplied initial mask and independent DINOv2 recovery. Red outlines are estimates, green outlines are offline references. ADD recall counts poses below 0.1 of the object diameter.</p>
+<p class="zh">饼干盒与芥末瓶使用预测掩码初始化；糖盒共享给定初始掩码，并独立执行 DINOv2 补救。红色轮廓为预测，绿色为离线参考；ADD 达标率统计误差低于物体直径 0.1 倍的位姿。</p>
+<h3><span class="en">Stride 1, cracker_box_reorient</span><span class="zh">步长 1，cracker_box_reorient</span></h3>
+<p class="en">Both methods initialize from the same frame-0 mask predicted by WAPRDet2D; a saved manual click specifies the instance. At stride 1, each updates its own previous pose, without a new mask. This warmed RTX 5090 validation reaches 100% ADD recall for both methods, with mean errors of 6.0 mm for WAPR and 5.1 mm for FoundationPose. Initialization takes 90.7 and 552.0 ms; normal update medians are 69.6 and 68.5 ms. Detection, DINOv2 mask tracking and drawing are measured separately. This is the demonstration experiment, not a measurement of the public batch tracking interface.</p>
+<p class="zh">两种方法用同一块 WAPRDet2D 预测的第 0 帧掩码初始化，由保存的人工点击指定实例。步长 1 时，各自更新上一帧位姿，不使用新的掩码。RTX 5090 预热后的这段验证中，两者 ADD 达标率均为 100%，WAPR 平均误差 6.0 mm，FoundationPose 为 5.1 mm；初始化分别为 90.7、552.0 ms，常规更新中位数为 69.6、68.5 ms。检测、DINOv2 掩码跟踪与绘图另计。这是演示实验，不是公共批量跟踪接口的测量。</p>
+<figure class="track-clip">
+<video preload="none" controls="" height="480" loop="" muted="" playsinline="" poster="demo/tracking/predicted_init/track_cracker_box_reorient_s1.jpg?v=1" width="1920">
+<source data-src="demo/tracking/predicted_init/track_cracker_box_reorient_s1.mp4?v=1" type="video/mp4"/>
+</video><figcaption><span class="en">Predicted initialization, stride 1. Labels are warm measured calls; presentation holds do not measure camera FPS. DINOv2, WAPR and FoundationPose.</span><span class="zh">预测掩码初始化，步长 1。字幕为预热后调用实测，展示停留不代表相机帧率；DINOv2、WAPR 与 FoundationPose。</span></figcaption>
+</figure>
+<h3><span class="en">Stride 32 without pose re-estimation: mustard_easy_00_02</span><span class="zh">步长 32，不重新估计位姿：mustard_easy_00_02</span></h3>
+<p class="en">DINOv2 tracks the predicted initial target mask through every raw frame. Every 32nd frame, both methods seed translation from current observed depth inside the same matched region; if matching fails, they retain their own previous translation. There is no pose rescue. This warmed RTX 5090 validation gives WAPR 100% ADD recall and 4.6 mm mean error, and FoundationPose 68.2% and 36.3 mm. Initialization takes 87.4 and 559.6 ms; normal update medians are 71.8 and 73.2 ms. Timers exclude detection, dense mask tracking and drawing.</p>
+<p class="zh">DINOv2 在全部原始帧跟踪预测的初始目标掩码。每隔 32 帧，两种方法都从同一匹配区域内的当前实测深度设置起始平移；匹配失败时保留各自上一位姿的平移。这段不执行位姿补救。RTX 5090 预热后的验证中，WAPR 的 ADD 达标率为 100%、平均误差 4.6 mm；FoundationPose 分别为 68.2%、36.3 mm。初始化分别为 87.4、559.6 ms；常规更新中位数为 71.8、73.2 ms，不含检测、逐帧掩码跟踪与绘图。</p>
+<figure class="track-clip pair-clip">
+<video preload="none" controls="" height="480" loop="" muted="" playsinline="" poster="demo/tracking/predicted_init/track_mustard_easy_00_02_s32.jpg?v=1" width="1280">
+<source data-src="demo/tracking/predicted_init/track_mustard_easy_00_02_s32.mp4?v=1" type="video/mp4"/>
+</video><figcaption><span class="en">Predicted initialization, stride 32. Warm stage times, with the same tracked target mask for both methods.</span><span class="zh">预测掩码初始化，步长 32。显示预热后调用阶段耗时；两种方法使用同一块跟踪得到的目标掩码。</span></figcaption></figure>
+<h3><span class="en">Stride 32 with selective recovery: sugar_box1</span><span class="zh">步长 32，选择性恢复：sugar_box1</span></h3>
+<p class="en">The sugar-box comparison uses stride 32 and the same supplied initial mask. Both methods maintain their own previous pose and DINOv2 region state. Missing regions, front-surface depth disagreement over 0.18 m or depth-normalized area below 0.70 of the preceding valid region trigger search independently. WAPR additionally checks whether the complete-group between_group maximum is positive. Each completes its normal update before comparing search candidates. Ground-truth poses are used only to evaluate the outputs. Both methods pass on 27/29 sampled poses. Mean ADD, including failed poses, is 7.1 mm for WAPR and 70.1 mm for FoundationPose. WAPR searches on 12 updates and FoundationPose on 4. At frame 864 both fail; at 896 WAPR passes with ADD 18.4 mm, while FoundationPose remains inaccurate at 1158.2 mm. The ADD threshold is 19.8 mm. Failed poses remain in the table and video.</p>
+<p class="zh">糖盒对照采用步长 32，共享给定的初始掩码。两侧各自维护上一位姿和 DINOv2 区域状态，区域缺失、前表面深度偏差超过 0.18 m，或按深度归一化的面积低于上一有效区域的 0.70 倍时独立触发搜索。WAPR 还检查完整组 between_group 的最大值是否为正。双方先完成常规更新，再与搜索候选比较；真值位姿仅用于评价输出。 双方均为 27/29 个采样位姿达标。包含失败位姿的平均 ADD 为 WAPR 7.1 mm、FoundationPose 70.1 mm；分别在 12 次和 4 次更新中搜索。第 864 帧双方未达标；第 896 帧 WAPR 达标，ADD 为 18.4 mm，FoundationPose 仍为错误位姿，ADD 为 1158.2 mm。ADD 阈值为 19.8 mm；失败位姿保留在表格和视频中。</p>
+<p class="en">After warmup on RTX 5090, normal-update medians are 27.8 ms for WAPR and 369.1 ms for FoundationPose. Full updates containing search take 64.6–172.5 ms and 420.0–445.5 ms; initialization takes 47.7 and 431.9 ms. CUDA-synchronized update times include loss checks, normal computation, patch search, seed construction, refinement, own scoring and state writes. DINOv2 encoding, matching and region propagation are measured separately at 6.74 and 6.69 ms per raw frame. Loading, I/O, offline evaluation and drawing are excluded. The video rounds each measured update upward to 0.1 s; these are not camera FPS.</p>
+<p class="zh">RTX 5090 预热后，常规更新中位数为 WAPR 27.8 ms、FoundationPose 369.1 ms；含搜索的完整更新分别为 64.6–172.5 ms 和 420.0–445.5 ms，首帧初始化为 47.7、431.9 ms。CUDA 同步更新计时包含失效检查、常规计算、图块搜索、起点构造、修正、各自评分及状态写回。DINOv2 编码、匹配和区域传播另计，分别为 6.74、6.69 ms/原始帧；不含加载、文件读取、离线评价和绘图。视频将每次实测更新向上取整至 0.1 秒，这些时间不表示相机帧率。</p>
+<figure class="track-clip pair-clip">
+<video preload="none" controls="" height="592" loop="" muted="" playsinline="" poster="demo/tracking/recover_sugar_box1_s32.jpg?v=dino-independent" width="1280">
+<source data-src="demo/tracking/recover_sugar_box1_s32.mp4?v=dino-independent" type="video/mp4"/>
+</video>
+<figcaption><span class="en">Independent DINOv2 recovery. Left WAPR, right FoundationPose; each follows its own measured update clock. Red is the estimate; green is offline ground truth. At frame 896 WAPR passes ADD, while FoundationPose does not.</span><span class="zh">DINOv2 独立补救。左侧 WAPR，右侧 FoundationPose，各按自身实测更新时钟播放。红色为预测，绿色为离线真值；第 896 帧 WAPR 的 ADD 达标，FoundationPose 未达标。</span></figcaption>
+</figure>
+<h3 id="track-scores"><span class="en">Scores</span><span class="zh">分数</span></h3>
+<p class="en">Each row describes its displayed trace. Cracker and mustard use predicted initialization; sugar uses the separate supplied-mask study. Pose timers exclude detection, mask tracking and drawing. The <a href="docs/applications-ycbineoat.html#sugar-initialization-time">measurement details</a> include the separately warmed sugar initialization; these different protocols are not pooled into a benchmark.</p>
+<p class="zh">各行对应所展示轨迹：饼干盒与芥末瓶使用预测初始化，糖盒使用单独的给定掩码实验。位姿计时不含检测、掩码跟踪与绘图；糖盒单独预热补测的初始化详见<a href="docs/applications-ycbineoat.html#sugar-initialization-time">测量说明</a>。不同协议不汇总为统一基准。</p>
+<div class="score-wrap tracking-score-wrap">
+<table class="score-table">
+<colgroup>
+<col class="c-name"/>
+<col class="c-method"/>
+<col class="c-recall"/>
+<col class="c-mean"/>
+<col class="c-first"/>
+<col class="c-later"/>
+</colgroup>
+<thead>
+<tr>
+<th><span class="en">Sequence</span><span class="zh">序列</span></th>
+<th><span class="en">Method</span><span class="zh">方法</span></th>
+<th class="num">ADD</th>
+<th class="num"><span class="en">Mean</span><span class="zh">平均</span><span class="unit">mm</span></th>
+<th class="num"><span class="en">First</span><span class="zh">首帧</span><span class="unit">ms</span></th>
+<th class="num"><span class="en">Later</span><span class="zh">之后</span><span class="unit">ms</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="seq" rowspan="2"><code>cracker_box_reorient</code><span class="sub"><span class="en">stride 1</span><span class="zh">步长 1</span></span></td>
+<td>WAPR</td>
+<td class="num">100%</td>
+<td class="num">6.0</td>
+<td class="num">90.7</td>
+<td class="num">69.6</td>
+</tr>
+<tr class="alt">
+<td>FoundationPose</td>
+<td class="num">100%</td>
+<td class="num">5.1</td>
+<td class="num">552.0</td>
+<td class="num">68.5</td>
+</tr>
+<tr class="group">
+<td class="seq" rowspan="2"><code>mustard_easy_00_02</code><span class="sub"><span class="en">stride 32</span><span class="zh">步长 32</span></span></td>
+<td>WAPR</td>
+<td class="num">100%</td>
+<td class="num">4.6</td>
+<td class="num">87.4</td>
+<td class="num">71.8</td>
+</tr>
+<tr class="alt">
+<td>FoundationPose</td>
+<td class="num">68.2%</td>
+<td class="num">36.3</td>
+<td class="num">559.6</td>
+<td class="num">73.2</td>
+</tr>
+<tr class="group">
+<td class="seq" rowspan="2"><code>sugar_box1</code><span class="sub"><span class="en">stride 32, DINOv2 recovery</span><span class="zh">步长 32，DINOv2 补救</span></span></td>
+<td>WAPR</td>
+<td class="num">93.1%</td>
+<td class="num">7.1</td>
+<td class="num">47.7</td>
+<td class="num">27.8 / 64.6–172.5</td>
+</tr>
+<tr class="alt">
+<td>FoundationPose</td>
+<td class="num">93.1%</td>
+<td class="num">70.1</td>
+<td class="num">431.9</td>
+<td class="num">369.1 / 420.0–445.5</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="track-taco"><span class="en">Roller and box</span><span class="zh">滚筒和木盒</span></h3>
+<p class="en">Frames 80–109 of a TACO sequence follow a wooden box and a lint roller. The video places WAPR estimates beside TACO's motion-capture reference poses. The table summarizes how well each pose's visible projection agrees with a point-prompted SAM 2 region; these image scores are not 6D pose errors. Frames 80–86 cover the box's fastest motion. Annotation provenance, the scoring method, and illustrated examples are in the <a href="docs/applications-taco.html#track-scores">tracking guide</a>.</p>
+<p class="zh">TACO 的第 80–109 帧记录了木盒和粘毛滚筒的运动。视频将 WAPR 估计与 TACO 动捕参考位姿并列展示。表格概括两组位姿的可见投影与点提示 SAM 2 区域的重合情况；这些图像指标并非 6D 位姿误差。第 80–86 帧是木盒运动最快的一段。标注来源、评分方法和图解示例见<a href="docs/applications-taco.html#track-scores">跟踪指南</a>。</p>
+<figure class="track-clip taco-clip">
+<video preload="none" controls="" height="376" loop="" muted="" playsinline="" poster="docs/figures/taco_pose_compare.jpg?v=3" width="1032">
+<source data-src="docs/figures/taco_pose_compare.mp4?v=3" type="video/mp4"/>
+</video>
+<figcaption><span class="en">Bounding boxes and complete mesh contours: WAPR at left and the TACO motion-capture reference at right. Blue marks the estimated roller; green marks its reference contour.</span><span class="zh">包围盒与完整网格轮廓：左侧为 WAPR，右侧为 TACO 动捕参考。蓝色标记滚筒估计，绿色标记其参考轮廓。</span></figcaption>
+</figure>
+<div class="score-wrap score-narrow">
+<table class="score-table taco-score-table">
+<caption><span class="en">Visible image agreement with SAM 2</span><span class="zh">与 SAM 2 区域的可见图像重合</span><span class="score-note"><span class="en">Bold: better result for the same object and frame range.</span><span class="zh">粗体：同一物体、同一帧段下较好的结果。</span></span></caption>
+<thead>
+<tr>
+<th rowspan="2"><span class="en">Object</span><span class="zh">物体</span></th>
+<th class="column-start" rowspan="2"><span class="en">Frames</span><span class="zh">帧</span></th>
+<th class="band column-start" colspan="2"><span class="en">Motion capture</span><span class="zh">动捕</span></th>
+<th class="band method-start" colspan="2">WAPR</th>
+</tr>
+<tr>
+<th class="num column-start">IoU ↑<span class="unit"><span class="en">Higher is better</span><span class="zh">越高越好</span></span></th>
+<th class="num"><span class="en">Contour error ↓</span><span class="zh">外轮廓误差 ↓</span><span class="unit"><span class="en">px · Lower is better</span><span class="zh">px · 越低越好</span></span></th>
+<th class="num method-start">IoU ↑<span class="unit"><span class="en">Higher is better</span><span class="zh">越高越好</span></span></th>
+<th class="num"><span class="en">Contour error ↓</span><span class="zh">外轮廓误差 ↓</span><span class="unit"><span class="en">px · Lower is better</span><span class="zh">px · 越低越好</span></span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="seq" rowspan="2"><span class="en">Box</span><span class="zh">木盒</span></td>
+<td class="column-start">80–109</td>
+<td class="num column-start">0.72</td>
+<td class="num">4.1</td>
+<td class="num method-start"><strong>0.83</strong></td>
+<td class="num"><strong>2.5</strong></td>
+</tr>
+<tr class="alt">
+<td class="column-start">80–86</td>
+<td class="num column-start">0.63</td>
+<td class="num">4.8</td>
+<td class="num method-start"><strong>0.87</strong></td>
+<td class="num"><strong>2.5</strong></td>
+</tr>
+<tr class="group">
+<td class="seq" rowspan="2"><span class="en">Roller</span><span class="zh">滚筒</span></td>
+<td class="column-start">80–109</td>
+<td class="num column-start">0.69</td>
+<td class="num">4.6</td>
+<td class="num method-start"><strong>0.85</strong></td>
+<td class="num"><strong>1.8</strong></td>
+</tr>
+<tr class="alt">
+<td class="column-start">80–86</td>
+<td class="num column-start">0.66</td>
+<td class="num">3.6</td>
+<td class="num method-start"><strong>0.85</strong></td>
+<td class="num"><strong>2.5</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="block showcase" id="robi"><h2><img class="sec-icon" src="assets/readme/icons/industrial.svg" width="24" height="24" alt="" aria-hidden="true"/><span class="en">ROBI · Reflective screws</span><span class="zh">ROBI · 反光螺丝</span></h2>
+<p class="en">Chrome screws, ROBI scene 4, view 0, observed by the Ensenso RGB-D camera. Specular reflections, repeated geometry and inter-object occlusion make candidate association difficult. WAPR combines GroundingDINO/SAM2 and FastSAM proposals with DINOv2 CAD matching, then estimates twelve initial pose hypotheses per region. The four released pose-model checkpoints were trained on SA6D.</p>
+<p class="zh">本例展示 ROBI 场景 4、第 0 帧中的铬螺丝，输入来自 Ensenso RGB-D 相机。镜面反射、重复几何与物体间遮挡增加了候选关联的难度。WAPR 结合 GroundingDINO/SAM2 与 FastSAM 候选，通过 DINOv2 匹配 CAD 模型，并为每个区域估计十二个候选姿态。发布包中的四份位姿模型权重均基于 SA6D 训练。</p>
+<p class="en">The four panels compare WAPR, AAE, PPF + ICP and Line2D using each annotation’s nearest saved prediction by symmetry-aligned ADD. Both positive (blue, ADD &lt; 0.1d) and negative (red, ADD ≥ 0.1d) samples are shown, with a threshold of 2.91 mm. Click any instance number beneath a panel to highlight its prediction and inspect its status, ADD error and available score. WAPR uses the current RTX 5090 run; baselines use published ROBI predictions without confidence scores.</p>
+<p class="zh">四幅图片分别展示 WAPR、AAE、PPF + ICP 与 Line2D，均按对称对齐后的 ADD 为每个标注选择最近保存预测。正样本（蓝色，ADD &lt; 0.1d）与负样本（红色，ADD ≥ 0.1d）同时绘制，阈值为 2.91 mm。点击每幅图下的实例编号，高亮对应预测，查看正负状态、ADD 误差与可用评分。WAPR 使用现行 RTX 5090 结果，基线使用 ROBI 公布的预测，未提供置信度。</p>
+<figure class="robi-comparison">
+<div class="robi-interactive" data-root="robi/chrome/">
+<p><span class="en">Loading comparisons…</span><span class="zh">正在加载对比图片…</span></p>
+<noscript><img decoding="async" alt="ROBI 2×2: blue positive and red negative samples / 蓝色正样本与红色负样本：WAPR 27/38, Line2D 12/38, AAE 5/38, PPF 2/38" height="1484" loading="lazy" src="robi/chrome/nearest_comparison.jpg?v=2" width="1292"/></noscript>
+</div>
+<figcaption><span class="en">Panel counts report covered annotations: WAPR 27/38, Line2D 12/38, AAE 5/38 and PPF 2/38. Reused predictions are drawn once, colored by their minimum ADD; each button reports ADD for its own annotation. Click the selected button again or Reset to restore the overview. This is post-hoc reference-matched candidate coverage. <a href="docs/applications-robi.html#robi-evaluation">Candidate coverage evaluation</a> and <a href="docs/applications-robi.html#robi-complete-time">full-workload timings</a> remain in the documentation.</span><span class="zh">面板统计达标的真值实例覆盖数：WAPR 27/38、Line2D 12/38、AAE 5/38、PPF 2/38。重复预测仅绘制一次，总览颜色按其最小 ADD 判定；按钮与点击结果按对应标注判定。再次点击已选按钮或“重置”恢复总览。这是按标注进行的事后候选覆盖展示。<a href="docs/applications-robi.html#robi-evaluation">候选覆盖评价</a>与<a href="docs/applications-robi.html#robi-complete-time">完整负载计时</a>保留在文档中。</span></figcaption>
+</figure>
+</section>
+<section class="block showcase" data-root="wedge/" id="wedge">
+<h2><img class="sec-icon" src="assets/readme/icons/wedge.svg" width="24" height="24" alt="" aria-hidden="true"/><span class="en">White wedges, one bowl</span><span class="zh">白色三角块，一只碗</span></h2>
+<p class="en">This is HCCEPose RGB-D frame <code class="inline">000003</code>: white printed wedges in a glass bowl, captured with an iHawk100R RGB-D camera (<a href="https://berxel.com/cn/p100r.html">manufacturer's product page</a>). WAPR uses the supplied <code class="inline">demo-bin-picking</code> object-1 mesh. GPU rendered-mask NMS retains seven of the nine saved viewer candidates: when mask IoU exceeds 0.5, the higher WBPS score is kept. This frame has no pose annotation, so the view does not establish ADD accuracy. Click a chip, contour, or object mesh to isolate one candidate; click the selected chip again to show all. Drag to orbit, and double-click to reset the camera.</p>
+<p class="zh">这一帧是 HCCEPose 使用 iHawk100R RGB-D 相机采集的第 <code class="inline">000003</code> 帧（<a href="https://berxel.com/cn/p100r.html">厂商产品页面</a>）：玻璃碗里的白色打印三角块。WAPR 使用提供的 <code class="inline">demo-bin-picking</code> 物体 1 网格模型，对九条已保存的展示候选执行 GPU 渲染 mask NMS 后保留七条：mask IoU 大于 0.5 时优先保留 WBPS 分数较高者。这帧没有位姿标注，因此不能据此计算 ADD 准确率。单击控件、轮廓或物体网格模型可单独查看一条候选；再次单击已选控件可显示全部。拖动可绕视角观察，双击回到相机视角。</p>
+<div class="method-note">
+<p class="en">This capture has no annotated pose, so the viewer shows WAPR candidates without an ADD comparison. The <a href="docs/data-own.html">custom-data guide</a> describes the RGB-D inputs and CAD mesh used here.</p>
+<p class="zh">本次采集没有位姿标注，查看器仅展示 WAPR 候选，不作 ADD 对比。RGB-D 输入与 CAD 网格见<a href="docs/data-own.html">自定义数据说明</a>。</p>
+<p class="en">Author-provided camera price estimates: used, about CNY 250 (US$37); new, about CNY 1,000 (US$149). USD equivalents use the <a href="https://wise.com/au/currency-converter/usd-to-cny-rate/history/05-10-2026">5 October 2026 reference rate</a> of approximately CNY 6.705 per US dollar.</p>
+<p class="zh">相机参考购置价格：二手约人民币 250 元（约 37 美元），全新约人民币 1,000 元（约 149 美元）。人民币价格为作者提供的估计；美元按 <a href="https://wise.com/au/currency-converter/usd-to-cny-rate/history/05-10-2026">2026-10-05 参考汇率</a> 1 美元约合 6.705 元人民币换算。</p>
+</div>
+<div class="lmo-row">
+<figure>
+<canvas height="400" id="wedge-pose-canvas" width="533"></canvas>
+<figcaption><span class="en">6D pose candidates</span><span class="zh">6D 候选位姿</span></figcaption>
+</figure>
+<figure>
+<div class="lmo-cloud-wrap">
+<canvas id="wedge-cloud"></canvas>
+</div>
+<figcaption><span class="en">3D scene</span><span class="zh">3D 场景</span></figcaption>
+</figure>
+</div>
+<div class="lmo-chips" id="wedge-chips"></div>
+</section>
+<section class="block showcase" id="pickplace">
+<h2><img class="sec-icon" src="assets/readme/icons/robot.svg" width="24" height="24" alt="" aria-hidden="true"/><span class="en">Robot placement in simulation</span><span class="zh">仿真环境中的机器人放置</span></h2>
+<p class="en">The known-mesh Panda case uses table and wrist RGB-D cameras to estimate 6D object poses. Those estimates inform the initial side grasp and target placement. Red marks the estimate, green the simulator pose, and cyan dashes the camera view. In examples 14–15, the arm uses the first-frame estimate and a color-based object mask. Green outlines and final placement errors are measured afterward; they are not control inputs. See the <a href="docs/applications-robot.html#robot-start">robot guide</a> for the setup and study path.</p>
+<p class="zh">已知网格的 Panda 案例使用桌面和腕部 RGB-D 相机估计物体 6D 位姿；估计结果参与初始侧面抓取和目标放置。红色表示估计位姿，绿色表示仿真位姿，青色虚线表示相机视野。示例 14–15 中，手臂使用第 0 帧的位姿估计和按颜色提取的物体 mask。绿色轮廓与最终落点误差仅用于事后对照，不进入控制。环境准备与学习路径见<a href="docs/applications-robot.html#robot-start">机器人指南</a>。</p>
+<h3><span class="en">Yellow bottle, two pose cameras</span><span class="zh">黄色瓶子，两个位姿相机</span></h3>
+<p class="en">Panda, one yellow bottle and one red box. The task is to grasp the bottle from the side and place it upright to the right of the box. The top row is what each camera sees. The bottom row overlays the table-camera and wrist-camera results on separate copies of the same third-person view. The blue lines are the side grasp on that panel's estimated bottle, redrawn every frame. The wrist camera starts looking straight down at the top of the box, so the box reads as a flat card. The clip begins once the camera has come around and a side of the box is visible. The first frame is a full estimate. Later frames track that pose, the same tracker as the YCBInEOAT clips. Across the recorded frames the table camera stays near 1.3 mm and 0.2°. While the fingers are closed the wrist stays near 1.1 mm and 0.4°. After the arm backs away the wrist only sees the cap, and that track stays about 100 mm off. The table camera on those frames stays near 1.0 mm.</p>
+<p class="zh">Panda 场景包含一只黄色瓶子和一个红色盒子；任务是从侧面抓取瓶子，并将其直立放在盒子右侧。上排展示两台相机各自的画面；下排在相同的第三人称视图上，分别叠加桌面相机和腕部相机的结果。蓝色实线是侧面抓取，逐帧叠加在对应相机估计出的瓶子位姿上。腕部相机一开始正俯视盒子顶面，盒子在图像中近似为一个平面。视频从相机侧过来、盒子露出侧面的那一帧开始。第一帧是完整估计。后续帧采用与 YCBInEOAT 片段相同的流程更新位姿。录下来的帧里，桌上相机停在 1.3 mm、0.2° 附近。手指合上时，腕部停在 1.1 mm、0.4° 附近。手臂退出之后，腕部只看见瓶盖，这次跟踪停在大约 100 mm。这几帧上的桌上相机停在 1.0 mm 附近。</p>
+<figure class="track-clip bottle-clip">
+<video preload="none" class="en" controls="" data-autoplay="1" height="1184" loop="" muted="" playsinline="" poster="demo/robot/bottle_cameras_en.jpg?v=5" width="1280">
+<source data-src="demo/robot/bottle_cameras_en.mp4?v=5" type="video/mp4"/>
+</video>
+<video preload="none" class="zh" controls="" data-autoplay="1" height="1184" loop="" muted="" playsinline="" poster="demo/robot/bottle_cameras.jpg?v=5" width="1280">
+<source data-src="demo/robot/bottle_cameras.mp4?v=5" type="video/mp4"/>
+</video>
+<figcaption><span class="en">Left column is the table camera. Right column is the wrist camera. The wrist is mounted on the hand. It is not a second view of the table camera.</span><span class="zh">左列是桌上相机。右列是腕部相机。腕部装在手上，不是桌上相机的另一个画面。</span></figcaption>
+</figure>
+<h3><span class="en">Meshes supplied with the robot tasks</span><span class="zh">机器人任务提供的物体网格</span></h3>
+<p class="en">The mesh comes with each robot task. WidowX places the carrot on the plate: its first-frame pose center is 3.6 mm from the simulated center, and the final horizontal placement error is 3.5 mm. The eggplant has a frame-0 estimate with a 0.91 mm center error. Of its 66 frames, 30 have color masks below the 150-pixel input threshold and do not enter pose estimation. The 36 estimated frames have a 0.94 mm median center error and a 13° mesh Z-axis error; placement is 4.0 mm from the target. xArm6 places the cube 1.6 mm from its target, with a 1.2 mm median center error. Its approximately 90° mesh-axis difference reflects the plain cube's rotational ambiguity; the gripper closes along world +Y. These are single episodes, not benchmark accuracy figures.</p>
+<p class="zh">网格由各机器人任务提供。WidowX 把胡萝卜放到盘子上：第 0 帧估计中心距仿真中心 3.6 mm，最终水平落点误差 3.5 mm。茄子首帧得到位姿估计，中心误差约 0.91 mm。66 帧中有 30 帧的颜色掩码小于 150 像素的输入门槛，未进入位姿估计；其余 36 帧的中心误差中位数为 0.94 mm，网格 Z 轴误差为 13°；落点误差 4.0 mm。xArm6 放置方块的偏差为 1.6 mm，中心误差中位数为 1.2 mm。方块约 90° 的网格轴差异与其单色、近对称的外观有关；夹爪沿世界 +Y 合拢。这些都是单次回合，不是基准精度。</p>
+<p class="en">Each clip's third-person camera also provides the perception RGB-D. A color mask and the frame-0 estimate set the actual grasp before the arm moves. The red outline and cyan grasp mark are then redrawn from each frame's estimate; their later motion does not change the already planned grasp. In 43 of 66 carrot frames, gripper occlusion makes the estimate jump away from the object. Those later errors must not be presented as the initial grasp error.</p>
+<p class="zh">视频中的第三人称相机同时提供感知 RGB-D。手臂运动前，颜色 mask 与第 0 帧位姿估计确定实际抓取。之后的红色轮廓和青色抓取标记逐帧按估计结果重画；标记移动不会改变已规划的抓取。胡萝卜有 43/66 帧在夹爪遮挡后估计跳离物体，不能把这段后期误差当作初始抓取误差。</p>
+<div class="grasp-board">
+<figure class="track-clip grasp-still">
+<img decoding="async" loading="lazy" alt="Top grasp drawn on the estimated carrot pose" class="en" height="720" src="demo/robot/carrot_grasp_en.jpg?v=4" width="960"/>
+<img decoding="async" loading="lazy" alt="用估计出的胡萝卜位姿画出的从上往下的抓取" class="zh" height="720" src="demo/robot/carrot_grasp.jpg?v=4" width="960"/>
+<figcaption><span class="en">Carrot, first frame. Cyan visualizes the scripted grasp on the estimated pose.</span><span class="zh">胡萝卜首帧：青色将脚本中的抓取位置画在估计位姿上。</span></figcaption>
+</figure>
+<figure class="track-clip grasp-still">
+<img decoding="async" loading="lazy" alt="Top grasp drawn on the estimated eggplant pose" class="en" height="720" src="demo/robot/eggplant_grasp_en.jpg?v=4" width="960"/>
+<img decoding="async" loading="lazy" alt="用估计出的茄子位姿画出的从上往下的抓取" class="zh" height="720" src="demo/robot/eggplant_grasp.jpg?v=4" width="960"/>
+<figcaption><span class="en">Eggplant, first frame: the pose is estimated from the 167-pixel color mask visible under arm occlusion. Red projects the known mesh at that estimated pose.</span><span class="zh">茄子首帧：根据机械臂遮挡下可见的 167 像素颜色掩码估计位姿；红色轮廓为已知网格在该估计位姿下的投影。</span></figcaption>
+</figure>
+<figure class="track-clip grasp-still">
+<img decoding="async" loading="lazy" alt="Top grasp drawn on the estimated cube pose" class="en" height="720" src="demo/robot/xarm_cube_grasp_en.jpg?v=4" width="960"/>
+<img decoding="async" loading="lazy" alt="用估计出的方块位姿画出的从上往下的抓取" class="zh" height="720" src="demo/robot/xarm_cube_grasp.jpg?v=4" width="960"/>
+<figcaption><span class="en">Cube, first frame. Cyan visualizes the scripted grasp on the estimated pose.</span><span class="zh">方块首帧：青色将脚本中的抓取位置画在估计位姿上。</span></figcaption>
+</figure>
+<figure class="track-clip grasp-play">
+<video preload="none" class="en" controls="" data-autoplay="1" height="720" loop="" muted="" playsinline="" poster="demo/robot/carrot_grasp_en.jpg?v=4" width="960">
+<source data-src="demo/robot/carrot_en.mp4?v=7" type="video/mp4"/>
+</video>
+<video preload="none" class="zh" controls="" data-autoplay="1" height="720" loop="" muted="" playsinline="" poster="demo/robot/carrot_grasp.jpg?v=4" width="960">
+<source data-src="demo/robot/carrot.mp4?v=7" type="video/mp4"/>
+</video>
+<figcaption><span class="en">WidowX grasp and placement: the actual grasp uses the frame-0 estimated pose, then the carrot is placed on the plate.</span><span class="zh">WidowX 抓取与放置：实际抓取使用第 0 帧估计位姿，随后将胡萝卜放到盘子上。</span></figcaption>
+</figure>
+<figure class="track-clip grasp-play">
+<video preload="none" class="en" controls="" data-autoplay="1" height="720" loop="" muted="" playsinline="" poster="demo/robot/eggplant_grasp_en.jpg?v=4" width="960">
+<source data-src="demo/robot/eggplant_en.mp4?v=7" type="video/mp4"/>
+</video>
+<video preload="none" class="zh" controls="" data-autoplay="1" height="720" loop="" muted="" playsinline="" poster="demo/robot/eggplant_grasp.jpg?v=4" width="960">
+<source data-src="demo/robot/eggplant.mp4?v=7" type="video/mp4"/>
+</video>
+<figcaption><span class="en">WidowX grasp and placement: the actual grasp uses the frame-0 estimated pose, then the eggplant is placed in the sink basket.</span><span class="zh">WidowX 抓取与放置：实际抓取使用第 0 帧估计位姿，随后将茄子放进水槽篮子。</span></figcaption>
+</figure>
+<figure class="track-clip grasp-play">
+<video preload="none" class="en" controls="" data-autoplay="1" height="720" loop="" muted="" playsinline="" poster="demo/robot/xarm_cube_grasp_en.jpg?v=4" width="960">
+<source data-src="demo/robot/xarm_cube_en.mp4?v=7" type="video/mp4"/>
+</video>
+<video preload="none" class="zh" controls="" data-autoplay="1" height="720" loop="" muted="" playsinline="" poster="demo/robot/xarm_cube_grasp.jpg?v=4" width="960">
+<source data-src="demo/robot/xarm_cube.mp4?v=7" type="video/mp4"/>
+</video>
+<figcaption><span class="en">xArm6 grasp and placement: the grasp center comes from the frame-0 estimate; the gripper closes along world +Y, then sets down the cube.</span><span class="zh">xArm6 抓取与放置：抓取中心来自第 0 帧估计，夹爪沿世界 +Y 合拢，随后放下方块。</span></figcaption>
+</figure>
+</div>
+</section>
+<section class="block showcase" id="reconstruct">
+<h2 id="language"><img class="sec-icon" src="assets/readme/icons/reconstruct.svg" width="24" height="24" alt="" aria-hidden="true"/><span class="en">Open-vocabulary guided single-frame reconstruction</span><span class="zh">开放词汇引导的单帧重建</span></h2>
+<p class="en">Describe the target in natural language to select it in a single RGB-D image. Qwen2.5-VL-3B predicts its box and SAM 2 segments it; the selected region then enters the same reconstruction, metric sizing and pose alignment stages as the point-selected route. This open-vocabulary selection route defaults to outline sizing. The saved mesh can be reused for cross-scene pose estimation below. The panels show the following saved results: the fourth panel and viewer use the point-prompt UV mesh; the last panel records the language-prompt alignment. The panels come from the stated prompt routes and do not constitute a run of the consolidated recipe.</p>
+<p class="zh">用自然语言描述目标，在一张 RGB-D 图像中选择要重建的物体。千问 2.5-VL-3B 预测目标框，SAM 2 分割目标，再将选中的区域送入与点选方式相同的重建、米制定标与位姿对齐流程。这种开放词汇选择方式默认使用轮廓定标，保存的网格可继续用于下方的跨场景位姿估计。下方展示的结果中，第四格与查看器使用点提示的 UV 网格，最后一格记录语言提示的对齐结果，这些面板分别来自所述提示方式，不能作为整合后流程的运行结果。</p>
+<figure class="flow-board">
+<img alt="Text selection, segmentation, reconstruction and pose alignment" class="en" decoding="async" id="language-flow" loading="lazy" src="docs/figures/language_flow_en.svg?v=lang-20261004"/>
+<img alt="文字选择、分割、重建与位姿对齐" class="zh" decoding="async" id="language-flow-zh" loading="lazy" src="docs/figures/language_flow_zh.svg?v=lang-20261004"/>
+<figcaption><span class="en">The fourth panel is a UV-baked reference mesh; the fifth is the outline from the language-prompt run.</span><span class="zh">第四格是 UV 烘焙参考网格；第五格是语言提示流程得到的轮廓。</span></figcaption>
+</figure>
+<div class="recon-row recon-narrow">
+<figure>
+<img alt="" decoding="async" id="language-overlay" loading="lazy" src="demo/reconstruct/mustard_pose.png?v=4"/>
+<figcaption><span class="en">This mesh rendered at its pose</span><span class="zh">这份网格按位姿渲染</span></figcaption>
+</figure>
+<figure>
+<div class="demo-chips" id="language-mesh-mode">
+<button data-mesh="before" type="button"><span class="en">Before</span><span class="zh">对齐前</span></button>
+<button aria-pressed="true" data-mesh="pred" type="button"><span class="en">After</span><span class="zh">对齐后</span></button>
+<button data-mesh="gt" type="button"><span class="en">Ground truth</span><span class="zh">真值</span></button>
+</div>
+<div class="recon-view">
+<canvas id="language-mesh"></canvas>
+<div class="recon-ruler" id="language-ruler"><b>10 cm</b></div>
+</div>
+<p class="recon-size" id="language-size"></p>
+</figure>
+</div>
+<p class="en">The <a href="docs/applications-reconstruct.html#reconstruct-prompt">point-prompt workflow</a>, <a href="docs/applications-reconstruct.html#reconstruct-cracker-gallery">cracker-box mesh and pose views</a>, and <a href="docs/applications-reconstruct.html#reconstruct-gallery">additional reconstruction comparisons</a> are included in Docs.</p>
+<p class="zh"><a href="docs/applications-reconstruct.html#reconstruct-prompt">点提示流程</a>、<a href="docs/applications-reconstruct.html#reconstruct-cracker-gallery">饼干盒网格与位姿展示</a>以及<a href="docs/applications-reconstruct.html#reconstruct-gallery">更多重建对比</a>见 Docs。</p>
+</section>
+<section class="block showcase" id="cross">
+<h2><img class="sec-icon" src="assets/readme/icons/reconstruct.svg" width="24" height="24" alt="" aria-hidden="true"/><span class="en">Cross-scene pose estimation with a single-frame reconstructed mesh</span><span class="zh">基于单帧重建网格的跨场景位姿估计</span></h2><p class="zh">将一张 RGB-D 图像中重建并定标的网格用于另一场景的物体检测与 6D 位姿估计。示例 12 读取示例 11 的网格，预测目标掩码，再批量修正候选位姿。完整步骤见<a href="docs/applications-reconstruct.html#reconstruct-pose">跨场景流程</a>。</p><p class="en">Reuse the metrically sized mesh from one RGB-D image to detect the same object and estimate its 6D pose in another scene. Example 12 reads example 11’s mesh, predicts a target mask, and refines pose hypotheses in a batch. See <a href="docs/applications-reconstruct.html#reconstruct-pose">the complete cross-scene workflow</a>.</p>
+<p class="en">The mustard cross-scene experiment transfers a mesh from YCBInEOAT <code>mustard0</code> to YCB-V scene 50, frame 1130. The selected detection scores 0.767; offline mask IoUs are 0.941 for detection and 0.885 for the projected pose. References are read only after prediction. These are single-frame results; <a href="docs/applications-reconstruct.html#cross-scene-recorded-result">the documentation</a> gives all candidates, scores and conditions.</p>
+<p class="zh">芥末瓶跨场景实验将 YCBInEOAT <code>mustard0</code> 中的重建网格用于 YCB-V 场景 50、第 1130 帧。选中检测的分数为 0.767；事后掩码 IoU 为检测 0.941、位姿投影 0.885，参考仅在预测后读取。这些是单帧结果，全部候选、评分与条件见<a href="docs/applications-reconstruct.html#cross-scene-recorded-result">文档说明</a>。</p>
+<figure class="flow-board">
+<img alt="" decoding="async" id="cross-flow" loading="lazy" src="demo/cross/flow.png?v=14"/>
+<figcaption><span class="en">The mesh comes from the left photo. Detection and pose run on the right photo. Blue marks the highest-scoring prediction; gray marks lower scores.</span><span class="zh">网格来自左边这张。检测和位姿跑在右边这张上。蓝色标出最高分预测，灰色表示其余较低分结果。</span></figcaption>
+</figure>
+<div class="recon-row cross-pair">
+<figure>
+<img alt="" decoding="async" id="cross-detect" loading="lazy" src="demo/cross/detect.png?v=12"/>
+<figcaption><span class="en">Detector score on each box. Blue 0.77 is the mustard, the one to keep. Gray 0.54, 0.53, and 0.51 only just clear 0.50.</span><span class="zh">每个框上的数字是检测分数。蓝色 0.77 是芥末瓶，留下这个。灰色 0.54、0.53、0.51 只是刚过 0.50。</span></figcaption>
+</figure>
+<figure>
+<img alt="" decoding="async" id="cross-pose" loading="lazy" src="demo/cross/pose.png?v=12"/>
+<figcaption><span class="en">Each contour shows the returned <code class="inline">score_6d</code>. Blue 0.86 is kept, and the magnified mesh is that pose. Its <code class="inline">within_group</code> is 63.7. Gray 0.30, 0.19, and 0.12 stay off the bottle.</span><span class="zh">每条轮廓上的数字是返回值 <code class="inline">score_6d</code>。蓝色 0.86 留下，放大的网格就是这个位姿，它的 <code class="inline">within_group</code> 是 63.7。灰色 0.30、0.19、0.12 落在瓶子轮廓之外。</span></figcaption>
+</figure>
+</div>
+</section>
+<section class="block">
+<h2 id="citation"><img class="sec-icon" src="assets/readme/icons/citation.svg" width="24" height="24" alt="" aria-hidden="true"/><span class="en">Citation</span><span class="zh">引用</span></h2>
+<pre class="bib">@InProceedings{wang2026wapr,
+    author    = {Wang, Yulin and Hu, Mengting and Li, Hongli and Zhou, Jianghao and Luo, Chen},
+    title     = {WAPR: A Foundation Model for Wide-Angle Refinement in Unseen Object Pose Estimation},
+    booktitle = {ECCV},
+    year      = {2026},
+    pages     = {221-239},
+    volume    = {17016}
+}</pre>
+<p class="en">Public model weights use <a href="docs/data-resources.html#weights">CC BY-ND 4.0</a>: free commercial use, attributed redistribution of the original weights, and no sharing of adapted weights under this license. For enterprise versions or customization, contact <a href="mailto:shopedataset@gmail.com">Yulin Wang</a>.</p>
+<p class="zh">公开权重采用 <a href="docs/data-resources.html#weights">CC BY-ND 4.0</a>：免费允许商用，原样再发行须署名，本许可不允许共享修改版权重。企业版本或定制需求请联系 <a href="mailto:shopedataset@gmail.com">Yulin Wang</a>。</p>
+<p class="en">External models, datasets, comparison methods, and simulation tools are credited in <a href="docs/credits.html">Acknowledgments and references</a>, with links to primary papers or official project pages.</p>
+<p class="zh">外部模型、数据集、对照方法及仿真工具见<a href="docs/credits.html">致谢与参考资料</a>，其中链接至原始论文或官方项目页面。</p>
+</section>
+</main>
+<footer class="site-author">© 2026 <a href="docs/credits.html#authorship">Yulin Wang</a> · <span class="en">Code and website author</span><span class="zh">代码与网站作者</span></footer>
+<script src="assets/banner.js?v=16"></script>
+<script src="assets/lang.js"></script>
+<script src="assets/table-layout.js?v=1"></script>
+<script src="assets/page-boot.js?v=20261006-perf1"></script>
+</body>
+</html>

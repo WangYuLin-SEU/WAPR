@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+
+<!--
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="favicon.ico?v=11" rel="icon" type="image/x-icon"/>
+<link href="assets/wapr-icon-32.png?v=11" rel="icon" sizes="32x32" type="image/png"/>
+<link href="assets/wapr-icon-180.png?v=11" rel="apple-touch-icon" sizes="180x180"/>
+<title>ROBI — WAPR</title>
+<script>
+    (function () {
+      var lang = "en";
+      try { lang = localStorage.getItem("wapr-lang") === "zh" ? "zh" : "en"; } catch (e) {}
+      document.documentElement.setAttribute("data-lang", lang);
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    })();
+  </script>
+<link href="assets/project.css?v=bar14" rel="stylesheet"/>
+<link href="assets/showcase.css?v=78" rel="stylesheet"/>
+<link href="assets/table-layout.css?v=1" rel="stylesheet"/>
+<style>
+    body.robi-page .pub { max-width: 1280px; }
+    body.robi-page .topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 14px 22px 0;
+    }
+    body.robi-page .topbar .lang-switch { margin-left: auto; }
+  </style>
+<link href="assets/robi_compare.css?v=1" rel="stylesheet"/><link rel="stylesheet" href="assets/github-docs.css?v=3"/>
+<script src="assets/site-runtime.js?v=1"></script>
+</head>
+<body class="project robi-page" data-title-en="ROBI — WAPR" data-title-zh="ROBI — WAPR">
+<header class="topbar">
+<a class="mast-brand" href="./#robi">WAPR</a>
+<nav aria-label="Site" class="mast-jump">
+<a href="./#robi"><span class="en">Home</span><span class="zh">主页</span></a>
+<a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"><span class="en">Paper</span><span class="zh">论文</span></a>
+<a href="docs/"><span class="en">Docs</span><span class="zh">文档</span></a>
+<a href="https://github.com/WangYuLin-SEU/WAPR"><span class="en">Code</span><span class="zh">代码</span></a>
+</nav>
+<div class="lang-switch" role="group">
+<button data-set-lang="en" type="button">EN</button>
+<button data-set-lang="zh" type="button">中文</button>
+</div>
+</header>
+<main class="pub">
+<section class="block showcase" id="robi"><h2><span class="en">ROBI · Reflective screws</span><span class="zh">ROBI · 反光螺丝</span></h2>
+<p class="en">Chrome screws, ROBI scene 4, view 0, observed by the Ensenso RGB-D camera. Specular reflections, repeated geometry and inter-object occlusion make candidate association difficult. WAPR combines GroundingDINO/SAM2 and FastSAM proposals with DINOv2 CAD matching, then estimates twelve initial pose hypotheses per region. The four released pose-model checkpoints were trained on SA6D.</p>
+<p class="zh">本例展示 ROBI 场景 4、第 0 帧中的铬螺丝，输入来自 Ensenso RGB-D 相机。镜面反射、重复几何与物体间遮挡增加了候选关联的难度。WAPR 结合 GroundingDINO/SAM2 与 FastSAM 候选，通过 DINOv2 匹配 CAD 模型，并为每个区域估计十二个候选姿态。发布包中的四份位姿模型权重均基于 SA6D 训练。</p>
+<p class="en">The four panels compare WAPR, AAE, PPF + ICP and Line2D using each annotation’s nearest saved prediction by symmetry-aligned ADD. Both positive (blue, ADD &lt; 0.1d) and negative (red, ADD ≥ 0.1d) samples are shown, with a threshold of 2.91 mm. Click any instance number beneath a panel to highlight its prediction and inspect its status, ADD error and available score. WAPR uses the current RTX 5090 run; baselines use published ROBI predictions without confidence scores.</p>
+<p class="zh">四幅图片分别展示 WAPR、AAE、PPF + ICP 与 Line2D，均按对称对齐后的 ADD 为每个标注选择最近保存预测。正样本（蓝色，ADD &lt; 0.1d）与负样本（红色，ADD ≥ 0.1d）同时绘制，阈值为 2.91 mm。点击每幅图下的实例编号，高亮对应预测，查看正负状态、ADD 误差与可用评分。WAPR 使用现行 RTX 5090 结果，基线使用 ROBI 公布的预测，未提供置信度。</p>
+<figure class="robi-comparison">
+<div class="robi-interactive" data-root="robi/chrome/">
+<p><span class="en">Loading comparisons…</span><span class="zh">正在加载对比图片…</span></p>
+<noscript><img decoding="async" alt="ROBI 2×2: blue positive and red negative samples / 蓝色正样本与红色负样本：WAPR 27/38, Line2D 12/38, AAE 5/38, PPF 2/38" height="1484" loading="lazy" src="robi/chrome/nearest_comparison.jpg?v=2" width="1292"/></noscript>
+</div>
+<figcaption><span class="en">Panel counts report covered annotations: WAPR 27/38, Line2D 12/38, AAE 5/38 and PPF 2/38. Reused predictions are drawn once, colored by their minimum ADD; each button reports ADD for its own annotation. Click the selected button again or Reset to restore the overview. This is post-hoc reference-matched candidate coverage. <a href="docs/applications-robi.html#robi-evaluation">Candidate coverage evaluation</a> and <a href="docs/applications-robi.html#robi-complete-time">full-workload timings</a> remain in the documentation.</span><span class="zh">面板统计达标的真值实例覆盖数：WAPR 27/38、Line2D 12/38、AAE 5/38、PPF 2/38。重复预测仅绘制一次，总览颜色按其最小 ADD 判定；按钮与点击结果按对应标注判定。再次点击已选按钮或“重置”恢复总览。这是按标注进行的事后候选覆盖展示。<a href="docs/applications-robi.html#robi-evaluation">候选覆盖评价</a>与<a href="docs/applications-robi.html#robi-complete-time">完整负载计时</a>保留在文档中。</span></figcaption>
+</figure>
+</section>
+</main>
+<footer class="site-author">© 2026 <a href="docs/credits.html#authorship">Yulin Wang</a> · <span class="en">Code and website author</span><span class="zh">代码与网站作者</span></footer>
+<script src="assets/lang.js"></script>
+<script src="assets/table-layout.js?v=1"></script>
+<script src="assets/robi_compare.js?v=3"></script>
+</body>
+</html>

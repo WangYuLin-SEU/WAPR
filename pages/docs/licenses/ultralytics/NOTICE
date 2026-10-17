@@ -1,0 +1,4 @@
+Frozen local Ultralytics 8.3.70 source snapshot.
+Original install was from a local editable source, not a wheel.
+Upstream commit and any historical local modifications are unknown.
+All vendored files retain their original licensing/comments.

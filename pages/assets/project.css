@@ -1,0 +1,547 @@
+/*
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+*/
+
+html:not([data-lang="zh"]) .zh { display: none; }
+html[data-lang="zh"] .en { display: none; }
+
+/* Scroll distances for the banner cover. Registered so the scroll animation
+   can use them as lengths. They do not change the picture size.
+   顶图遮挡用的滚动距离。注册成长度，滚动动画才能用。不改变图片尺寸。 */
+@property --mast-crop {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 1px;
+}
+@property --mast-fade {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 1px;
+}
+
+body.project {
+  margin: 0;
+  background: #fff;
+  color: #1c1c1c;
+  font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+}
+
+.langbar {
+  display: flex;
+  justify-content: flex-end;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px 20px 0;
+}
+
+.lang-switch { display: flex; gap: 6px; }
+
+.lang-switch button {
+  border: 1px solid #dbdbdb;
+  background: #fff;
+  color: #363636;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lang-switch button[aria-pressed="true"] {
+  background: #363636;
+  color: #fff;
+  border-color: #363636;
+}
+
+.pub {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 12px 22px 80px;
+}
+
+/* The project page and docs share the same centered banner width and gutters.
+   宣传页和文档共用居中的顶图宽度与两侧留白。 */
+body.project {
+  --mast-t: 0;
+  --mast-pin: 48px;
+  --mast-max-w: 1156px;
+  --mast-gutter: 22px;
+  --mast-img-left: max(var(--mast-gutter), calc((100vw - var(--mast-max-w)) / 2));
+  --mast-img-w: min(var(--mast-max-w), calc(100vw - 2 * var(--mast-gutter)));
+  --mast-img-h: calc(var(--mast-img-w) * 724 / 2172);
+  --mast-bar-top: var(--mast-img-h);
+  --mast-h: calc(var(--mast-img-h) + var(--mast-pin));
+}
+
+body.docs {
+  --mast-pin: 54px;
+}
+
+html { scroll-padding-top: calc(var(--mast-pin, 52px) + 8px); }
+
+.mast-spacer { height: var(--mast-h); }
+
+.mast {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  height: var(--mast-h);
+  overflow: hidden;
+  /* Transparent so the covered part of the picture reveals the page.
+     The picture box itself stays the open size.
+     透明，遮住的那一段才能露出页面。图片盒子仍是展开时的尺寸。 */
+  background: transparent;
+  pointer-events: none;
+}
+
+/* Cover runs on the scroll itself, not on a script that trails the wheel.
+   The picture is not scaled. Only the visible bottom moves.
+   遮挡跟滚动走，不靠一段追在滚轮后面的脚本。图片不缩放。动的是露出来的下沿。 */
+@keyframes mast-cover {
+  from { clip-path: inset(0 0 0 0); }
+  to { clip-path: inset(0 0 var(--mast-crop) 0); }
+}
+@keyframes mast-bar {
+  from { translate: 0 0; }
+  to { translate: 0 calc(var(--mast-crop) * -1); }
+}
+@keyframes mast-fade {
+  from { opacity: 1; }
+  to { opacity: 0.5; }
+}
+
+@supports (animation-timeline: scroll()) {
+  .mast::after,
+  .mast-hero,
+  a.mast-hero-link,
+  .mast::before {
+    animation: mast-cover linear both;
+    animation-timeline: scroll(root block);
+    animation-range: var(--mast-scroll-start, 0px) calc(var(--mast-crop) - var(--mast-offset, 0px));
+  }
+  .mast-hero {
+    animation: mast-cover linear both, mast-fade linear both;
+    animation-timeline: scroll(root block), scroll(root block);
+    animation-range: var(--mast-scroll-start, 0px) calc(var(--mast-crop) - var(--mast-offset, 0px)), var(--mast-scroll-start, 0px) calc(var(--mast-fade) - var(--mast-offset, 0px));
+  }
+  .mast .langbar,
+  .mast .docs-top {
+    animation: mast-bar linear both;
+    animation-timeline: scroll(root block);
+    animation-range: var(--mast-scroll-start, 0px) calc(var(--mast-crop) - var(--mast-offset, 0px));
+  }
+}
+
+/* Base styles also cover pages with no scroll range. Active timeline animations
+   override these properties; older browsers use the script's variables directly.
+   没有滚动范围的页面也使用基础样式；有效时间线动画覆盖这些属性，旧浏览器
+   则直接使用脚本更新的变量。 */
+.mast::after,
+.mast-hero,
+a.mast-hero-link,
+.mast::before {
+  clip-path: inset(0 0 var(--mast-cover, 0px) 0);
+}
+.mast .langbar,
+.mast .docs-top {
+  translate: 0 calc(var(--mast-cover, 0px) * -1);
+}
+
+.mast-hero {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: var(--mast-img-left);
+  width: var(--mast-img-w);
+  height: var(--mast-img-h);
+  object-fit: cover;
+  object-position: center top;
+  opacity: var(--mast-op, 1);
+  border-radius: 8px 8px 0 0;
+  pointer-events: none;
+}
+
+.mast-scrim { display: none; }
+
+/* White sheet behind the picture, clipped with it, so the side margins stay
+   white and the covered band does not hide the page. The bar is not clipped.
+   图片后面的白底，和图片一起被遮。两侧留白，遮住的那段不再挡住页面。栏本身不裁。 */
+.mast::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: #fff;
+  pointer-events: none;
+}
+
+/* One frame around the picture and the bar under it. The bar is the bottom
+   of that frame, so a cropped picture does not end in a loose white slab.
+   图片和下面的栏共用一个框。栏是这个框的底，裁切之后不会剩一条散的白带。 */
+.mast::before {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  bottom: 0;
+  left: var(--mast-img-left);
+  width: var(--mast-img-w);
+  box-sizing: border-box;
+  border: 1px solid #cfcfcf;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.mast .langbar,
+.mast .docs-top {
+  position: absolute;
+  top: var(--mast-bar-top);
+  left: var(--mast-img-left);
+  width: var(--mast-img-w);
+  right: auto;
+  z-index: 4;
+  box-sizing: border-box;
+  pointer-events: auto;
+  background: #fff;
+  /* The picture frame is behind this bar, so the bar has to draw the
+     lower three sides itself. The top stays open against the picture.
+     图片的框在这一栏后面，栏自己画出左、右、下三边。上边贴着图片，不再加一条。 */
+  border: 1px solid #cfcfcf;
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
+}
+
+/* The picture on a docs page is the way back to the project page.
+   Its box stops at the picture. The bar above stays the click target.
+   文档页的宣传图回到宣传页。链接只占图片。上面的栏仍是点击目标。 */
+a.mast-hero-link {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: var(--mast-img-left);
+  width: var(--mast-img-w);
+  height: var(--mast-img-h);
+  pointer-events: auto;
+}
+
+a.mast-hero-link .mast-hero {
+  left: 0;
+  top: 0;
+  /* Locked to the open picture. A shrinking link must not resize this image.
+     锁在展开时的尺寸上。链接变矮也不能把这张图跟着改尺寸。 */
+  width: var(--mast-img-w);
+  height: var(--mast-img-h);
+  pointer-events: auto;
+}
+
+.mast .langbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: none;
+  margin: 0;
+  justify-content: flex-start;
+  /* The language switch stays on the right edge of the picture, inside the
+     frame the reader sees. It does not sit on the page edge. The white bar
+     fills this same box. An extra left offset would leave the links sitting
+     on the picture.
+     语言开关停在图片右缘，在读者看到的框里面，不贴页面最右边。白条铺满这一栏。
+     再加一次左边距，链接就会压在图片上。 */
+  padding: 8px 14px;
+  background: #fff;
+}
+
+.mast .langbar::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: #fff;
+  border-radius: 0 0 8px 8px;
+}
+
+.mast-brand {
+  flex: none;
+  color: #006eb8;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.mast-jump {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.mast-jump a {
+  display: inline-flex;
+  align-items: center;
+  color: #1c1c1c;
+  text-decoration: none;
+  background: #fff;
+  border: 1px solid #d4d4d4;
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.mast-jump a:hover {
+  border-color: #006eb8;
+  color: #006eb8;
+}
+
+.mast .langbar .lang-switch { margin-left: auto; }
+
+.mast .docs-top {
+  padding: 8px 16px;
+  background: #fff;
+}
+
+.hero { text-align: center; }
+
+.hero h1 {
+  margin: 8px 0 0;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.accent { color: #006eb8; }
+
+/* Highlight measured results while allowing ordinary paragraph wrapping.
+   高亮实测结果，保持正文正常换行。 */
+.project .performance-highlight {
+  color: #075a91;
+  background: #e7f3ff;
+  font-weight: 700;
+  padding: 0.04em 0.12em;
+  border-radius: 0.18em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.venue {
+  margin: 10px 0 18px;
+  font-size: 28px;
+  font-weight: 500;
+  color: #363636;
+}
+
+.authors { font-size: 20px; margin: 0; }
+
+.affil, .equal {
+  color: #4a4a4a;
+  margin: 6px 0 0;
+  font-size: 16px;
+}
+
+.poster-fig {
+  margin: 28px auto 0;
+  max-width: 820px;
+  text-align: center;
+}
+
+/* Same width as the paragraphs. Seven columns stay inside the text column.
+   和正文同一宽度。七列留在文字栏里面。 */
+.poster-fig.wide-strip {
+  max-width: none;
+}
+
+/* Driller and clamp sit side by side under the dragon strip.
+   电钻和夹钳排在恐龙那条图下面，左一张、右一张。 */
+.wide-pair {
+  margin-top: 22px;
+}
+
+.wide-pair .poster-fig {
+  max-width: none;
+  margin: 0;
+}
+
+.poster-fig a { display: block; line-height: 0; }
+
+.poster-fig img {
+  width: 100%;
+  height: auto;
+  border: 1px solid #e4e4e4;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.poster-fig figcaption {
+  margin-top: 8px;
+  color: #4a4a4a;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.lead {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 650;
+  line-height: 1.45;
+  margin: 36px auto 10px;
+  max-width: 820px;
+}
+
+.block { text-align: left; margin-top: 44px; }
+
+.block h2 {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 20px 0 10px;
+  font-size: 30px;
+  font-weight: 650;
+  border-bottom: 1px solid #d5e6f4;
+}
+
+/* Fading rule and a diamond, so a new section is visible before the title.
+   一条淡出的线和一枚菱形，标题出现之前就能看出换节。 */
+.block h2::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 110, 184, 0.28) 14%, #006eb8 50%, rgba(0, 110, 184, 0.28) 86%, transparent);
+}
+
+.block h2::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  margin-left: -4px;
+  background: #fff;
+  border: 1.5px solid #006eb8;
+  transform: rotate(45deg);
+}
+
+.sec-icon {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  color: #006eb8;
+}
+
+.block p { font-size: 18px; line-height: 1.65; }
+
+.award-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px 14px;
+  margin-top: 6px;
+}
+
+.award-grid .award-card:last-child:nth-child(3n + 1) {
+  grid-column: 2;
+}
+
+.award-card { margin: 0; }
+
+.award-card a {
+  display: block;
+  border: 1px solid #e4e4e4;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  line-height: 0;
+}
+
+.award-card a:hover { border-color: #bdbdbd; }
+
+.award-card img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.award-card figcaption {
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: #363636;
+}
+
+.award-card figcaption b {
+  display: block;
+  font-weight: 650;
+}
+
+.award-solo {
+  width: calc((100% - 28px) / 2);
+  margin: 6px auto 28px;
+}
+
+/* Two BPC certificates, 25% narrower than the text column. */
+.bpc-pair {
+  width: 75%;
+  margin: 6px auto 28px;
+}
+
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+
+.pair h3 { margin: 0 0 8px; font-size: 20px; }
+
+.steps { margin: 0; padding-left: 22px; font-size: 18px; line-height: 1.6; }
+
+pre.bib {
+  background: #f5f5f5;
+  border-radius: 6px;
+  padding: 16px 18px;
+  overflow: auto;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: left;
+}
+
+code.inline {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.92em;
+  background: #f5f5f5;
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+/* A quiet, centered credit shared by the project page and documentation.
+   宣传页与文档共用低干扰、居中的作者署名。 */
+.site-author {
+  margin: 28px auto 0;
+  padding: 18px 16px 26px;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.site-author a { color: inherit; text-underline-offset: 3px; }
+
+@media (max-width: 720px) {
+  .pair, .award-grid { grid-template-columns: 1fr; }
+  .award-grid .award-card:last-child:nth-child(3n + 1) { grid-column: auto; }
+  .award-solo { width: auto; }
+  .venue { font-size: 22px; }
+}

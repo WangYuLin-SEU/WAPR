@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1240" viewBox="0 0 1000 1240" role="img" aria-labelledby="title desc">
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#47718a"/></marker></defs>
+<style>text{font-family:Arial,"Noto Sans CJK SC",sans-serif;fill:#193e53}.title{font-size:28px;font-weight:700}.heading{font-size:23px;font-weight:700}.body{font-size:19px}.note{font-size:18px;fill:#567083}.edge{fill:none;stroke:#47718a;stroke-width:2;marker-end:url(#arrow)}</style>
+<rect width="1000" height="1240" rx="14" fill="#f8fbfd"/>
+<title id="title">Single-object tracking and DINOv2 recovery</title>
+<desc id="desc">Example 08   Normal update first; search only on observed failure</desc>
+<text x="60" y="48" class="title">Single-object tracking and DINOv2 recovery</text>
+<text x="60" y="82" class="note">Example 08   Normal update first; search only on observed failure</text>
+<rect x="60" y="110" width="880" height="120" rx="12" fill="#edf5fa" stroke="#c6d9e6" stroke-width="1.8"/>
+<text x="85" y="144" class="heading">Prepare the models and initialize the target</text>
+<text x="85" y="177" class="body">Frame-0 predicted mask selects the target instance</text>
+<text x="85" y="210" class="body">Warm pose updates and search groups before timing</text>
+<path class="edge" d="M500 230V255"/>
+<rect x="60" y="255" width="880" height="120" rx="12" fill="#edf5fa" stroke="#c6d9e6" stroke-width="1.8"/>
+<text x="85" y="289" class="heading">Propagate the target region with DINOv2</text>
+<text x="85" y="322" class="body">Encode each raw RGB frame and update its matching region</text>
+<text x="85" y="355" class="body">Read sensor depth on the pose-update frame</text>
+<path class="edge" d="M500 375V400"/>
+<rect x="60" y="400" width="880" height="120" rx="12" fill="#edf5fa" stroke="#c6d9e6" stroke-width="1.8"/>
+<text x="85" y="434" class="heading">Complete the normal WAPR / SAPR update</text>
+<text x="85" y="467" class="body">Preserve previous rotation; use region depth for translation</text>
+<text x="85" y="500" class="body">WBPS within_group chooses among six normal hypotheses</text>
+<path class="edge" d="M500 520V545"/>
+<rect x="60" y="545" width="880" height="120" rx="12" fill="#edf5fa" stroke="#c6d9e6" stroke-width="1.8"/>
+<text x="85" y="579" class="heading">Check whether search is needed</text>
+<text x="85" y="612" class="body">Missing region, depth disagreement or area collapse</text>
+<text x="85" y="645" class="body">Also check the complete-group WBPS error &gt; 0</text>
+<path class="edge" d="M500 665V690"/>
+<rect x="60" y="690" width="880" height="120" rx="12" fill="#f5f2fc" stroke="#c6d9e6" stroke-width="1.8"/>
+<text x="85" y="724" class="heading">If triggered, search local and global DINOv2 patches</text>
+<text x="85" y="757" class="body">Up to six local + six global; depth gates and spatial separation</text>
+<text x="85" y="790" class="body">Keep previous rotation; batch-refine all translation seeds</text>
+<path class="edge" d="M500 810V835"/>
+<rect x="60" y="835" width="880" height="120" rx="12" fill="#f5f2fc" stroke="#c6d9e6" stroke-width="1.8"/>
+<text x="85" y="869" class="heading">Compare the normal result with refined search candidates</text>
+<text x="85" y="902" class="body">WBPS within_group selects the final pose</text>
+<text x="85" y="935" class="body">No candidates or failed search: retain the normal result</text>
+<path class="edge" d="M500 955V980"/>
+<rect x="60" y="980" width="880" height="120" rx="12" fill="#edf5fa" stroke="#c6d9e6" stroke-width="1.8"/>
+<text x="85" y="1014" class="heading">Continue with this track’s own state</text>
+<text x="85" y="1047" class="body">Patch recovery supplies a pose, not a new segmentation mask</text>
+<text x="85" y="1080" class="body">A selected candidate is not a guarantee of accurate recovery</text>
+<text x="60" y="1180" class="note">Time normal computation, search, refinement, scoring and state writes</text>
+<text x="60" y="1210" class="note">Ground truth is for offline evaluation; no 2D detector is used for recovery</text>
+</svg>

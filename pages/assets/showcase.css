@@ -1,0 +1,1122 @@
+/*
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+*/
+
+.showcase {
+  width: min(1140px, calc(100vw - 28px));
+  margin-left: calc(50% - min(570px, 50vw - 14px));
+}
+
+.demo-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin: 8px 0 12px;
+}
+
+.method-note {
+  margin: 12px 0 18px;
+  padding: 10px 14px;
+  border-left: 3px solid #72899c;
+  border-radius: 0 6px 6px 0;
+  background: #f3f6f8;
+  color: #344552;
+}
+
+.method-note p { margin: 0; }
+
+.demo-switchers { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+.demo-pager, .pose-switch, .scene-pager { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.scene-pager button {
+  border: 1px solid #dbdbdb;
+  background: #fff;
+  color: #363636;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.scene-pager button[aria-pressed="true"] {
+  background: #006eb8;
+  color: #fff;
+  border-color: #006eb8;
+}
+
+.demo-pager button, .pose-switch button {
+  border: 1px solid #dbdbdb;
+  background: #fff;
+  color: #363636;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.demo-pager button[aria-pressed="true"],
+.pose-switch button[aria-pressed="true"] {
+  background: #363636;
+  color: #fff;
+  border-color: #363636;
+}
+
+.pose-switch button[data-pose="pred"][aria-pressed="true"] {
+  background: #c62828;
+  border-color: #c62828;
+}
+
+.pose-switch button[data-pose="gt"][aria-pressed="true"] {
+  background: #1b8a3e;
+  border-color: #1b8a3e;
+}
+
+.demo-frame-caption {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px 14px;
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border: 1px solid #d8e6f1;
+  border-left: 3px solid #006eb8;
+  border-radius: 7px;
+  background: #f5f9fc;
+}
+
+.demo-frame-caption-label {
+  flex: 0 0 auto;
+  color: #00629e;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.demo-frame-caption-label::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin: 0 8px 2px 0;
+  border-radius: 50%;
+  background: #006eb8;
+}
+
+.block .demo-note {
+  flex: 1 1 280px;
+  margin: 0;
+  color: #29394b;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.demo-statement {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid #1c1c1c;
+  background: #f7f7f7;
+  color: #1c1c1c;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.block .mesh-strip-caption {
+  margin: 12px 0 6px;
+  text-align: center;
+  color: #363636;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.mesh-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: safe center;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.mesh-strip-stage {
+  position: relative;
+  width: fit-content;
+}
+
+.mesh-strip canvas {
+  display: block;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  touch-action: none;
+  cursor: grab;
+}
+
+.mesh-strip-frames {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  pointer-events: none;
+}
+
+.mesh-card {
+  box-sizing: border-box;
+  border: 1px solid #cfcfcf;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(28, 40, 54, 0.06);
+}
+
+.mesh-card.is-on {
+  border-color: #006eb8;
+  box-shadow: 0 0 0 1px #006eb8, 0 6px 16px rgba(28, 40, 54, 0.06);
+}
+
+.mesh-strip-labels {
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.mesh-strip-labels span {
+  display: block;
+  flex: 0 0 auto;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: center;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  color: #363636;
+  line-height: 1.2;
+}
+
+.lmo-comparison {
+  margin: 18px 0 0;
+}
+
+.lmo-comparison-caption {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  margin: 0 0 12px;
+  padding: 12px 16px;
+  border: 1px solid #dbe5ed;
+  border-left: 3px solid #006eb8;
+  border-radius: 7px;
+  background: #f7fafc;
+  color: #29394b;
+}
+
+.lmo-comparison-label {
+  padding-top: 2px;
+  color: #00629e;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.lmo-comparison-text {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.lmo-comparison-text strong {
+  color: #1c3448;
+  font-weight: 700;
+}
+
+.lmo-comparison-detail {
+  display: block;
+  margin-top: 5px;
+  color: #596a79;
+}
+
+.lmo-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+
+.lmo-pose-card {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  border: 1px solid #d5d5d5;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(28, 40, 54, 0.05);
+}
+
+.lmo-pose-views {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.lmo-row .lmo-pose-views canvas,
+.lmo-pose-views .lmo-cloud-wrap {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.lmo-pose-views figcaption {
+  padding-bottom: 8px;
+}
+
+.lmo-results {
+  padding: 10px 12px 12px;
+  border-top: 1px solid #d5d5d5;
+  background: #f3f4f6;
+}
+
+.lmo-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.lmo-results h3 {
+  margin: 0;
+  color: #1c1c1c;
+  font-size: 15px;
+}
+
+.lmo-results .lmo-results-hint {
+  margin: 2px 0 0;
+  color: #59636d;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.lmo-results-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding-top: 3px;
+  color: #59636d;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.lmo-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lmo-legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.lmo-legend-high { background: #245db3; }
+.lmo-legend-low { background: #66717c; }
+
+.lmo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.lmo-chips button {
+  border: 2px solid transparent;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font: 650 14px sans-serif;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.lmo-results .lmo-chips {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.lmo-results .lmo-chips button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 34px;
+  border: 1px solid #dbdbdb;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: #ffffff;
+  color: #1c1c1c;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.lmo-chip-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.lmo-chip-high { background: #245db3; }
+.lmo-chip-low { background: #66717c; }
+
+.lmo-results .lmo-chip-score {
+  flex: none;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  word-spacing: 7px;
+}
+
+.lmo-chips button[aria-pressed="true"] {
+  border-color: #161616;
+}
+
+.lmo-results .lmo-chips button[aria-pressed="true"] {
+  font-weight: 650;
+}
+
+.lmo-results .lmo-chips button:focus-visible {
+  outline: 2px solid #161616;
+  outline-offset: 2px;
+}
+
+.lmo-row figure {
+  margin: 0;
+}
+
+/* Match complete paired cards, including captions, without stretching images.
+   并排卡片连同图注等高，图像本身仍保持原比例。 */
+.lmo-row > figure,
+.recon-row > figure,
+.recon-poses > figure {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.lmo-row > figure > canvas,
+.recon-row > figure > img,
+.recon-row > figure > .recon-view,
+.recon-poses > figure > img {
+  flex: none;
+}
+
+.lmo-row > figure > figcaption,
+.recon-row > figure > figcaption,
+.recon-poses > figure > figcaption {
+  flex: 1;
+}
+
+
+.robi-pose-wrap { position: relative; }
+
+.robi-runtime-overlay {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  width: min(480px, calc(100% - 24px));
+  padding: 9px 13px;
+  border-left: 4px solid #7bc6f2;
+  border-radius: 6px;
+  background: rgba(18, 27, 38, 0.9);
+  color: #fff;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  line-height: 1.3;
+}
+
+.robi-runtime-overlay[hidden] { display: none; }
+.robi-runtime-overlay strong,
+.robi-runtime-overlay span,
+.robi-runtime-overlay small { display: block; }
+.robi-runtime-overlay strong { font-size: 14px; }
+.robi-runtime-overlay span { margin-top: 3px; font-size: 13px; font-weight: 600; }
+.robi-runtime-overlay small { margin-top: 3px; color: #d8e5ee; font-size: 11px; }
+
+.lmo-row canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #f3f4f6;
+  border: 1px solid #d5d5d5;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(28, 40, 54, 0.05);
+  box-sizing: border-box;
+}
+
+.lmo-cloud-wrap {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: #f3f4f6;
+  border: 1px solid #d5d5d5;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(28, 40, 54, 0.05);
+  overflow: hidden;
+}
+
+.lmo-cloud-wrap canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  touch-action: none;
+}
+
+.lmo-row figcaption {
+  margin-top: 6px;
+  text-align: center;
+  color: #363636;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.demo-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+/* Share the taller column's height; extra space belongs below the image.
+   两列采用较高一侧的高度，额外空间留在图像下方的控件区。 */
+.demo-photo,
+.demo-cloud-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.demo-photo > .demo-chips {
+  flex: 1;
+  align-content: flex-start;
+  align-items: flex-start;
+}
+
+.demo-photo, .demo-cloud-wrap {
+  position: relative;
+  background: #f3f4f6;
+  border: 1px solid #d5d5d5;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(28, 40, 54, 0.05);
+  overflow: hidden;
+}
+
+.demo-photo canvas {
+  flex: none;
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: pointer;
+  background-size: 100% 100%;
+}
+
+.demo-cloud-wrap {
+  position: relative;
+  flex: none;
+  /* Include both 1px borders when the renderer sets content-box sizing.
+     渲染器使用 content-box 时，为左右各 1px 的边框留出列内空间。 */
+  width: calc(100% - 2px);
+  min-height: 0;
+  aspect-ratio: 4 / 3;
+}
+
+.demo-cloud-panel {
+  min-width: 0;
+}
+
+.demo-controls-hint {
+  flex: 1;
+  margin-top: 10px;
+  padding: 10px 14px;
+  border: 1px solid #d9e5ef;
+  border-radius: 8px;
+  background: #f5f8fb;
+  color: #465767;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.demo-controls-hint strong {
+  color: #2e4e69;
+}
+
+.demo-controls-hint ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.demo-controls-hint li + li {
+  margin-top: 3px;
+}
+
+.demo-cloud-wrap canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+.demo-load-status {
+  position: absolute;
+  z-index: 2;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: fit-content;
+  max-width: calc(100% - 24px);
+  padding: 8px 12px;
+  border: 1px solid #d5d5d5;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #303030;
+  font-size: 14px;
+  box-shadow: 0 3px 12px rgba(28, 40, 54, 0.08);
+}
+
+.demo-load-status[hidden] { display: none; }
+
+.demo-load-status button {
+  border: 1px solid #006eb8;
+  border-radius: 5px;
+  background: #fff;
+  color: #006eb8;
+  font: inherit;
+  cursor: pointer;
+}
+
+.demo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+}
+
+.demo-chips button {
+  border: 1px solid #dbdbdb;
+  background: #fff;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.demo-chips button[aria-pressed="true"] {
+  border-color: #1c1c1c;
+  font-weight: 650;
+}
+
+.recon-size {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Measurements follow the selected box without adding height below the viewport.
+   尺寸随所选包围盒显示在视图内，不在下方额外占高；鼠标操作穿透到画布。 */
+.recon-view .recon-size-overlay {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  box-sizing: border-box;
+  max-width: calc(100% - 20px);
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid #d5dce2;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #253441;
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: left;
+  pointer-events: none;
+}
+.recon-size-overlay:empty { display: none; }
+.recon-size-overlay strong,
+.recon-size-overlay .recon-size-value,
+.recon-size-overlay small { display: block; }
+.recon-size-overlay .recon-size-value { font-variant-numeric: tabular-nums; }
+.recon-size-overlay small { font-size: 11px; color: #53616c; }
+
+.recon-key {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 4px;
+  border: 2px solid;
+  vertical-align: -1px;
+}
+
+.recon-key.before { border-color: #c47a12; }
+.recon-key.pred { border-color: #c62828; }
+.recon-key.gt { border-color: #17833d; }
+
+.recon-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+  margin-top: 8px;
+}
+
+.recon-row.recon-narrow {
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Stack narrow reconstruction panels on phones so controls and measurements fit.
+   手机端将限宽重建面板上下排列，给切换按钮与尺寸浮层保留可读宽度。 */
+@media (max-width: 680px) {
+  .recon-row.recon-narrow {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* The mode chips sit on the viewer. In the document flow they push the
+   canvas below the photo, so the two frames do not share an edge.
+   开关贴在视图上。放在文档流里会把画布顶到照片下面，两张图的边对不齐。 */
+.recon-row:not(.single) > figure:last-child {
+  position: relative;
+}
+
+.recon-row:not(.single) > figure:last-child > .demo-chips:first-child {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  right: 8px;
+  margin: 0;
+  padding: 0;
+  justify-content: flex-end;
+}
+
+.recon-row.single {
+  grid-template-columns: minmax(0, 760px);
+}
+
+.recon-view {
+  position: relative;
+}
+
+.recon-ruler {
+  position: absolute;
+  left: 12px;
+  top: 28px;
+  height: 16px;
+  border-bottom: 2px solid #1c1c1c;
+  border-left: 2px solid #1c1c1c;
+  border-right: 2px solid #1c1c1c;
+  pointer-events: none;
+}
+
+.recon-ruler b {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  transform: translateX(-50%);
+  color: #1c1c1c;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.recon-row figure {
+  margin: 0;
+  text-align: center;
+}
+
+.recon-row img,
+.recon-row canvas {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  background: #f3f4f6;
+  border: 1px solid #d5d5d5;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(28, 40, 54, 0.05);
+  box-sizing: border-box;
+  display: block;
+}
+
+.recon-row figcaption {
+  margin-top: 6px;
+  color: #363636;
+  font-size: 13px;
+}
+
+/* detect.png is 640×480 and pose.png is 1016×480. Column widths follow those
+   pixels so both pictures display at the same height.
+   detect.png 是 640×480，pose.png 是 1016×480。列宽按这两个像素比，两张图显示成一样高。 */
+.recon-row.cross-pair {
+  grid-template-columns: 640fr 1016fr;
+}
+
+.recon-row.cross-pair img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: auto;
+  object-fit: unset;
+}
+
+.recon-poses {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+  margin-top: 12px;
+}
+
+.recon-poses figure {
+  margin: 0;
+  text-align: center;
+}
+
+.recon-poses img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  background: #f3f4f6;
+  border: 1px solid #d5d5d5;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(28, 40, 54, 0.05);
+  box-sizing: border-box;
+  display: block;
+}
+
+.recon-poses figcaption {
+  margin-top: 6px;
+  color: #363636;
+  font-size: 13px;
+}
+
+.flow-board {
+  margin: 14px 0 4px;
+}
+
+/* The onboarding diagram is a wide, sparse slide. Keep it inside the text column. */
+.flow-onboard {
+  max-width: 1075px;
+  margin: 8px auto 18px;
+}
+
+.flow-board img {
+  width: 100%;
+  height: auto;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  display: block;
+}
+
+.flow-board figcaption {
+  margin-top: 6px;
+  color: #363636;
+  font-size: 13px;
+  text-align: center;
+}
+
+.demo-hint {
+  margin: 10px 0 0;
+  color: #4a4a4a;
+  font-size: 15px;
+}
+
+.showcase h3 {
+  margin: 22px 0 8px;
+  font-size: 22px;
+}
+
+.track-clip {
+  margin: 16px 0 8px;
+}
+
+.track-clip.bottle-clip,
+.track-clip.taco-clip,
+.track-clip.pair-clip {
+  width: 70%;
+}
+
+.track-clip.bottle-clip,
+.track-clip.taco-clip,
+.track-clip.pair-clip {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.track-clip video,
+.track-clip img {
+  width: 100%;
+  height: auto;
+  background: #111;
+  border-radius: 8px;
+  display: block;
+}
+
+.track-clip figcaption {
+  margin-top: 6px;
+  color: #363636;
+  font-size: 14px;
+}
+
+.grasp-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: auto auto auto auto;
+  gap: 8px 14px;
+  margin: 16px 0 8px;
+}
+
+.grasp-board .grasp-still,
+.grasp-board .grasp-play {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 2;
+  margin: 0;
+  min-width: 0;
+}
+
+.grasp-board .grasp-still { grid-row: 1 / span 2; }
+.grasp-board .grasp-play { grid-row: 3 / span 2; }
+
+.score-wrap {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+  margin: 14px 0 22px;
+  border: 1px solid #d7e4f0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.score-wrap.score-narrow {
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.score-wrap.score-narrow .score-table {
+  min-width: 0;
+}
+
+.score-table {
+  width: 100%;
+  min-width: 720px;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 15px;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.score-table.taco-score-table caption {
+  caption-side: top;
+  text-align: left;
+  padding: 10px 18px;
+  background: #eef5fa;
+  color: #274760;
+  font-size: 13px;
+  font-weight: 650;
+  border-bottom: 1px solid #d5e2ee;
+}
+
+.score-table col.c-name { width: 30%; }
+.score-table col.c-method { width: 18%; }
+
+.score-table th,
+.score-table td {
+  text-align: left;
+  vertical-align: middle;
+  padding: 9px 18px;
+  border-bottom: 1px solid #eef3f7;
+}
+
+.score-table thead th {
+  background: #f4f8fb;
+  color: #3e5163;
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+  border-bottom: 1px solid #d5e2ee;
+}
+
+.score-table thead th.band {
+  text-align: center;
+  color: #1c1c1c;
+  font-size: 14px;
+  border-bottom: 1px solid #e4eef6;
+}
+
+.score-table thead tr + tr th { padding-top: 2px; }
+
+.score-table .unit {
+  display: block;
+  margin-top: 1px;
+  color: #7d8b99;
+  font-size: 12px;
+  font-weight: 450;
+}
+
+.score-table td.seq {
+  color: #1c1c1c;
+  font-weight: 650;
+  white-space: nowrap;
+  background: #fff;
+}
+
+.score-table td.seq code {
+  padding: 0;
+  background: none;
+  color: inherit;
+  font-size: 14px;
+  font-weight: 550;
+}
+
+.score-table .sub {
+  display: block;
+  margin-top: 2px;
+  color: #6b7785;
+  font-size: 13px;
+  font-weight: 450;
+}
+
+.score-table tr.alt td { background: #f8fbfd; }
+
+.score-table tr.alt td { border-bottom: none; }
+
+.score-table tr.alt td.seq { background: #fff; }
+
+.score-table tr.group td { border-top: 1px solid #d5e2ee; }
+
+.score-table tbody tr:last-child td { border-bottom: none; }
+
+.score-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Give the sequence names and later-frame ranges their own column space.
+   序列名与后续帧耗时范围各有足够列宽，使跟踪表在正文内完整显示。 */
+.score-wrap.tracking-score-wrap {
+  width: min(100%, 1040px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.tracking-score-wrap .score-table { min-width: 0; }
+.tracking-score-wrap col.c-name { width: 27%; }
+.tracking-score-wrap col.c-method { width: 20%; }
+.tracking-score-wrap col.c-recall,
+.tracking-score-wrap col.c-mean { width: 10%; }
+.tracking-score-wrap col.c-first { width: 12%; }
+.tracking-score-wrap col.c-later { width: 21%; }
+
+@media (max-width: 900px) {
+  .tracking-score-wrap .score-table { font-size: 12px; }
+  .tracking-score-wrap col.c-name { width: 23%; }
+  .tracking-score-wrap col.c-method { width: 21%; }
+  .tracking-score-wrap col.c-recall,
+  .tracking-score-wrap col.c-mean { width: 11%; }
+  .tracking-score-wrap col.c-first { width: 13%; }
+  .tracking-score-wrap .score-table th,
+  .tracking-score-wrap .score-table td { padding: 8px 6px; white-space: normal; }
+  .tracking-score-wrap .score-table td { overflow-wrap: anywhere; }
+  .tracking-score-wrap .score-table td.num { overflow-wrap: normal; }
+  .tracking-score-wrap .score-table td.num:not(:last-child) { white-space: nowrap; }
+  .tracking-score-wrap .score-table td.seq code,
+  .tracking-score-wrap .score-table .sub { font-size: 12px; }
+}
+
+/* Separate comparison methods through both header rows and the body.
+   方法分隔贯穿两层表头与正文；粗体标出同一行中较好的数值。 */
+.taco-score-table .method-start,
+.taco-score-table .column-start { border-left: 2px solid #d5e2ee; }
+.score-wrap.score-narrow .taco-score-table { min-width: 640px; }
+.taco-score-table td strong { font-weight: 750; }
+.taco-score-table .score-note {
+  display: block;
+  margin-top: 5px;
+  color: #53697c;
+  font-size: 12px;
+  font-weight: 450;
+}
+
+@media (max-width: 800px) {
+  .score-wrap.score-narrow:has(.taco-score-table) { width: 100%; }
+}
+
+#robi .lmo-cloud-wrap {
+  aspect-ratio: 1280 / 1024;
+}
+
+@media (max-width: 1100px) {
+  .lmo-results .lmo-chips { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 800px) {
+  .lmo-comparison-caption { grid-template-columns: 1fr; gap: 6px; }
+  .demo-stage { grid-template-columns: 1fr; }
+  .lmo-row { grid-template-columns: 1fr; }
+  .lmo-pose-views { grid-template-columns: 1fr; }
+  .grasp-board { grid-template-columns: 1fr; }
+  .grasp-board .grasp-still,
+  .grasp-board .grasp-play {
+    display: block;
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 680px) {
+  .lmo-results .lmo-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lmo-results .lmo-chips button:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc((100% - 8px) / 2);
+  }
+}
+
+@media (max-width: 480px) {
+  .lmo-results .lmo-chips { grid-template-columns: 1fr; }
+  .lmo-results .lmo-chips button:last-child:nth-child(odd) {
+    grid-column: auto;
+    width: 100%;
+  }
+}
+
+/* Keep comparison columns readable on phones; scroll within the table only.
+   手机端保留列宽；仅表格区域横向滚动。 */
+.wide-comparison-scroll { max-width:100%; overflow-x:auto; margin:1.25rem 0; }
+.wide-comparison-table { width:100%; min-width:680px; border-collapse:collapse; font-size:.95rem; }
+.wide-comparison-table caption { text-align:left; font-weight:600; margin-bottom:.65rem; }
+.wide-comparison-table th, .wide-comparison-table td { padding:.7rem .8rem; text-align:left; border-bottom:1px solid #d8e0e8; }
+.wide-comparison-table thead { background:#f3f7fc; }
+.wide-comparison-table td:nth-child(4) { color:#0868bb; font-weight:700; }

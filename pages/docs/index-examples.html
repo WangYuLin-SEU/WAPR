@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+
+
+<!--
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Example overview — WAPR docs</title>
+<script>
+    (function () {
+      var lang = "en";
+      try { lang = localStorage.getItem("wapr-lang") === "zh" ? "zh" : "en"; } catch (e) {}
+      document.documentElement.setAttribute("data-lang", lang);
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+      var pages = {
+        download: "download.html",
+        install: "install.html",
+        pose: "pose.html",
+        det2d: "det2d.html",
+        bop: "bop.html",
+        "third-party": "download-detectors.html"
+      };
+      var id = (location.hash || "").replace("#", "");
+      if (pages[id]) location.replace(pages[id]);
+    })();
+  </script>
+<link href="../assets/project.css?v=bar14" rel="stylesheet"/>
+<link href="docs.css?v=62" rel="stylesheet"/>
+<link href="../favicon.ico?v=11" rel="icon" type="image/x-icon"/>
+<link href="../assets/wapr-icon-32.png?v=11" rel="icon" sizes="32x32" type="image/png"/>
+<link href="../assets/wapr-icon-180.png?v=11" rel="apple-touch-icon" sizes="180x180"/>
+<link href="../assets/table-layout.css?v=1" rel="stylesheet"/><script src="section-routes.js?v=59"></script><link href="index-performance.html" rel="prev"/><link href="install.html" rel="next"/><link rel="stylesheet" href="../assets/github-docs.css?v=3"/>
+<script src="../assets/site-runtime.js?v=1"></script>
+</head>
+<body class="project docs" data-title-en="Example overview — WAPR docs" data-title-zh="示例总览 — WAPR 文档">
+<div aria-hidden="true" class="mast-spacer"></div>
+<header class="mast">
+<a class="mast-hero-link" href="../index.html"><img alt="WAPR, wide-angle pose refinement" class="mast-hero" height="724" src="../assets/wapr-banner-1440.webp" srcset="../assets/wapr-banner-768.webp 768w, ../assets/wapr-banner-1440.webp 1440w, ../assets/wapr-banner-2172.webp 2172w" sizes="(max-width: 800px) 100vw, 1200px" fetchpriority="high" width="2172"/></a>
+<div aria-hidden="true" class="mast-scrim"></div>
+<div class="docs-top">
+<a class="docs-home" href="../index.html">WAPR</a>
+<nav aria-label="Site" class="docs-jump">
+<a href="../index.html"><span class="en">Home</span><span class="zh">主页</span></a>
+<a href="https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"><span class="en">Paper</span><span class="zh">论文</span></a>
+<a href="https://github.com/WangYuLin-SEU/WAPR"><span class="en">Code</span><span class="zh">代码</span></a>
+</nav>
+<div class="lang-switch" role="group">
+<button data-set-lang="en" type="button">EN</button>
+<button data-set-lang="zh" type="button">中文</button>
+</div>
+</div>
+</header><script src="../assets/banner.js?v=18"></script>
+<div class="docs-shell">
+<nav aria-label="Documentation / 教程目录" class="docs-nav"><a href="index.html"><span class="en">Overview</span><span class="zh">概览</span></a><a class="sub" href="index-modules.html"><span class="en">How the modules work together</span><span class="zh">模块如何衔接</span></a><a class="sub" href="index-routes.html"><span class="en">Choose a route for your scene</span><span class="zh">根据场景选择入口</span></a><a class="sub" href="index-performance.html"><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></a><a aria-current="page" class="sub" href="index-examples.html"><span class="en">Example overview</span><span class="zh">示例总览</span></a><a href="install.html"><span class="en">Installation</span><span class="zh">安装</span></a><a class="sub" href="install-guide.html"><span class="en">Installation guide</span><span class="zh">安装引导</span></a><a class="sub" href="install-core.html"><span class="en">Detection and pose setup</span><span class="zh">检测与位姿环境</span></a><a class="sub" href="install-extensions.html"><span class="en">Extension setup</span><span class="zh">扩展环境</span></a><a href="data.html"><span class="en">Data and examples</span><span class="zh">数据与示例</span></a><a class="sub" href="data-resources.html"><span class="en">Datasets and model resources</span><span class="zh">数据集与模型资源</span></a><a class="sub" href="data-bop-folder.html"><span class="en">Read the BOP sample</span><span class="zh">读取 BOP 示例数据</span></a><a class="sub" href="data-frame.html"><span class="en">Load one RGB-D frame</span><span class="zh">加载一帧 RGB-D</span></a><a class="sub" href="data-bop.html"><span class="en">2D to 6D integrated pipeline</span><span class="zh">2D 到 6D 一体化流程</span></a><a class="sub" href="data-sixd-loc.html"><span class="en">Localization and detection examples</span><span class="zh">定位与检测示例</span></a><a class="sub" href="data-own.html"><span class="en">Custom data</span><span class="zh">自定义数据</span></a><a href="det2d.html"><span class="en">2D detection and segmentation</span><span class="zh">2D 检测与分割</span></a><a class="sub" href="det2d-templates.html"><span class="en">CAD templates and feature encoding</span><span class="zh">CAD 模板与特征编码</span></a><a class="sub" href="det2d-call.html"><span class="en">Detector usage and evaluation</span><span class="zh">检测器使用与评估</span></a><a href="pose.html"><span class="en">6D pose tasks and interfaces</span><span class="zh">6D 位姿任务与接口</span></a><a class="sub" href="pose-one.html"><span class="en">One category, one instance</span><span class="zh">单类别、单实例</span></a><a class="sub" href="pose-loc.html"><span class="en">6D pose localization and detection</span><span class="zh">6D 位姿定位与检测</span></a><a class="sub" href="pose-track.html"><span class="en">6D pose tracking</span><span class="zh">6D 位姿跟踪</span></a><a class="sub" href="pose-backend-scaling.html"><span class="en">Inference and renderer scaling</span><span class="zh">推理与渲染后端性能</span></a><a href="applications.html"><span class="en">Application cases</span><span class="zh">应用案例</span></a><a class="sub" href="applications-robi.html"><span class="en">ROBI detection experiments</span><span class="zh">ROBI 检测实验</span></a><a class="sub" href="applications-ycbineoat.html"><span class="en">YCBInEOAT single-object pose tracking</span><span class="zh">YCBInEOAT 单物体位姿跟踪</span></a><a class="sub" href="applications-taco.html"><span class="en">TACO multi-object pose tracking</span><span class="zh">TACO 多物体位姿跟踪</span></a><a class="sub" href="applications-reconstruct.html"><span class="en">Reconstruction and cross-scene pose</span><span class="zh">重建与跨场景位姿</span></a><a class="sub" href="applications-robot.html"><span class="en">Robot simulation</span><span class="zh">机器人仿真</span></a><a href="credits.html"><span class="en">Acknowledgments and references</span><span class="zh">致谢与参考资料</span></a></nav>
+<main class="docs-main"><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="top"><a href="index-performance.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></strong></a><a href="install.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Installation</span><span class="zh">安装</span></strong></a></nav><nav aria-label="Breadcrumb / 章节路径" class="docs-breadcrumb"><a href="index.html"><span class="en">Overview</span><span class="zh">概览</span></a></nav><h1 id="examples"><img class="sec-icon" src="../assets/readme/icons/citation.svg" width="24" height="24" alt="" aria-hidden="true"/> <span class="en">Example overview</span><span class="zh">示例总览</span></h1>
+<p class="en">Complete <a href="install.html">Installation</a> and check input formats in <a href="data.html">Data and examples</a>. Example 01 introduces 2D detection and segmentation; 02 estimates a single object's pose from a supplied region; 03 uses published detection boxes.</p>
+<p class="zh">先完成<a href="install.html">安装</a>，并在<a href="data.html">数据与示例</a>核对输入格式。示例 01 介绍 2D 检测与分割，02 使用给定区域估计单个物体的位姿，03 接入已公布的检测框。</p>
+<p class="en">The 17 public examples follow the documentation's progression: 01–08 cover detection, pose interfaces, custom data, BOP export and tracking; 09 adds TACO<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: TACO data" href="#license-taco-data" id="license-taco-data-ref-en" role="doc-noteref">[5]</a></sup> multi-object tracking; 10 is the ROBI<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: ROBI data" href="#license-robi-data" id="license-robi-data-ref-en" role="doc-noteref">[7]</a></sup> experiment; 11–12 cover reconstruction and cross-scene pose; 13–17 cover robot simulation. Edit the visible recipe variables for your inputs. Supporting files stay in the folder bearing the entry script's name.</p>
+<p class="zh">全部 17 个公共示例按文档的使用逻辑连续编号：01–08 为检测、位姿接口、自定义数据、BOP 导出与跟踪；09 为 TACO<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: TACO data" href="#license-taco-data" id="license-taco-data-ref-zh" role="doc-noteref">[5]</a></sup> 多物体跟踪；10 为 ROBI<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: ROBI data" href="#license-robi-data" id="license-robi-data-ref-zh" role="doc-noteref">[7]</a></sup> 实验；11–12 为重建与跨场景位姿；13–17 为机器人仿真。通过脚本中的可见配置变量设置输入，辅助文件放在与入口同名的目录中。</p>
+<div class="example-overview-wrap docs-table-wrap">
+<table class="example-overview">
+<thead>
+<tr>
+<th><span class="en">Script</span><span class="zh">脚本</span></th>
+<th><span class="en">Learning objective</span><span class="zh">学习目标</span></th>
+<th><span class="en">Page</span><span class="zh">页面</span></th>
+</tr>
+</thead>
+<tbody><tr><th colspan="3"><span class="en">2D detection and 6D pose interfaces</span><span class="zh">2D 检测与 6D 位姿接口</span></th></tr><tr>
+<td><code>examples/01_one_rgb_detect_segment.py</code></td>
+<td><span class="en">One LM-O<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: LM-O data" href="#license-lmo-data" id="license-lmo-data-ref-en-table-1" role="doc-noteref">[4]</a></sup> RGB frame: build a CAD template bank, then return 2D boxes and masks. No pose step.</span><span class="zh">一帧 LM-O<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: LM-O data" href="#license-lmo-data" id="license-lmo-data-ref-zh-table-1" role="doc-noteref">[4]</a></sup> RGB：建立 CAD 模板库，返回 2D 框和 mask；此步不估计位姿。</span></td>
+<td><a href="det2d-call.html"><span class="en">2D detector call</span><span class="zh">2D 检测调用</span></a></td>
+</tr><tr>
+<td><code>examples/02_one_category_one_instance.py</code></td>
+<td><span class="en">Estimate the pose of one known object with <code>estimate_one_category_one_instance</code>; see the result on the pose page.</span><span class="zh">用 <code>estimate_one_category_one_instance</code> 估计单个已知物体的位姿；结果图见位姿页。</span></td>
+<td><a href="pose-one.html"><span class="en">One category, one instance</span><span class="zh">单类别、单实例</span></a></td>
+</tr><tr>
+<td><code>examples/03_published_boxes_to_pose.py</code></td>
+<td><span class="en">Read the published detection excerpt for image 307 and estimate all retained instances in one batch, with independent hypothesis groups.</span><span class="zh">读取第 307 帧的已公布检测摘录，同帧保留实例批量估计，各实例的候选组独立评分。</span></td>
+<td><a href="data-bop.html"><span class="en">Published boxes</span><span class="zh">已公布的检测框</span></a></td>
+</tr><tr>
+<td><code>examples/04_6d_localization.py</code></td>
+<td><span class="en">6D localization. Many known categories, each with a fixed count. LM-O scene 2, image 307: eight categories, one each.</span><span class="zh">6D 定位。多个已知类别，每个类别数量固定。LM-O 场景 2 第 307 帧：八个类别，每个 1 个。</span></td>
+<td><a href="pose-loc.html"><span class="en">Localization</span><span class="zh">定位</span></a></td>
+</tr><tr>
+<td><code>examples/05_bop_6d_detection.py</code></td>
+<td><span class="en">BOP challenge, 6D detection. Many categories, many instances, count unknown: 2D, then <code>estimate_frame_many_categories_many_instances</code>.</span><span class="zh">BOP 挑战，6D 检测。多类别、多实例，数量事先不知道：先 2D，再 <code>estimate_frame_many_categories_many_instances</code>。</span></td>
+<td><a href="pose-loc.html#det"><span class="en">Detection</span><span class="zh">检测</span></a></td>
+</tr><tr>
+<td><code>examples/06_custom_scene.py</code></td>
+<td><span class="en">Load a custom RGB-D folder and CAD meshes; the documentation demonstrates a real wedge capture.</span><span class="zh">读取自定义 RGB-D 目录与 CAD 网格；文档展示三角块实拍案例。</span></td>
+<td><a href="data-own.html"><span class="en">Custom data</span><span class="zh">自定义数据</span></a></td>
+</tr><tr>
+<td><code>examples/07_write_bop_pose_csv.py</code></td>
+<td><span class="en">Export a BOP pose CSV from live 2D detections or a supplied JSON. Both paths batch each frame's retained instances; the JSON path filters input masks across categories first.</span><span class="zh">将现场 2D 检测或外部 JSON 候选导出为 BOP 位姿 CSV。两条路径均按帧批量估计；JSON 路径先对输入掩码做跨类别抑制。</span></td>
+<td><a href="pose.html#bop"><span class="en">Result export</span><span class="zh">结果导出</span></a></td>
+</tr><tr>
+<td><code>examples/08_ycbineoat_one_instance.py</code></td>
+<td><span class="en">Initialize one YCBInEOAT<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: YCBInEOAT data" href="#license-ycbineoat-data" id="license-ycbineoat-data-ref-en-table-1" role="doc-noteref">[6]</a></sup> track from a predicted mask, then track its target mask and update its pose. Recovery compares tracked and re-estimated poses in a supported two-candidate group.</span><span class="zh">从预测掩码初始化一条 YCBInEOAT<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: YCBInEOAT data" href="#license-ycbineoat-data" id="license-ycbineoat-data-ref-zh-table-1" role="doc-noteref">[6]</a></sup> 轨迹，再跟踪目标掩码并更新位姿；恢复分支将跟踪与重估位姿组成受支持的两候选评分组。</span></td>
+<td><a href="pose-track.html"><span class="en">One instance tracking</span><span class="zh">单实例跟踪</span></a></td>
+</tr><tr><th colspan="3"><span class="en">Application cases</span><span class="zh">应用案例</span></th></tr><tr>
+<td><code>examples/09_taco_many_instances.py</code></td>
+<td><span class="en">Predict SAM 2<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: SAM 2" href="#license-sam2" id="license-sam2-ref-en-table-1" role="doc-noteref">[2]</a></sup> masks from saved RGB clicks; share DINOv2<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: DINOv2" href="#license-dinov2" id="license-dinov2-ref-en-table-1" role="doc-noteref">[1]</a></sup> frame features, batch both tracks and recovery candidates, and preserve each track's reliable state.</span><span class="zh">保存的 RGB 点击点预测 SAM 2<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: SAM 2" href="#license-sam2" id="license-sam2-ref-zh-table-1" role="doc-noteref">[2]</a></sup> 掩码；共享 DINOv2<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: DINOv2" href="#license-dinov2" id="license-dinov2-ref-zh-table-1" role="doc-noteref">[1]</a></sup> 帧特征，批量更新双物体及补救候选，各轨迹保留可靠状态。</span></td>
+<td><a href="applications-taco.html"><span class="en">Multi-object tracking</span><span class="zh">多物体跟踪</span></a></td>
+</tr><tr>
+<td><code>examples/10_robi_zigzag.py</code></td>
+<td><span class="en">Detect and estimate multiple instances of one CAD in ROBI<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: ROBI data" href="#license-robi-data" id="license-robi-data-ref-en-table-1" role="doc-noteref">[7]</a></sup> Zigzag, scene 4, view 0. Pose inference is batched; the Zigzag viewer describes its candidate and iteration settings in the ROBI case.</span><span class="zh">在 ROBI<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: ROBI data" href="#license-robi-data" id="license-robi-data-ref-zh-table-1" role="doc-noteref">[7]</a></sup> Zigzag 场景 4 第 0 帧检测同一 CAD 的多个实例并批量估计位姿；Zigzag 查看器的候选与迭代设置见 ROBI 案例。</span></td>
+<td><a href="applications-robi.html">ROBI</a></td>
+</tr><tr>
+<td><code>examples/11_reconstruct_object.py</code></td>
+<td><span class="en">One RGB-D and a point or sentence: reconstruct, size, select a pose, update shape with RoMa<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: RoMa" href="#license-roma" id="license-roma-ref-en-table-1" role="doc-noteref">[3]</a></sup>, and save a matched mesh/pose bundle.</span><span class="zh">一张 RGB-D 与点或句子：重建、定标、选择位姿、RoMa<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: RoMa" href="#license-roma" id="license-roma-ref-zh-table-1" role="doc-noteref">[3]</a></sup> 更新形状，保存配套网格与位姿。</span></td>
+<td><a href="applications-reconstruct.html"><span class="en">3D generation</span><span class="zh">3D 生成</span></a></td>
+</tr><tr>
+<td><code>examples/12_cross_scene_pose.py</code></td>
+<td><span class="en">Read the saved reconstruction, detect its top-scoring instance in another RGB-D image, then estimate its pose.</span><span class="zh">读取保存的重建网格，在另一张 RGB-D 中选择最高分检测实例，再估计位姿。</span></td>
+<td><a href="applications-reconstruct.html#reconstruct-pose"><span class="en">Cross-scene pose estimation</span><span class="zh">跨场景位姿估计</span></a></td>
+</tr><tr>
+<td><code>examples/13_known_mesh_place.py</code></td>
+<td><span class="en">Panda with table and wrist RGB-D: estimate the known bottle and box, grasp, measure the held-object offset, and compare planned and corrected placement.</span><span class="zh">Panda 桌面与腕部 RGB-D：估计已知瓶子和盒子，抓取、测量夹持偏差，对照计划与修正放置。</span></td>
+<td><a href="applications-robot.html"><span class="en">Robot</span><span class="zh">机器人</span></a></td>
+</tr><tr>
+<td><code>examples/14_bridge_tasks.py</code></td>
+<td><span class="en">WidowX uses the first-frame estimated pose to approach, close, lift, transfer, release and retreat in Bridge<sup class="license-reference en"><a aria-label="Reference and license / 参考与许可: BridgeData V2" href="#reference-bridge-data" id="reference-bridge-data-ref-en-table-1" role="doc-noteref">[8]</a></sup> tasks.</span><span class="zh">WidowX 在 Bridge<sup class="license-reference zh"><a aria-label="Reference and license / 参考与许可: BridgeData V2" href="#reference-bridge-data" id="reference-bridge-data-ref-zh-table-1" role="doc-noteref">[8]</a></sup> 任务中根据首帧估计位姿接近、合爪、抬升、搬运、松爪与撤回。</span></td>
+<td><a href="applications-robot.html"><span class="en">Robot</span><span class="zh">机器人</span></a></td>
+</tr><tr>
+<td><code>examples/15_xarm_cube.py</code></td>
+<td><span class="en">xArm6/Robotiq grasps a cube at its estimated world pose and releases it at the marker; each planned step records RGB-D.</span><span class="zh">xArm6/Robotiq 按估计的世界位姿抓取方块，在标记处松爪；每个规划步记录 RGB-D。</span></td>
+<td><a href="applications-robot.html"><span class="en">Robot</span><span class="zh">机器人</span></a></td>
+</tr><tr>
+<td><code>examples/16_follow_saved.py</code></td>
+<td><span class="en">Track saved robot RGB-D: initialize from verified estimates, share image features, batch all same-frame pose updates, and report errors afterward.</span><span class="zh">跟踪保存的机器人 RGB-D：用已核验估计初始化、共享图像特征、批量更新同帧位姿，并事后报告误差。</span></td>
+<td><a href="applications-robot.html"><span class="en">Robot</span><span class="zh">机器人</span></a></td>
+</tr><tr>
+<td><code>examples/17_virtual_grasp.py</code></td>
+<td><span class="en">Convert saved estimated poses to world coordinates, construct virtual gripper axes, and project the grasp into RGB. Physical control is shown in 13–15.</span><span class="zh">将保存的估计位姿转到世界坐标，构造虚拟夹爪轴并投影到 RGB；实际控制流程见 13–15。</span></td>
+<td><a href="applications-robot.html"><span class="en">Robot</span><span class="zh">机器人</span></a></td>
+</tr></tbody>
+</table>
+</div>
+<section aria-label="References and licenses / 参考文献与许可" class="license-notes"><h2 data-inline-section="true"><span class="en">References and licenses</span><span class="zh">参考文献与许可</span></h2><ol><li id="license-dinov2"><strong>DINOv2 — Apache-2.0</strong>. <span><span class="en">Code and official DINOv2 weights; retain copyright and license.</span><span class="zh">源码与官方 DINOv2 权重；保留版权和许可。</span></span> · <a href="https://github.com/facebookresearch/dinov2"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/dinov2/LICENSE"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a><div class="reference-citation">Oquab et al. DINOv2: Learning Robust Visual Features without Supervision. arXiv:2304.07193, 2023. · <a href="https://arxiv.org/abs/2304.07193"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-dinov2-ref-en-table-1" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-dinov2-ref-zh-table-1" role="doc-backlink">↩</a></div></li><li id="license-sam2"><strong>SAM 2 — Apache-2.0; cctorch: BSD-3-Clause</strong>. <span><span class="en">Native source and official checkpoints; cctorch carries an additional BSD notice. Ultralytics-converted files require checking their distributor terms.</span><span class="zh">原生源码与官方权重；cctorch 另附 BSD 声明。Ultralytics 转换文件还需核对分发方条款。</span></span> · <a href="https://github.com/facebookresearch/sam2/tree/2b90b9f5ceec907a1c18123530e92e794ad901a4"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/sam2/LICENSE"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a> · <a href="licenses/sam2/LICENSE_cctorch"><span class="en">License/notice 2</span><span class="zh">许可/声明 2</span></a><div class="reference-citation">Ravi et al. SAM 2: Segment Anything in Images and Videos. arXiv:2408.00714, 2024. · <a href="https://arxiv.org/abs/2408.00714"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-sam2-ref-en-table-1" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-sam2-ref-zh-table-1" role="doc-backlink">↩</a></div></li><li id="license-roma"><strong>RoMa — MIT</strong>. <span><span class="en">Matching source; separately obtained checkpoints and dependencies retain upstream terms.</span><span class="zh">匹配源码；另行获取的权重与依赖保留上游条款。</span></span> · <a href="https://github.com/Parskatt/RoMa"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="licenses/roma/LICENSE.txt"><span class="en">License/notice 1</span><span class="zh">许可/声明 1</span></a><div class="reference-citation">Edstedt et al. RoMa: Robust Dense Feature Matching. CVPR 2024. · <a href="https://arxiv.org/abs/2305.15404"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-roma-ref-en-table-1" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-roma-ref-zh-table-1" role="doc-backlink">↩</a></div></li><li id="license-lmo-data"><strong>LM-O data — CC-BY-SA-4.0</strong>. <span><span class="en">Data and model excerpt, not the loader code.</span><span class="zh">数据与模型摘录，不是读取代码。</span></span> · <a href="https://bop.felk.cvut.cz/datasets/#LM-O"><span class="en">Original source</span><span class="zh">原始来源</span></a> · <a href="https://github.com/thodan/bop_toolkit"><span class="en">GitHub: BOP toolkit</span><span class="zh">GitHub：BOP 工具集</span></a><div class="reference-citation">Brachmann et al. Learning 6D Object Pose Estimation Using 3D Object Coordinates. ECCV 2014. · <a href="https://doi.org/10.1007/978-3-319-10605-2_35"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-lmo-data-ref-en-table-1" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-lmo-data-ref-zh-table-1" role="doc-backlink">↩</a></div></li><li id="license-taco-data"><strong>TACO data — Not separately verified / 未单独核实</strong>. <span><span class="en">Data terms have not been separately verified. The official repository is the original source; the referenced Hugging Face acquisition mirror has no explicit license field. Confirm the data owner's terms for redistribution or commercial use.</span><span class="zh">数据条款尚未单独核实。官方仓库为原始出处；实际获取数据的 Hugging Face 镜像数据卡未声明明确许可字段。再分发或商业使用须核实数据权利方的条款。</span></span> · <a href="https://github.com/leolyliu/TACO-Instructions"><span class="en">GitHub</span><span class="zh">GitHub</span></a><div class="reference-citation">Liu et al. TACO: Benchmarking Generalizable Bimanual Tool-ACtion-Object Understanding. CVPR 2024. · <a href="https://openaccess.thecvf.com/content/CVPR2024/papers/Liu_TACO_Benchmarking_Generalizable_Bimanual_Tool-ACtion-Object_Understanding_CVPR_2024_paper.pdf"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-taco-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-taco-data-ref-zh" role="doc-backlink">↩</a></div></li><li id="license-ycbineoat-data"><strong>YCBInEOAT data — Not separately verified / 未单独核实</strong>. <span><span class="en">Tracking data permission must be checked at the original archive; the comparison code license does not establish the data license.</span><span class="zh">跟踪数据许可须在原始归档核实；对照代码的许可不能作为数据许可。</span></span> · <a href="https://github.com/NVlabs/FoundationPose#datasets"><span class="en">GitHub</span><span class="zh">GitHub</span></a> · <a href="https://github.com/wenbowen123/iros20-6d-pose-tracking"><span class="en">GitHub</span><span class="zh">GitHub</span></a><div class="reference-citation">Wen et al. se(3)-TrackNet: Data-driven 6D Pose Tracking by Calibrating Image Residuals in Synthetic Domains. IROS 2020. Introduces YCBInEOAT. · <a href="https://doi.org/10.1109/IROS45743.2020.9341314"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-ycbineoat-data-ref-en-table-1" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-ycbineoat-data-ref-zh-table-1" role="doc-backlink">↩</a></div></li><li id="license-robi-data"><strong>ROBI data — Not separately verified / 未单独核实</strong>. <span><span class="en">The saved public poses and dataset are credited to ROBI; an independent grant to redistribute them has not been verified.</span><span class="zh">保存的公开位姿和数据均注明 ROBI 来源；其再分发授权尚未独立核实。</span></span> · <a href="https://github.com/junyang224/ROBI_Toolkit"><span class="en">GitHub</span><span class="zh">GitHub</span></a><div class="reference-citation">Yang et al. ROBI: A Multi-View Dataset for Reflective Objects in Robotic Bin-Picking. IROS 2021. · <a href="https://arxiv.org/abs/2105.04112"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#license-robi-data-ref-en" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-robi-data-ref-en-table-1" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-robi-data-ref-zh" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#license-robi-data-ref-zh-table-1" role="doc-backlink">↩</a></div></li><li id="reference-bridge-data"><strong>BridgeData V2</strong> · <a href="https://rail-berkeley.github.io/bridgedata/"><span class="en">Original source</span><span class="zh">原始来源</span></a> · <a href="https://github.com/rail-berkeley/bridge_data_v2"><span class="en">GitHub</span><span class="zh">GitHub</span></a><div class="reference-citation">Walke et al. BridgeData V2: A Dataset for Robot Learning at Scale. arXiv:2308.12952, 2023. · <a href="https://arxiv.org/abs/2308.12952"><span class="en">Paper</span><span class="zh">论文</span></a> <a aria-label="Back to mention / 返回正文" href="#reference-bridge-data-ref-en-table-1" role="doc-backlink">↩</a> <a aria-label="Back to mention / 返回正文" href="#reference-bridge-data-ref-zh-table-1" role="doc-backlink">↩</a></div></li></ol><p><span class="en">Model weights and dataset/task assets may have separate terms. WAPR's source license does not replace them.</span><span class="zh">模型权重、数据集与任务资源可能有独立条款；WAPR 源码许可不替代这些许可。</span></p></section><nav aria-label="Previous and next pages / 上下页" class="docs-pagination" data-position="bottom"><a href="index-performance.html" rel="prev"><small class="page-direction"><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg><span class="en">Previous</span><span class="zh">上一页</span></small><strong><span class="en">Performance and what it measures</span><span class="zh">性能与测量范围</span></strong></a><a href="install.html" rel="next"><small class="page-direction"><span class="en">Next</span><span class="zh">下一页</span><svg aria-hidden="true" class="page-arrow" focusable="false" viewbox="0 0 24 24"><path d="M19 12H5 M12 5l-7 7 7 7"></path></svg></small><strong><span class="en">Installation</span><span class="zh">安装</span></strong></a></nav><footer class="site-author">© 2026 <a href="credits.html#authorship">Yulin Wang</a> · <span><span class="en">Code and website author</span><span class="zh">代码与网站作者</span></span></footer></main>
+</div>
+<script src="../assets/lang.js"></script>
+<script src="nav.js?v=34"></script>
+<script src="../assets/table-layout.js?v=1"></script></body>
+</html>

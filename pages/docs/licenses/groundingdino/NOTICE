@@ -1,0 +1,9 @@
+Frozen local GroundingDINO package used by the validated front end.
+Source: IDEA-Research/GroundingDINO. Upstream commit unknown.
+Local attention forward uses the PyTorch grid_sample implementation.
+No additional changes were applied while importing this snapshot.
+See artifact_manifest.json for individual source identities.
+WAPR adds groundingdino/config/groundingdino_swinb.json and
+groundingdino/config/groundingdino_swint.json as JSON transcriptions of the
+bundled upstream Python configs; each preserves all 43 configuration fields.
+WAPR 增加的两份 JSON 是本目录内上游 Python 配置的转写，各保留全部 43 个字段。

@@ -1,0 +1,1253 @@
+/*
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+*/
+
+.docs-top {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 18px;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 10px max(22px, calc((100% - 1200px) / 2 + 22px));
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.docs-home {
+  flex: none;
+  color: #006eb8;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.docs-jump {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.docs-jump a {
+  display: inline-flex;
+  align-items: center;
+  color: #1c1c1c;
+  text-decoration: none;
+  background: #fff;
+  border: 1px solid #d4d4d4;
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.docs-jump a:hover {
+  border-color: #006eb8;
+  color: #006eb8;
+}
+
+.docs-top .lang-switch { margin-left: auto; }
+
+.docs-shell {
+  --docs-top-gap: 20px;
+  --docs-bottom-gap: 80px;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 36px;
+  box-sizing: border-box;
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: var(--docs-top-gap) 22px var(--docs-bottom-gap);
+}
+
+/* The article is the reading column. A wide figure stays inside it.
+   正文栏才是阅读宽度。宽图缩进这一栏，不铺到整页外面。 */
+.docs-main {
+  min-width: 0;
+}
+
+/* Both ends of each section show the next reading step.
+   每个小节的首尾都显示上下页，让读者按顺序阅读。 */
+.docs-pagination {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  margin: 0 0 24px;
+}
+.docs-pagination[data-position="bottom"] { margin: 32px 0 0; }
+.docs-pagination a {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border: 1px solid #dce5eb;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #174d70;
+}
+.docs-pagination a:hover { background: #f0f6fb; border-color: #9ec3dd; }
+.docs-pagination a[rel="next"] { text-align: right; }
+.docs-pagination small { color: #5c6d7b; font-size: 13px; }
+/* Keep the directional icon optically centered beside either language label.
+   方向图标与两种语言的标签保持视觉居中对齐。 */
+.docs-pagination .page-direction { display: flex; align-items: center; gap: 6px; }
+.docs-pagination a[rel="next"] .page-direction { justify-content: flex-end; }
+.docs-pagination .page-arrow {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.docs-pagination a[rel="next"] .page-arrow { transform: rotate(180deg); }
+.docs-pagination strong { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.docs-breadcrumb { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; font-size: 14px; }
+.docs-breadcrumb a { color: #5c6d7b; text-decoration: none; }
+.docs-breadcrumb a + a::before { content: " / "; color: #84939d; }
+.docs-main .docs-section-list { list-style: none; padding: 0; margin: 24px 0; }
+.docs-section-list li { border-bottom: 1px solid #e6e6e6; }
+.docs-section-list > li > a { display: block; padding: 10px 0; text-decoration: none; }
+
+/* One RGB-D frame supplies every stage of the integrated pipeline.
+   一体化流程中的各阶段共用同一帧 RGB-D 输入。 */
+.docs-main .pose-pipeline {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 24px 0 32px;
+  counter-reset: pose-stage;
+}
+.pose-pipeline li {
+  counter-increment: pose-stage;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #dce5eb;
+  border-radius: 10px;
+  background: #f4f8fb;
+  font-size: 14px;
+  color: #43586a;
+  overflow-wrap: anywhere;
+}
+.pose-pipeline li::before {
+  content: counter(pose-stage, decimal-leading-zero);
+  display: block;
+  color: #006eb8;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.pose-pipeline strong { display: block; margin-bottom: 8px; color: #173f59; }
+.pose-pipeline li > span, .pose-pipeline li > code { display: block; margin-top: 6px; }
+.pipeline-stage { margin-top: 32px; scroll-margin-top: 100px; }
+@media (max-width: 760px) {
+  .docs-main .pose-pipeline { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .docs-pagination { gap: 8px; }
+  .docs-pagination a { padding: 10px; }
+}
+
+.docs-main figure:not(.docs-shot) {
+  margin: 8px auto 18px;
+  max-width: 100%;
+}
+
+.docs-main figure:not(.docs-shot) img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+/* A two-panel diagram stays smaller than the reading column.
+   左右两块的示意图不铺满正文栏。 */
+.docs-main figure.compact {
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* The point-prompt photo is one scene. It stays narrower than the reading column.
+   点提示这张是单张场景。它比正文栏窄一截。 */
+.docs-main figure.prompt-shot {
+  max-width: 520px;
+}
+
+.docs-main figure.outline-fit {
+  max-width: 400px;
+}
+
+/* Keep diagnostic prose in the reading flow, separate from short centered captions.
+   诊断说明左对齐顺着正文阅读，与简短的居中图注分开。 */
+.docs-main .figure-notes {
+  max-width: 720px;
+  margin: 12px auto 24px;
+}
+.docs-main .figure-notes p {
+  font-size: 15px;
+  line-height: 1.65;
+  text-align: left;
+  margin: 8px 0;
+}
+
+/* Panel pictures scale independently; HTML labels keep their reading size and wrap.
+   面板图片独立缩放；HTML 标签保持阅读字号并正常换行，不随整图放大。 */
+.docs-main figure.evidence-board { max-width: 840px; }
+.docs-main figure.evidence-board.columns-2 { max-width: 640px; }
+.evidence-panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 16px;
+}
+.columns-3 > .evidence-panels {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.docs-main figure.evidence-panel { min-width: 0; margin: 0; }
+.evidence-panel svg { display: block; width: 100%; height: auto; }
+.docs-main .evidence-panel figcaption { margin: 6px 0 0; line-height: 1.5; }
+.panel-label { display: block; font-size: 14px; font-weight: 600; color: #344f63; }
+.panel-detail { display: block; margin-top: 2px; font-size: 13px; color: #5c6d7b; }
+.evidence-panel .best-result { font-weight: 700; }
+.evidence-board > figcaption { margin-top: 14px; }
+@media (max-width: 640px) {
+  .evidence-panels,
+  .columns-3 > .evidence-panels { grid-template-columns: 1fr; }
+}
+
+.docs-main details.doc-detail {
+  margin: 12px 0;
+  padding: 12px 16px;
+  border: 1px solid #dce5eb;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.docs-main details.doc-detail summary {
+  color: #174d70;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.docs-main details.doc-detail[open] summary {
+  margin-bottom: 12px;
+}
+
+.docs-main .overview-flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0 24px;
+  padding: 0;
+  list-style: none;
+  counter-reset: overview-step;
+}
+
+.docs-main .overview-flow li {
+  min-width: 0;
+  padding: 14px 16px 16px;
+  border: 1px solid #dce5eb;
+  border-top: 3px solid #3387bc;
+  border-radius: 8px;
+  background: #f8fafc;
+  counter-increment: overview-step;
+}
+
+.docs-main .overview-flow li::before {
+  display: block;
+  margin-bottom: 8px;
+  color: #2878aa;
+  font-size: 13px;
+  font-weight: 700;
+  content: counter(overview-step, decimal-leading-zero);
+}
+
+.docs-main .overview-flow strong { display: block; margin-bottom: 6px; }
+.docs-main .overview-flow li > span { font-size: 15px; line-height: 1.5; }
+.docs-main table.overview-routes { table-layout: fixed; }
+.docs-main table.overview-routes th:first-child,
+.docs-main table.overview-routes td:first-child { width: 22%; }
+.docs-main table.overview-routes th,
+.docs-main table.overview-routes td { overflow-wrap: anywhere; }
+.docs-main .overview-paper .docs-shot img { width: min(100%, 820px); }
+.docs-main .overview-paper .docs-shot figcaption { max-width: 820px; }
+
+@media (max-width: 1080px) {
+  .docs-main .overview-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .docs-main .overview-flow { grid-template-columns: 1fr; }
+}
+
+.docs-nav {
+  position: sticky;
+  /* Match the initial shell gap so a restored compact header pins the nav immediately.
+     与正文容器顶部留白一致，恢复收起的顶栏后目录立即吸顶，首次滚动不会上跳。 */
+  top: calc(var(--mast-pin, 54px) + var(--docs-top-gap));
+  align-self: start;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* Fit between the pinned header and the shell's bottom padding, including on short pages.
+     同时扣除吸顶栏与容器底部留白，短页面末尾也不会将较长的英文目录挤上去。 */
+  max-height: max(0px, calc(100vh - var(--mast-pin, 54px) - var(--docs-top-gap) - var(--docs-bottom-gap)));
+  overflow: auto;
+  padding-top: 8px;
+}
+
+.docs-menu-toggle { display: none; }
+@media (max-width: 800px) {
+  .docs-menu-toggle {
+    display: block;
+    text-align: left;
+    border: 1px solid #dce5eb;
+    background: #f8fafc;
+    color: #174d70;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font: inherit;
+    cursor: pointer;
+  }
+  .docs-nav[data-folded="1"][data-mobile-open="false"] { display: none; }
+}
+
+.docs-nav a {
+  color: #363636;
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 8px 10px 8px 0;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.docs-nav a:hover { background: #f5f5f5; }
+
+.docs-nav a.sub { padding-left: 22px; font-size: 14px; }
+.docs-nav a.sub3 { padding-left: 34px; font-size: 13px; color: #555; }
+
+.docs-nav a[aria-current="page"],
+.docs-nav a[aria-current="location"] {
+  background: #f0f6fb;
+  color: #006eb8;
+  font-weight: 650;
+}
+
+.nav-fold-row {
+  display: flex;
+  align-items: center;
+}
+
+.nav-fold-row > a { flex: 1; min-width: 0; }
+
+.nav-fold-kids {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-fold-kids[hidden] { display: none; }
+
+.nav-fold-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  margin-right: 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.nav-fold-btn:hover { background: #f5f5f5; }
+
+.nav-fold-btn span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.nav-fold-btn[aria-expanded="false"] .nav-fold-when-open,
+.nav-fold-btn[aria-expanded="true"] .nav-fold-when-closed { display: none; }
+
+.nav-fold-btn::before {
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  margin: 0 auto;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid #666;
+  transition: transform 0.12s ease;
+}
+
+.nav-fold.is-open > .nav-fold-row > .nav-fold-btn::before {
+  border-top: 5px solid #666;
+  border-right: 4px solid transparent;
+  border-bottom: 0;
+  border-left: 4px solid transparent;
+  transform: none;
+}
+
+.docs-main h2,
+.docs-main h3 { scroll-margin-top: 76px; }
+
+.docs-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 8px 0 12px;
+}
+
+.docs-card {
+  display: block;
+  border: 1px solid #e4e4e4;
+  border-radius: 10px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  background: #fff;
+}
+
+.docs-card:hover { border-color: #9ec3dd; }
+
+.docs-card img {
+  display: block;
+  width: 100%;
+  height: 168px;
+  object-fit: cover;
+  background: #111;
+}
+
+.docs-card div { padding: 10px 12px 14px; }
+
+.docs-card strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 16px;
+}
+
+.docs-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #363636;
+}
+
+.docs-shot { margin: 8px 0 18px; }
+
+.grasp-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: auto auto auto auto;
+  gap: 8px 14px;
+  margin: 16px 0 8px;
+}
+
+.grasp-board .grasp-still,
+.grasp-board .grasp-play {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 2;
+  margin: 0;
+  min-width: 0;
+}
+
+.grasp-board .grasp-still { grid-row: 1 / span 2; }
+.grasp-board .grasp-play { grid-row: 3 / span 2; }
+
+.grasp-board .docs-shot img,
+.grasp-board .docs-shot video {
+  width: 100%;
+  max-width: 100%;
+}
+
+.robot-comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 16px 0 22px;
+}
+.robot-comparison .docs-shot { min-width: 0; margin: 0; }
+.robot-comparison .docs-shot video { max-width: 100%; }
+
+.docs-shot img,
+.docs-shot video {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+  border-radius: 8px;
+  background: #111;
+}
+
+.docs-shot.wide img { max-width: 100%; }
+
+/* Center the paired RGB-D input and keep its caption aligned with the figure.
+   RGB-D 输入对照居中展示，图注与整幅图的宽度一致。 */
+.docs-shot.rgbd-input {
+  width: 100%;
+  max-width: 1040px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.docs-shot.rgbd-input img,
+.docs-shot.rgbd-input figcaption { max-width: 100%; }
+
+/* The full-width video leads; smaller stills compare methods by row.
+   视频铺满正文作为主展示；较小静帧按上下两排对照方法。 */
+.docs-shot.taco-pose-comparison video,
+.docs-shot.taco-pose-comparison figcaption { max-width: 100%; }
+.taco-pose-stills {
+  width: 80%;
+  max-width: 800px;
+  margin: 16px auto;
+}
+.taco-pose-stills > strong {
+  display: block;
+  text-align: center;
+  margin: 10px 0 6px;
+  font-size: 14px;
+  color: #43586a;
+}
+.taco-pose-still-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.taco-pose-still-row svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 512 / 376;
+  overflow: hidden;
+  border-radius: 6px;
+}
+@media (max-width: 600px) {
+  .taco-pose-stills { width: 100%; }
+  .taco-pose-still-row { gap: 4px; }
+}
+
+/* Keep scientific plot labels legible on narrow screens. */
+/* 窄屏保持科学图表标注可读，图表单独横向滚动。 */
+@media (max-width: 700px) {
+  .docs-main .backend-scaling-plot { display: block; overflow-x: auto; }
+  .docs-main .backend-scaling-plot img { min-width: 720px; max-width: none; }
+}
+
+.docs-shot.bottle-clip {
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.docs-shot.bottle-clip video {
+  max-width: 100%;
+}
+
+.docs-shot video + img { margin-top: 8px; }
+
+.docs-shot.diagram img {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+}
+
+.docs-shot.diagram figcaption { max-width: 100%; }
+
+.docs-card img.fit {
+  object-fit: contain;
+  height: 150px;
+  background: #f5f5f5;
+}
+
+.docs-shot figcaption {
+  max-width: 720px;
+  margin-top: 6px;
+  color: #4a4a4a;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.docs-main h1 {
+  margin: 8px 0 18px;
+  font-size: 34px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.docs-main h2 {
+  font-size: 26px;
+  font-weight: 650;
+  border-bottom: 1px solid #dbdbdb;
+  padding-bottom: 8px;
+  margin: 36px 0 14px;
+}
+
+.docs-main h2:first-of-type { margin-top: 0; }
+
+.docs-main h3 {
+  font-size: 20px;
+  font-weight: 650;
+  margin: 28px 0 10px;
+}
+
+/* Separate the model families from WAPR's two input variants.
+   区分模型系列与 WAPR 的两种输入变体，仅调整权重介绍的标题层次。 */
+.docs-main #weights-four-pose-checkpoints {
+  margin: 24px 0 8px;
+  color: #5c6d7b;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.docs-main #weights-wapr,
+.docs-main #weights-sapr,
+.docs-main #weights-wbps,
+.docs-main #weights-the-four-files {
+  margin: 32px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #dce5ec;
+  color: #244963;
+  font-size: 23px;
+  font-weight: 700;
+}
+
+.docs-main #weights-wapr-mask,
+.docs-main #weights-wapr-nomask {
+  margin: 22px 0 8px;
+  padding-left: 10px;
+  border-left: 3px solid #b8ccdc;
+  color: #455d70;
+  font-size: 17px;
+  line-height: 1.5;
+  font-weight: 650;
+  scroll-margin-top: 76px;
+}
+
+.docs-main p,
+.docs-main li { font-size: 17px; line-height: 1.65; }
+
+.docs-main .docs-card p { font-size: 14px; line-height: 1.45; margin: 0; }
+.docs-main .docs-shot figcaption { font-size: 14px; line-height: 1.45; }
+
+.docs-main .robi-latency-wrap { overflow-x: auto; margin: 14px 0 22px; }
+.docs-main .robi-latency-wrap table { min-width: 820px; margin: 0; }
+.docs-main .robi-latency-wrap td:not(:first-child) { font-variant-numeric: tabular-nums; }
+/* Keep workload groups and numeric columns structurally distinct.
+   保留负载分组与数值列结构，视觉样式由公共表格规则提供。 */
+.docs-main .backend-scaling-table thead th {
+  text-align: center;
+  white-space: nowrap;
+}
+.docs-main .backend-scaling-table thead th[rowspan],
+.docs-main .backend-scaling-table thead tr:first-child th:first-child,
+.docs-main .backend-scaling-table tbody td:first-child {
+  text-align: left;
+  white-space: nowrap;
+}
+.docs-main .backend-scaling-table tbody td:not(:first-child) {
+  text-align: center;
+}
+.docs-main .backend-scaling-table thead th[colspan],
+.docs-main .backend-scaling-table thead tr:last-child th:nth-child(2),
+.docs-main .backend-scaling-table tbody td:nth-child(3) {
+  border-left: 1px solid #d5e2ee;
+}
+.docs-main .robi-frame-time {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-left: 3px solid #2871a7;
+  background: #f2f7fb;
+  color: #23455f;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.docs-main ul { padding-left: 22px; }
+
+/* One table style for resources, interfaces and measured comparisons.
+   资源、接口和性能对照表共用一套样式，适配布局由 table-layout.css 提供。 */
+.docs-main .docs-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+  margin: 14px 0 22px;
+  border: 1px solid #d7e4f0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.docs-main table,
+.docs-main table.score-table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-size: 15px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.docs-main th,
+.docs-main td,
+.docs-main table.score-table th,
+.docs-main table.score-table td {
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid #e3eaf0;
+  padding: 10px 14px;
+}
+
+.docs-main thead th,
+.docs-main table.score-table thead th,
+.docs-main table.score-table thead th.band {
+  background: #f3f7fb;
+  color: #344e63;
+  font-size: 14px;
+  font-weight: 650;
+  text-align: left;
+}
+
+.docs-main thead th:first-child,
+.docs-main tbody td:first-child { text-align: left; }
+
+.docs-main td.table-numeric:not(:first-child),
+.docs-main table th.table-numeric,
+.docs-main table .num,
+.docs-main table.score-table thead th.band,
+.docs-main table.score-table thead th.column-start,
+.docs-main table.score-table thead th.method-start {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.docs-main tbody tr:last-child td { border-bottom: 0; }
+
+/* Keep short dataset names with their references; long AP headings may wrap.
+   数据集简称与引用编号保持完整，较长的 AP 表头允许换行。 */
+.docs-main table.dataset-ap th { white-space: normal; }
+.docs-main table.dataset-ap th:first-child,
+.docs-main table.dataset-ap td:first-child { white-space: nowrap; }
+
+/* Parameter tables use the shared appearance, with space for prose and calls.
+   参数说明表沿用统一外观，仅为说明文字和调用代码分配列宽。 */
+.docs-main table.parameter-table { table-layout: fixed; min-width: 860px; }
+.docs-main table.parameter-table td { vertical-align: top; }
+.docs-main table.parameter-table col.parameter-name { width: 18%; }
+.docs-main table.parameter-contract col.parameter-shape { width: 22%; }
+.docs-main table.parameter-table code { overflow-wrap: anywhere; }
+.docs-main table.parameter-table td:first-child code { white-space: nowrap; }
+
+.docs-main table caption {
+  caption-side: top;
+  padding: 10px 14px;
+  background: #fff;
+  color: #53697c;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid #d7e4f0;
+}
+
+/* Reserve one line for page links; learning objectives use the remaining width.
+   页面链接按单行保留宽度，学习目标在剩余宽度内自然换行。 */
+.docs-main .example-overview-wrap { overflow-x: auto; }
+.docs-main table.example-overview thead th:last-child,
+.docs-main table.example-overview td:last-child {
+  width: 1%;
+  white-space: nowrap;
+  padding-left: 14px;
+}
+
+/* Robot lesson numbers remain legible beside the input and evidence columns.
+   机器人案例编号与输入、证据列并排时保持清晰，窄屏沿用公共纵向布局。 */
+.docs-main table.robot-route { table-layout: fixed; }
+.docs-main table.robot-route th:first-child,
+.docs-main table.robot-route td:first-child {
+  width: 68px;
+  color: #174d70;
+  font-weight: 650;
+}
+.docs-main table.robot-route th:nth-child(2) { width: 34%; }
+
+.docs-main table.install-issues td { overflow-wrap: anywhere; }
+.docs-main table.install-issues td:first-child { width: 30%; }
+
+.docs-main table.score-table {
+  min-width: 720px;
+  table-layout: fixed;
+}
+
+.docs-main .taco-score-steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin: 8px 0 22px;
+}
+
+.docs-main figure.taco-score-step {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid #d7e4f0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f8fbfd;
+}
+
+.docs-main figure.taco-score-step img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.docs-main figure.taco-score-step figcaption {
+  padding: 8px 9px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #344e63;
+}
+
+@media (max-width: 800px) {
+  .docs-main .taco-score-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 560px) {
+  .docs-main .taco-score-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.docs-main table.score-table col.c-name { width: 30%; }
+.docs-main table.score-table col.c-method { width: 18%; }
+
+.docs-main table.score-table thead th {
+  white-space: nowrap;
+}
+
+.docs-main table.score-table thead th:first-child:not(.num):not(.column-start) { text-align: left; }
+
+.docs-main table.score-table .unit {
+  display: block;
+  margin-top: 1px;
+  color: #7d8b99;
+  font-size: 12px;
+  font-weight: 450;
+}
+
+.docs-main table.score-table td.seq {
+  color: #1c1c1c;
+  font-weight: 650;
+  white-space: nowrap;
+  background: #fff;
+}
+
+.docs-main table.score-table td.seq code {
+  padding: 0;
+  background: none;
+  color: inherit;
+  font-size: 14px;
+  font-weight: 550;
+}
+
+.docs-main table.score-table .sub {
+  display: block;
+  margin-top: 2px;
+  color: #6b7785;
+  font-size: 13px;
+  font-weight: 450;
+}
+
+.docs-main table.score-table tr.group td { border-top: 1px solid #d5e2ee; }
+
+/* Separate comparison methods through both header rows and the body.
+   方法分隔贯穿两层表头与正文；粗体标出同一行中较好的数值。 */
+.docs-main .taco-score-table .method-start,
+.docs-main .taco-score-table .column-start { border-left: 2px solid #d5e2ee; }
+.docs-main .taco-score-table td strong { font-weight: 750; }
+.docs-main .taco-score-table .score-note {
+  display: block;
+  margin-top: 5px;
+  color: #53697c;
+  font-size: 12px;
+  font-weight: 450;
+}
+
+.nb-cell {
+  margin: 16px 0 22px;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.nb-in,
+.nb-out {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 4px 8px;
+}
+
+.nb-in { background: #f7f7f7; }
+.nb-in pre { grid-column: 2; }
+
+.nb-out { border-top: 1px solid #ececec; }
+
+.nb-prompt {
+  padding: 16px 0 0 12px;
+  color: #307fc1;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.nb-out .nb-prompt { color: #d84315; }
+
+/* Source locations and stdout evidence belong to the cell, in compact text.
+   代码位置与标准输出来源放在单元内，以小字显示。 */
+.docs-main .nb-source {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0 12px 10px;
+  color: #53616c;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.nb-cell pre {
+  margin: 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+.nb-text {
+  margin: 12px 12px 12px 0;
+  white-space: pre-wrap;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.nb-out img {
+  display: block;
+  max-width: min(100%, 520px);
+  /* Preserve the image ratio when max-width overrides its HTML width. */
+  /* 宽度被 max-width 限制时，高度同步缩放，保持原图比例。 */
+  height: auto;
+  margin: 0 auto 8px;
+  border: 1px solid #e6e6e6;
+  border-radius: 4px;
+}
+
+/* Keep licensing references compact beside the first component mention. */
+/* 组件首次出现处仅放紧凑编号，许可与来源集中在同页脚注。 */
+.license-reference { margin-left: 3px; font-size: 0.7em; }
+.license-reference a { display: inline; padding: 0; }
+.docs-main .license-notes {
+  margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px solid #dce3e8;
+  color: #53616c;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.docs-main .license-notes h2 {
+  font-size: 13px;
+  line-height: inherit;
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+}
+.docs-main .license-notes ol { margin: 0; padding-left: 22px; }
+.docs-main .license-notes li,
+.docs-main .license-notes p { font-size: inherit; line-height: inherit; }
+.docs-main .license-notes li { margin-bottom: 4px; }
+.docs-main .license-notes p { margin: 8px 0 0; }
+
+/* Caption rules must outrank body paragraphs; keep output notes compact and framed.
+   图注规则优先于正文段落；输出图片的说明使用小字号和紧凑边框。 */
+.docs-main .nb-cap,
+.docs-main .nb-out .figure-notes {
+  box-sizing: border-box;
+  max-width: 720px;
+  margin: 8px auto 14px;
+  padding: 10px 14px;
+  border: 1px solid #dce5ec;
+  border-radius: 8px;
+  background: #f6f9fc;
+  color: #53697c;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.docs-main .nb-out .figure-notes p {
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.docs-main .nb-out .figure-notes p + p {
+  margin-top: 8px;
+}
+
+/* Both language variants occupy the same place without adding a hidden-row gap.
+   中英文说明共用同一位置，不让隐藏语言留下额外段间距。 */
+.docs-main .nb-out .figure-notes > p.en + p.zh {
+  margin-top: 0;
+}
+
+.docs-main pre {
+  background: #f5f5f5;
+  border-radius: 6px;
+  padding: 14px 16px;
+  overflow: auto;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Long inline resource paths wrap within the existing page width.
+   长行内资源路径在原页面宽度内换行。 */
+.docs-main p code, .docs-main li code {
+  overflow-wrap: anywhere;
+}
+.docs-main .doc-detail p {
+  overflow-wrap: anywhere;
+}
+
+.docs-main .nb-cell pre,
+.docs-main .nb-text {
+  background: transparent;
+  border-radius: 0;
+  padding: 12px 12px 12px 0;
+}
+
+.docs-main code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.92em;
+}
+
+.docs-main p code,
+.docs-main li code,
+.docs-main td code {
+  background: #f5f5f5;
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+.own-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin: 10px 0 4px;
+}
+
+.own-photo,
+.own-cloud {
+  background: #f3f4f6;
+  border: 1px solid #d5d5d5;
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(28, 40, 54, 0.06);
+  overflow: hidden;
+}
+
+.own-photo canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: pointer;
+}
+
+.own-cloud {
+  position: relative;
+  width: 100%;
+  height: 640px;
+}
+
+.own-cloud canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+.own-chips {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.own-chips button {
+  border: 1px solid #d0d0d0;
+  background: #f4f7fa;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font: 600 13px sans-serif;
+  color: #1c1c1c;
+  cursor: pointer;
+}
+
+.own-chips button[aria-pressed="true"] {
+  background: #1c2836;
+  color: #ffffff;
+  border-color: #1c2836;
+}
+
+@media (max-width: 800px) {
+  /* Long inline names may wrap; full code blocks keep their own scroll area.
+     行内长名称可以换行；完整代码块仍在自己的区域横向滚动。 */
+  .docs-main p code,
+  .docs-main li code,
+  .docs-main th,
+  .docs-main td { overflow-wrap: anywhere; }
+  .docs-shell { grid-template-columns: 1fr; gap: 12px; }
+  .docs-cards { grid-template-columns: 1fr; }
+  .docs-nav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    max-height: none;
+  }
+  .docs-nav a.sub,
+  .docs-nav a.sub3 { padding-left: 10px; }
+  .nav-fold { flex: 1 1 100%; }
+  .own-cloud { height: 480px; }
+  .det-steps { gap: 6px; }
+  .grasp-board { grid-template-columns: 1fr; }
+  .robot-comparison { grid-template-columns: 1fr; }
+  .grasp-board .grasp-still,
+  .grasp-board .grasp-play {
+    display: block;
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .docs-top { padding: 10px 12px; gap: 10px; }
+  .docs-home { font-size: 20px; }
+  .docs-jump { flex-wrap: nowrap; gap: 5px; }
+  .docs-jump a { padding: 4px 7px; font-size: 12px; white-space: nowrap; }
+  .docs-top .lang-switch { flex: none; gap: 4px; }
+  .docs-top .lang-switch button { padding: 5px 8px; font-size: 12px; white-space: nowrap; }
+}
+
+.det-flow {
+  display: grid;
+  gap: 12px;
+  margin: 4px 0 8px;
+}
+
+.det-flow-row {
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  padding: 12px 14px 14px;
+  background: #fafafa;
+}
+
+.det-flow-name {
+  display: block;
+  margin-bottom: 8px;
+  color: #006eb8;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.det-steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.det-steps li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.det-steps li::after {
+  content: "→";
+  color: #8a8a8a;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.det-steps li:last-child::after { content: none; }
+
+.det-steps b {
+  display: inline-block;
+  padding: 6px 10px;
+  border: 1px solid #d5d5d5;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+/* Center media inside its reading column or grid cell without changing its size.
+   媒体在正文栏或组合图的各自单元中居中，保留既有尺寸与宽高比例。 */
+.docs-main figcaption {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #5c6d7b;
+}
+.docs-main img,
+.docs-main video,
+.docs-main svg {
+  margin-left: auto;
+  margin-right: auto;
+}
+.docs-main figcaption,
+.docs-main .nb-cap,
+.docs-main .robi-card-legend {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+.docs-main .backend-scaling-table caption,
+.docs-main table.score-table.taco-score-table caption {
+  text-align: center;
+}
+
+/* Language visibility takes precedence over media layout display rules.
+   语言隐藏优先于媒体布局的 display 规则，避免两种语言的图同时显示。 */
+html:not([data-lang="zh"]) body.docs .zh { display: none; }
+html[data-lang="zh"] body.docs .en { display: none; }

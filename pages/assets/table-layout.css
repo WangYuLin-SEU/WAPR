@@ -1,0 +1,111 @@
+/*
+Author: Yulin Wang (yulinwang@seu.edu.cn)
+School of Mechanical Engineering, Southeast University, China
+Copyright (c) 2026 Yulin Wang. All rights reserved, except as granted under LICENSE.
+SPDX-License-Identifier: LGPL-2.1-only
+作者与版权人：Yulin Wang；使用、修改与再分发须遵守项目 LICENSE。
+Third-party portions retain their original notices and terms; see THIRD_PARTY_NOTICES.txt.
+*/
+
+/* Fit complete tables to their content area; never clip or hide scrollbars.
+   完整表格适配正文宽度，不裁掉数据，也不通过隐藏滑条伪装适配。 */
+.docs-main .docs-table-wrap,
+.docs-main .robi-latency-wrap,
+.docs-main .example-overview-wrap,
+.score-wrap { overflow-x: visible; }
+
+.docs-main .docs-table-wrap table,
+.docs-main table.parameter-table,
+.docs-main table.score-table,
+.score-wrap .score-table,
+.score-wrap.score-narrow .taco-score-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.docs-main table.responsive-table th,
+.docs-main table.responsive-table thead th,
+.docs-main table.responsive-table td,
+.docs-main table.responsive-table td.seq,
+.docs-main table.responsive-table td.table-numeric:not(:first-child),
+.docs-main table.responsive-table th.table-numeric,
+.docs-main table.responsive-table thead th.band,
+.docs-main table.responsive-table thead th.column-start,
+.docs-main table.responsive-table thead th.method-start,
+.docs-main table.responsive-table th:first-child,
+.docs-main table.responsive-table thead th:last-child,
+.docs-main table.responsive-table th[rowspan],
+.docs-main table.responsive-table td:first-child,
+.docs-main table.responsive-table td:last-child,
+.score-wrap table.responsive-table th,
+.score-wrap table.responsive-table td,
+.score-wrap table.responsive-table td.seq,
+.score-wrap table.responsive-table td.num:not(:last-child) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.docs-main table.responsive-table td code,
+.docs-main table.responsive-table td:first-child code,
+.score-wrap table.responsive-table td code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.docs-main table.example-overview thead th:last-child,
+.docs-main table.example-overview td:last-child { width: 24%; }
+
+/* Narrow tables retain their headers and show each row as labeled fields.
+   窄屏保留表头，每行改为带字段标签的纵向排列，避免把多列硬挤在一起。 */
+table.responsive-table.table-stacked,
+table.responsive-table.table-stacked thead,
+table.responsive-table.table-stacked tbody,
+table.responsive-table.table-stacked tfoot { display: block; width: 100%; }
+table.responsive-table.table-stacked caption { display: block; }
+table.responsive-table.table-stacked colgroup { display: none; }
+table.responsive-table.table-stacked thead tr { display: flex; flex-wrap: wrap; }
+.docs-main table.responsive-table.table-stacked thead th,
+.score-wrap table.responsive-table.table-stacked thead th {
+  display: block;
+  flex: 1 1 120px;
+  width: auto;
+  box-sizing: border-box;
+  text-align: left;
+}
+table.responsive-table.table-stacked tbody tr { display: block; border-bottom: 2px solid #d7e4f0; }
+table.responsive-table.table-stacked tbody tr:last-child { border-bottom: 0; }
+.docs-main table.responsive-table.table-stacked td,
+.score-wrap table.responsive-table.table-stacked td {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border-left: 0;
+  text-align: left;
+}
+.docs-main table.responsive-table.table-stacked td.table-numeric:not(:first-child),
+.docs-main table.responsive-table.table-stacked td.num,
+.score-wrap table.responsive-table.table-stacked td.num { text-align: center; }
+table.responsive-table.table-stacked td::before {
+  content: attr(data-label-en);
+  display: block;
+  margin-bottom: 4px;
+  color: #53697c;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.4;
+  text-align: left;
+}
+html[data-lang="zh"] table.responsive-table.table-stacked td::before { content: attr(data-label-zh); }
+table.responsive-table.table-stacked tr[data-row-group-en]::before {
+  content: attr(data-row-group-en);
+  display: block;
+  padding: 10px 14px;
+  background: #f3f7fb;
+  color: #344e63;
+  font-size: 13px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+html[data-lang="zh"] table.responsive-table.table-stacked tr[data-row-group-zh]::before { content: attr(data-row-group-zh); }
