@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WAPR website has moved</title>
+  <meta name="robots" content="noindex">
+  <!-- Author / 作者: Yulin Wang, Southeast University; shopedataset@gmail.com.
+       Copyright (c) 2026 Yulin Wang. SPDX-License-Identifier: LGPL-2.1-only. -->
+</head>
+<body>
+  <p>The WAPR website has moved. / WAPR 网站已迁移。</p>
+  <p><a id="destination" href="https://wangyulin-seu.github.io/WAPR-site/">Open WAPR website / 打开 WAPR 网站</a></p>
+  <noscript>Please use the link above. / 请点击上方链接。</noscript>
+  <script>
+    // Preserve page paths, language selection and section anchors.
+    // 保留页面路径、语言选择和章节锚点。
+    const oldPrefix = "/WAPR";
+    const oldPath = window.location.pathname;
+    let suffix = "/";
+    if (oldPath.startsWith(oldPrefix + "/")) {
+      suffix = oldPath.slice(oldPrefix.length);
+    }
+    const destination = new URL("https://wangyulin-seu.github.io/WAPR-site/");
+    destination.pathname = "/WAPR-site" + suffix;
+    destination.search = window.location.search;
+    destination.hash = window.location.hash;
+    document.getElementById("destination").href = destination.href;
+    window.location.replace(destination.href);
+  </script>
+</body>
+</html>
