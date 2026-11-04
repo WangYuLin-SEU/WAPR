@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>WAPR website has moved</title>
+<noscript><meta http-equiv="refresh" content="0; url=https://wangyulin-seu.github.io/WAPR-site/docs/pose-track.html#track-dino"></noscript>
+  <!-- Author / 作者: Yulin Wang, Southeast University; shopedataset@gmail.com.
+       Copyright (c) 2026 Yulin Wang. SPDX-License-Identifier: LGPL-2.1-only. -->
+</head>
+<body>
+  <h1>WAPR website has moved / WAPR 网站已迁移</h1>
+  <p><a id="destination" href="https://wangyulin-seu.github.io/WAPR-site/docs/pose-track.html#track-dino">Continue to WAPR / 前往 WAPR</a></p>
+  <p><a href="https://wangyulin-seu.github.io/WAPR-site/">Project home / 项目首页</a> ·
+     <a href="https://wangyulin-seu.github.io/WAPR-site/docs/">Documentation / 使用文档</a></p>
+  <noscript><p>If this page does not redirect, follow a link above.
+    / 如果页面未自动跳转，请使用上方链接。</p></noscript>
+  <script>
+    // Keep paths, queries and anchors when JavaScript is available.
+    // JavaScript 可用时保留路径、查询参数与锚点。
+    const oldPrefix = "/WAPR";
+    const oldPath = window.location.pathname;
+    const suffix = oldPath.startsWith(oldPrefix + "/")
+      ? oldPath.slice(oldPrefix.length) : "/";
+    const destination = new URL("https://wangyulin-seu.github.io/WAPR-site/");
+    destination.pathname = "/WAPR-site" + suffix;
+    destination.search = window.location.search;
+    destination.hash = window.location.hash;
+    document.getElementById("destination").href = destination.href;
+    window.location.replace(destination.href);
+  </script>
+</body>
+</html>
