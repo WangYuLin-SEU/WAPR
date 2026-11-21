@@ -19,9 +19,9 @@ Reconstruction and robotics are optional Linux features. Prepare SAM3D and RoMa 
 
 Resources share `cache/weights/`, `cache/environments/` and dataset-specific `cache/samples/` under `WAPR_CACHE_DIR`; each example writes separately to `outputs/<number_task>/`. / 资源在 `WAPR_CACHE_DIR` 根下共用缓存目录，各示例输出独立存放。
 
-See the [documentation](https://wangyulin-seu.github.io/WAPR-site/docs/) for installation, examples and input requirements, and the [project repository](https://github.com/WangYuLin-SEU/WAPR) for source code.
+See the [documentation](https://wangyulin-seu.github.io/wapr/docs/) for installation, examples and input requirements, and the [project repository](https://github.com/WangYuLin-SEU/WAPR) for source code.
 
-安装步骤、示例和输入要求见[文档](https://wangyulin-seu.github.io/WAPR-site/docs/?lang=zh)，源码见[项目仓库](https://github.com/WangYuLin-SEU/WAPR)。
+安装步骤、示例和输入要求见[文档](https://wangyulin-seu.github.io/wapr/docs/?lang=zh)，源码见[项目仓库](https://github.com/WangYuLin-SEU/WAPR)。
 
 Code: [LGPL-2.1](https://github.com/WangYuLin-SEU/WAPR/blob/main/LICENSE). Model weights: [weight license](https://github.com/WangYuLin-SEU/WAPR/blob/main/WEIGHTS_LICENSE.txt). See [third-party notices](https://github.com/WangYuLin-SEU/WAPR/blob/main/THIRD_PARTY_NOTICES.txt) for additional terms.
 

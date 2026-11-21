@@ -92,14 +92,14 @@ def check_detector_sources():
     if missing:
         raise FileNotFoundError(
             "2D source missing / 2D 源码缺失: " + ", ".join(missing)
-            + ". See https://wangyulin-seu.github.io/WAPR-site/docs/install-core.html#third-party / 参见安装文档第三方源码一节。"
+            + ". See https://wangyulin-seu.github.io/wapr/docs/install-core.html#third-party / 参见安装文档第三方源码一节。"
         )
     with open(grounding_attention, encoding="utf-8") as stream:
         attention_source = stream.read()
     if "MultiScaleDeformableAttnFunction.apply(" in attention_source:
         raise RuntimeError(
             "GroundingDINO still calls its CUDA extension. Apply the attention"
-            " adaptation at https://wangyulin-seu.github.io/WAPR-site/docs/install-core.html#groundingdino before installation. / "
+            " adaptation at https://wangyulin-seu.github.io/wapr/docs/install-core.html#groundingdino before installation. / "
             "GroundingDINO 仍调用 CUDA 扩展；请先按安装文档修改注意力调用。"
         )
     if "multi_scale_deformable_attn_pytorch(" not in attention_source:

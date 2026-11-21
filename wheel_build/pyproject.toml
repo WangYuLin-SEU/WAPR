@@ -51,7 +51,7 @@ compatible = ["packaging", "requests", "PyYAML"]
 
 [project.urls]
 Source = "https://github.com/WangYuLin-SEU/WAPR"
-Documentation = "https://wangyulin-seu.github.io/WAPR-site/docs/"
+Documentation = "https://wangyulin-seu.github.io/wapr/docs/"
 Paper = "https://link.springer.com/chapter/10.1007/978-3-032-37383-0_13"
 
 [tool.setuptools]

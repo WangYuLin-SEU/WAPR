@@ -11,8 +11,8 @@
 # 自定义 RGB-D 目录格式，默认用下载的 LM-O 单帧演示。
 # python examples/06_custom_scene.py
 # 运行：python examples/06_custom_scene.py
-# File names and fields: https://wangyulin-seu.github.io/WAPR-site/docs/data-own.html
-# 文件名和字段：https://wangyulin-seu.github.io/WAPR-site/docs/data-own.html?lang=zh
+# File names and fields: https://wangyulin-seu.github.io/wapr/docs/data-own.html
+# 文件名和字段：https://wangyulin-seu.github.io/wapr/docs/data-own.html?lang=zh
 # depth and meshes are meters after this loader. K is pixels.
 # 这个加载器返回的深度和网格是米。K 是像素。
 import json

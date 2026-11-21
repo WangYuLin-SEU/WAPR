@@ -65,7 +65,7 @@ def main():
         from step03_box_lengths import UNIPOSE_CFG, UNIPOSE_CKPT, UNIPOSE_INFER
     except ImportError as error:
         print("RECON_MISSING_BASE", str(error), flush=True)
-        print("Run the base installation first / 请先完成基础安装：https://wangyulin-seu.github.io/WAPR-site/docs/install-guide.html", flush=True)
+        print("Run the base installation first / 请先完成基础安装：https://wangyulin-seu.github.io/wapr/docs/install-guide.html", flush=True)
         return 1
 
     from wapr.resources import weights_dir
